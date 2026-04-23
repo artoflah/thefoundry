@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MEMBER ACCESS PORTAL — THE LICENSED FOUNDRY™</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body id="login">
+
+  <!-- Top-right copyright block -->
+  <aside class="login-copyright-block">
+    © 2026 The Licensed Foundry™<br>
+    All glyphs monitored.<br>
+    Unauthorized use of restricted characters<br>
+    is a violation of subsection 4(b) of your agreement.
+  </aside>
+
+  <!-- Center stage -->
+  <main class="login-stage">
+    <div class="login-assembly">
+
+      <!-- Logo mark -->
+      <div class="login-logo-mark" id="login-logo">
+        <!-- SVG rendered by JS -->
+      </div>
+
+      <!-- L-shape connector + input -->
+      <div class="login-connector-row">
+        <div class="login-L" aria-hidden="true"></div>
+
+        <div class="login-field-group">
+          <span class="login-field-label">Member Access Portal v.1.0.0</span>
+          <form id="login-form" autocomplete="off">
+            <input
+              type="text"
+              id="login-input"
+              class="login-input"
+              placeholder="ENTER / SCAN YOUR MEMBERSHIP ID"
+              spellcheck="false"
+              autocorrect="off"
+              autocapitalize="characters"
+              required
+            >
+            <button type="submit" class="login-submit-btn" aria-hidden="true">Submit</button>
+          </form>
+          <span class="login-error-msg" id="login-error">
+            ID NOT RECOGNIZED. UNAUTHORIZED ACCESS ATTEMPTS ARE LOGGED.
+          </span>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Bottom-left upgrade link -->
+  <a href="upgrade.html" class="login-upgrade-link">THEFOUNDRY.COM/UPGRADE</a>
+
+  <!-- Bottom-right footer -->
+  <footer class="login-footer">
+    © 2026 THE LICENSED FOUNDRY™ v.1.0.0 — EST. NEVER — ALL GLYPHS MONITORED
+  </footer>
+
+  <script src="scripts.js"></script>
+</body>
+</html>

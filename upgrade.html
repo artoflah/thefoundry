@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UPGRADE YOUR LICENSE — THE LICENSED FOUNDRY™</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body id="upgrade">
+
+  <!-- Fixed header -->
+  <header class="site-header">
+    <a href="specimen.html" class="header-logo">
+      <span class="header-logo-mark" id="header-logo">
+        <!-- SVG via JS -->
+      </span>
+      <span class="header-logo-name">The Licensed Foundry™</span>
+    </a>
+    <div class="header-right">
+      Licensed™ v.1.0.0<br>
+      All glyphs monitored.
+    </div>
+  </header>
+
+  <!-- HUD injected by JS -->
+
+  <!-- Page content -->
+  <div class="page-wrap">
+    <main class="upgrade-main">
+
+      <p class="upgrade-page-label">License Management</p>
+      <h1 class="upgrade-heading">Upgrade Your License</h1>
+
+      <!-- Tier grid (populated by JS) -->
+      <div class="tier-grid" id="tier-grid" role="list">
+        <!-- Tier cards injected by initUpgrade() -->
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <span class="footer-copy">
+      © 2026 THE LICENSED FOUNDRY™ v.1.0.0 — EST. NEVER — ALL GLYPHS MONITORED
+    </span>
+  </footer>
+
+  <script src="scripts.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const logoEl = document.getElementById('header-logo');
+      if (logoEl) logoEl.innerHTML = getLogo(28);
+    });
+  </script>
+</body>
+</html>

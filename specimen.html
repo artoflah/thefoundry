@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TYPE SPECIMEN — THE LICENSED FOUNDRY™</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body id="specimen">
+
+  <!-- Fixed header -->
+  <header class="site-header">
+    <a href="specimen.html" class="header-logo">
+      <span class="header-logo-mark" id="header-logo">
+        <!-- SVG via JS -->
+      </span>
+      <span class="header-logo-name">The Licensed Foundry™</span>
+    </a>
+    <div class="header-right">
+      Licensed™ v.1.0.0<br>
+      All glyphs monitored.
+    </div>
+  </header>
+
+  <!-- HUD card injected by JS into body (fixed top-right) -->
+
+  <!-- Page content -->
+  <div class="page-wrap specimen-wrap">
+
+    <main class="specimen-main">
+      <p class="specimen-pre-label">
+        APPROVED SPECIMEN v.1.0.0 — Pre-cleared for your license tier.
+      </p>
+
+      <!-- Editable specimen display -->
+      <div
+        id="specimen-display"
+        class="specimen-display"
+        contenteditable="true"
+        spellcheck="false"
+        autocorrect="off"
+        autocapitalize="none"
+        data-placeholder="Begin typing your specimen."
+        role="textbox"
+        aria-label="Type specimen input"
+        aria-multiline="true"
+      ></div>
+
+      <!-- Character count bar -->
+      <div class="specimen-char-bar">
+        <span class="specimen-char-info" id="specimen-tier-label">—</span>
+        <span class="specimen-char-count" id="specimen-char-count">0</span>
+      </div>
+    </main>
+
+    <!-- Bottom bar -->
+    <div class="specimen-bottom-bar">
+      <span class="specimen-tier-info" id="specimen-restriction-info">—</span>
+      <a href="upgrade.html" class="specimen-upgrade-link">Upgrade your license →</a>
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <span class="footer-copy">
+      © 2026 THE LICENSED FOUNDRY™ v.1.0.0 — EST. NEVER — ALL GLYPHS MONITORED
+    </span>
+  </footer>
+
+  <script src="scripts.js"></script>
+  <script>
+    // Augment initSpecimen to set tier labels
+    document.addEventListener('DOMContentLoaded', () => {
+      const tier = localStorage.getItem('user_tier');
+      if (!tier) return;
+      const tierData = TIERS[tier];
+      if (!tierData) return;
+
+      const logoEl = document.getElementById('header-logo');
+      if (logoEl) logoEl.innerHTML = getLogo(28);
+
+      const tierLabel = document.getElementById('specimen-tier-label');
+      if (tierLabel) {
+        const limit = tierData.charLimit === Infinity
+          ? `Session limit: ${tierData.sessionLimit}`
+          : `${tierData.charLimit} characters`;
+        tierLabel.textContent = `${tierData.name} TIER — ${limit}`;
+      }
+
+      const restrictionInfo = document.getElementById('specimen-restriction-info');
+      if (restrictionInfo) {
+        restrictionInfo.textContent = tierData.restrictedDescription;
+      }
+
+      // Live update char count display below specimen
+      const display = document.getElementById('specimen-display');
+      const countEl = document.getElementById('specimen-char-count');
+      if (display && countEl) {
+        display.addEventListener('input', () => {
+          const len = display.textContent.length;
+          const limit = tier === 'enterprise' ? tierData.sessionLimit : tierData.charLimit;
+          countEl.textContent = tier === 'enterprise'
+            ? `${len} / ${tierData.sessionLimit}`
+            : `${len} / ${tierData.charLimit === Infinity ? '∞' : tierData.charLimit}`;
+          countEl.classList.toggle('near-limit', len > limit * 0.85);
+        });
+      }
+    });
+  </script>
+</body>
+</html>
