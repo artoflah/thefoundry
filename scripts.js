@@ -366,6 +366,144 @@ function setSessionCharsInStorage(n) {
 let popupCount = 0;
 const MAX_POPUPS = 30;
 
+// ================================================================
+// CAMERA / ASCII SYSTEM
+// ================================================================
+
+const CAM_COLS = 40;
+const CAM_ROWS = 14;
+const CAM_FONT = 8;   // px — words overflow cells at this size → sludge effect
+const CAM_W    = 280;
+const CAM_H    = 100;
+const CAM_FPS  = 16;
+// Ramp: index 0 = darkest (dense words), last = lightest (spaces)
+const CAM_RAMP = ['VIOLATION','UNAUTHORIZED','LCN','FOUNDRY','█','#','*','+',':','.',' '];
+
+let cameraState     = 'idle'; // 'idle' | 'requesting' | 'active' | 'denied'
+let cameraVideo     = null;   // hidden <video>
+let cameraOffscreen = null;   // sampling canvas
+let livePopup       = null;   // { el, canvas, rafId } — the currently rendering popup
+const popupStack    = [];     // [{ el, canvas }] oldest → newest
+let _onViolationDecrement = null; // set by initSpecimen; used for biometric refusal
+
+function _initCamera(onGranted, onDenied) {
+  cameraState = 'requesting';
+  navigator.mediaDevices
+    .getUserMedia({ video: { width: 320, height: 240 }, audio: false })
+    .then(stream => {
+      cameraState = 'active';
+      cameraVideo = document.createElement('video');
+      cameraVideo.srcObject   = stream;
+      cameraVideo.autoplay    = true;
+      cameraVideo.playsInline = true;
+      cameraVideo.muted       = true;
+      cameraVideo.style.cssText =
+        'position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;top:-10px;left:-10px;';
+      document.body.appendChild(cameraVideo);
+      cameraOffscreen        = document.createElement('canvas');
+      cameraOffscreen.width  = CAM_COLS;
+      cameraOffscreen.height = CAM_ROWS;
+      onGranted();
+    })
+    .catch(() => {
+      cameraState = 'denied';
+      onDenied();
+    });
+}
+
+function _camChar(brightness) {
+  const idx = Math.min(CAM_RAMP.length - 1, Math.floor((brightness / 256) * CAM_RAMP.length));
+  return CAM_RAMP[idx];
+}
+
+function _renderAsciiFrame(canvas, ctx) {
+  if (cameraState !== 'active' || !cameraVideo || cameraVideo.readyState < 2) return;
+
+  // Draw video mirrored to sampling canvas
+  const sCtx = cameraOffscreen.getContext('2d');
+  sCtx.save();
+  sCtx.scale(-1, 1);
+  sCtx.drawImage(cameraVideo, -CAM_COLS, 0, CAM_COLS, CAM_ROWS);
+  sCtx.restore();
+
+  const { data } = sCtx.getImageData(0, 0, CAM_COLS, CAM_ROWS);
+  const cellW = CAM_W / CAM_COLS;
+  const cellH = CAM_H / CAM_ROWS;
+
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = '#EE1111';
+  ctx.font      = `${CAM_FONT}px monospace`;
+  ctx.textBaseline = 'top';
+
+  for (let r = 0; r < CAM_ROWS; r++) {
+    for (let c = 0; c < CAM_COLS; c++) {
+      const i   = (r * CAM_COLS + c) * 4;
+      const lum = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+      const ch  = _camChar(lum);
+      if (ch === ' ') continue;
+      // Slight jitter per character for the typography-sludge look
+      const x = c * cellW + (Math.random() * 1.5 - 0.75);
+      const y = r * cellH + (Math.random() * 1.0 - 0.5);
+      ctx.fillText(ch, x, y);
+    }
+  }
+}
+
+function _makeGlitch(canvas, ctx) {
+  const cellW = CAM_W / CAM_COLS;
+  const cellH = CAM_H / CAM_ROWS;
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = '#EE1111';
+  ctx.font      = `${CAM_FONT}px monospace`;
+  ctx.textBaseline = 'top';
+  for (let r = 0; r < CAM_ROWS; r++) {
+    for (let c = 0; c < CAM_COLS; c++) {
+      const ch = CAM_RAMP[Math.floor(Math.random() * CAM_RAMP.length)];
+      if (ch === ' ') continue;
+      ctx.fillText(ch, c * cellW + (Math.random() * 2 - 1), r * cellH);
+    }
+  }
+}
+
+function _startLiveRender(popupEl, canvas) {
+  const ctx    = canvas.getContext('2d');
+  const frameMs = 1000 / CAM_FPS;
+  let lastT = 0;
+  let rafId;
+
+  function loop(t) {
+    if (t - lastT >= frameMs) {
+      _renderAsciiFrame(canvas, ctx);
+      lastT = t;
+    }
+    rafId = requestAnimationFrame(loop);
+  }
+
+  rafId = requestAnimationFrame(loop);
+  livePopup = { el: popupEl, canvas, rafId };
+}
+
+function _freezeLivePopup() {
+  if (!livePopup) return;
+  cancelAnimationFrame(livePopup.rafId);
+  // Canvas retains its last frame — no extra snapshot needed
+  livePopup = null;
+}
+
+function _promoteNextLive() {
+  if (cameraState !== 'active') return;
+  // Walk stack newest→oldest, find first popup still in DOM
+  for (let i = popupStack.length - 1; i >= 0; i--) {
+    const entry = popupStack[i];
+    if (document.body.contains(entry.el)) {
+      _startLiveRender(entry.el, entry.canvas);
+      return;
+    }
+  }
+}
+
 const VIOLATION_COPY = {
   restricted_char: [
     (d) => [`VIOLATION — RESTRICTED CHARACTER`, `The character "${d.char}" is not permitted under your ${d.tier} license. See subsection 4(b) of the Licensee Agreement. This incident has been logged.`],
@@ -394,6 +532,9 @@ const VIOLATION_COPY = {
   session_limit: [
     (d) => [`VIOLATION — SESSION LIMIT EXCEEDED`, `Your Enterprise license permits ${d.limit} characters per session. Sessions reset every 24 hours. Please wait. The Foundry appreciates your patience.`],
     (d) => [`VIOLATION — SESSION CAPACITY REACHED`, `The ${d.limit}-character session allocation for Enterprise Tier has been exhausted. Access resumes upon session reset. This is by design.`],
+  ],
+  biometric_refusal: [
+    () => [`VIOLATION — BIOMETRIC REFUSAL`, `Camera access denied. Per subsection 7(c) of your agreement, refusal of biometric verification is itself a violation. This incident has been logged.`],
   ],
 };
 
@@ -432,7 +573,8 @@ function makeDraggable(el) {
   window.addEventListener('mouseup', () => { isDragging = false; });
 }
 
-function spawnViolationPopup(type, data = {}, isSpawn = false) {
+function spawnViolationPopup(type, data = {}, isSpawn = false, options = {}) {
+  const { noCam = false } = options;
   if (popupCount >= MAX_POPUPS) return;
 
   const [title, body] = getViolationCopy(type, data);
@@ -441,7 +583,7 @@ function spawnViolationPopup(type, data = {}, isSpawn = false) {
   popup.className = 'violation-popup';
 
   const maxX = Math.max(0, window.innerWidth - 360);
-  const maxY = Math.max(0, window.innerHeight - 200);
+  const maxY = Math.max(0, window.innerHeight - 280);
   const x = isSpawn
     ? Math.max(0, Math.min(maxX, (parseFloat(data.parentX || window.innerWidth / 2) + (Math.random() * 120 - 40))))
     : Math.random() * maxX;
@@ -450,10 +592,15 @@ function spawnViolationPopup(type, data = {}, isSpawn = false) {
     : Math.random() * maxY;
   const rot = (Math.random() * 10) - 5;
 
-  popup.style.left = x + 'px';
-  popup.style.top = y + 'px';
+  popup.style.left      = x + 'px';
+  popup.style.top       = y + 'px';
   popup.style.transform = `rotate(${rot}deg)`;
-  popup.style.zIndex = 9000 + popupCount;
+  popup.style.zIndex    = 9000 + popupCount;
+
+  const camHTML = noCam ? '' : `
+    <div class="popup-camera-area">
+      <canvas class="popup-camera-canvas" width="${CAM_W}" height="${CAM_H}"></canvas>
+    </div>`;
 
   popup.innerHTML = `
     <div class="popup-titlebar">
@@ -464,6 +611,7 @@ function spawnViolationPopup(type, data = {}, isSpawn = false) {
         <button class="popup-win-btn close-btn" aria-label="close">×</button>
       </div>
     </div>
+    ${camHTML}
     <div class="popup-body">
       <div class="popup-violation-title">${title}</div>
       <div class="popup-violation-text">${body}</div>
@@ -473,6 +621,48 @@ function spawnViolationPopup(type, data = {}, isSpawn = false) {
   document.body.appendChild(popup);
   popupCount++;
 
+  // --- Camera / ASCII setup ---
+  if (!noCam) {
+    const canvas = popup.querySelector('.popup-camera-canvas');
+    const ctx    = canvas.getContext('2d');
+
+    if (cameraState === 'idle') {
+      // First violation — request camera; show pending state meanwhile
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#EE1111';
+      ctx.font = `${CAM_FONT}px monospace`;
+      ctx.textBaseline = 'top';
+      ctx.fillText('INITIALIZING BIOMETRIC VERIFICATION', 4, 44);
+      popupStack.push({ el: popup, canvas });
+
+      _initCamera(
+        () => {
+          // Granted — this popup becomes live
+          _freezeLivePopup();
+          _startLiveRender(popup, canvas);
+        },
+        () => {
+          // Denied — glitch on original popup, spawn biometric refusal
+          _makeGlitch(canvas, ctx);
+          if (_onViolationDecrement) _onViolationDecrement();
+          spawnViolationPopup('biometric_refusal', {}, false, { noCam: true });
+        }
+      );
+
+    } else if (cameraState === 'active') {
+      // Freeze previously-live popup, this one is now live
+      _freezeLivePopup();
+      popupStack.push({ el: popup, canvas });
+      _startLiveRender(popup, canvas);
+
+    } else {
+      // 'requesting' (rare race) or 'denied' — static glitch
+      _makeGlitch(canvas, ctx);
+      popupStack.push({ el: popup, canvas });
+    }
+  }
+
   makeDraggable(popup);
 
   const closeBtn = popup.querySelector('.close-btn');
@@ -480,11 +670,21 @@ function spawnViolationPopup(type, data = {}, isSpawn = false) {
     const rect = popup.getBoundingClientRect();
     const px = rect.left;
     const py = rect.top;
+
+    // Freeze render if this was the live popup
+    if (livePopup && livePopup.el === popup) {
+      _freezeLivePopup();
+    }
+
     popup.remove();
     popupCount = Math.max(0, popupCount - 1);
-    // closing spawns two more
+
+    // Closing spawns two more (they handle becoming live themselves)
     spawnViolationPopup(type, { ...data, parentX: px, parentY: py }, true);
     spawnViolationPopup(type, { ...data, parentX: px + 30, parentY: py + 20 }, true);
+
+    // Edge case: if MAX_POPUPS blocked both spawns, promote an existing popup
+    if (!livePopup) _promoteNextLive();
   });
 }
 
@@ -797,6 +997,17 @@ function initSpecimen() {
     spawnViolationPopup(type, { ...data, tier: tierData.name });
   }
 
+  // Expose a decrement-only hook so the camera system can register
+  // a biometric refusal as a violation without re-calling triggerViolation
+  _onViolationDecrement = () => {
+    violationsRemaining--;
+    setViolationsInStorage(tier, violationsRemaining);
+    updateHUD({ violations: violationsRemaining });
+    if (violationsRemaining < 0) {
+      window.location.href = '404.html';
+    }
+  };
+
   display.addEventListener('input', () => {
     const text = display.textContent;
     const len = text.length;
@@ -918,7 +1129,7 @@ function initUpgrade() {
     if (!btn || btn.disabled) return;
 
     const targetTier = btn.dataset.tier;
-    if (!tier) return;
+    if (!tier) { window.location.href = 'login.html'; return; }
 
     const currentIdx = tierOrder.indexOf(tier);
     const targetIdx = tierOrder.indexOf(targetTier);
