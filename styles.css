@@ -196,51 +196,51 @@ body#login {
   overflow: hidden;
 }
 
-/* Logo — large, centered, ~25% from top. No animation. */
+/* Logo — 300px, center at 45% from left, 30% from top. No animation. */
 .login-logo-mark {
   position: absolute;
-  top: 25vh;
-  left: 50%;
+  top: 30vh;
+  left: 45%;
   transform: translateX(-50%);
-  width: 200px;
-  height: 200px;
+  width: 300px;
+  height: 300px;
   z-index: 1;
 }
 
-/* Vertical line — draws down from logo bottom over 1.8s, starts at t=2s */
+/* Vertical line — 35px wide, draws down from logo bottom to ~75vh, starts at t=2s */
 .login-vert-line {
   position: absolute;
-  top: calc(25vh + 200px);
-  left: calc(50% - 2px);
-  width: 4px;
+  top: calc(30vh + 300px);
+  left: calc(45% - 17px);
+  width: 35px;
   height: 0;
   background: var(--black);
-  animation: login-vert-draw 1800ms ease-in-out 2000ms forwards;
+  animation: login-vert-draw 1500ms ease-in-out 2000ms forwards;
   z-index: 0;
 }
 
-/* Horizontal line — branches right at 60vh, starts at t=2.7s */
+/* Horizontal line — 35px tall, branches right from vert bottom at ~75vh, starts at t=3.5s */
 .login-horiz-line {
   position: absolute;
-  top: 60vh;
-  left: calc(50% + 2px);
-  height: 4px;
+  top: calc(75vh - 35px);
+  left: calc(45% + 18px);
+  height: 35px;
   width: 0;
   background: var(--black);
-  animation: login-horiz-draw 800ms ease-in-out 2700ms forwards;
+  animation: login-horiz-draw 1000ms ease-in-out 3500ms forwards;
 }
 
-/* Login form — fades up in parallel with horizontal line, t=2.7s */
+/* Login form — fades in simultaneously with horizontal line, t=3.5s */
 .login-field-group {
   position: absolute;
-  top: calc(60vh + 20px);
-  left: calc(50% + 16px);
+  top: calc(75vh + 4px);
+  left: calc(45% + 18px);
   display: flex;
   flex-direction: column;
   gap: var(--space-8);
   opacity: 0;
   transform: translateY(8px);
-  animation: login-fade-up 800ms ease-out 2700ms forwards;
+  animation: login-fade-up 800ms ease-out 3500ms forwards;
 }
 
 .login-field-label {
@@ -298,19 +298,21 @@ body#login {
   display: none;
 }
 
-/* Large bottom-left text — wipes in left-to-right when vert line completes, t=3.8s */
+/* Large bottom-left text — wipes in left-to-right when vert line completes, t=3.5s */
+/* Bottom edge aligns with vert line terminus at ~75vh from top = 25vh from bottom */
 .login-upgrade-link {
   position: fixed;
-  bottom: var(--space-32);
+  bottom: 25vh;
   left: var(--space-32);
-  font-size: 52px;
+  font-size: 90px;
+  font-weight: 700;
   line-height: 1;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
   text-transform: uppercase;
   color: var(--black);
   text-decoration: none;
   clip-path: inset(0 100% 0 0);
-  animation: login-wipe-in 600ms ease-out 3800ms forwards;
+  animation: login-wipe-in 600ms ease-out 3500ms forwards;
 }
 
 .login-upgrade-link:hover {
@@ -330,16 +332,16 @@ body#login {
 
 /* ── Keyframes ────────────────────────────────────────────────── */
 
-/* Vertical line grows top-to-bottom, logo bottom → viewport bottom */
+/* Vertical line grows top-to-bottom: logo bottom (30vh + 300px) → 75vh */
 @keyframes login-vert-draw {
   from { height: 0; }
-  to   { height: calc(75vh - 200px); }
+  to   { height: calc(45vh - 300px); }
 }
 
-/* Horizontal branch draws right across most of the right half */
+/* Horizontal branch draws right from vert line (at 45vw + 18px) to ~90vw */
 @keyframes login-horiz-draw {
   from { width: 0; }
-  to   { width: calc(50vw - 48px); }
+  to   { width: calc(45vw - 18px); }
 }
 
 /* Form fades up into position */
@@ -1405,6 +1407,397 @@ body#not-found .site-footer {
   .error-code {
     font-size: 80px;
   }
+}
+
+/* ================================================================
+   SPECIMEN — LONG-SCROLL LAYOUT
+   ================================================================ */
+
+/* Sidebar offset for HUD card on specimen page */
+body#specimen .hud-card {
+  right: 280px;
+}
+
+/* Content area leaves room for fixed ticker sidebar */
+body#specimen .specimen-wrap {
+  padding-right: 280px;
+}
+
+/* ── Surveillance Ticker Sidebar ───────────────────────────── */
+.ticker-sidebar {
+  position: fixed;
+  right: 0;
+  top: 52px;   /* header height */
+  bottom: 0;
+  width: 280px;
+  background: var(--white);
+  border-left: var(--rule);
+  display: flex;
+  flex-direction: column;
+  z-index: 400;
+  overflow: hidden;
+}
+
+.ticker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px 11px;
+  flex-shrink: 0;
+}
+
+.ticker-label {
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-family: monospace;
+}
+
+.ticker-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--red);
+  flex-shrink: 0;
+  animation: ticker-blink 1s ease-in-out infinite;
+}
+
+@keyframes ticker-blink {
+  0%, 100% { opacity: 1.0; }
+  50%       { opacity: 0.3; }
+}
+
+.ticker-divider {
+  height: 1px;
+  background: var(--black);
+  flex-shrink: 0;
+}
+
+.ticker-feed {
+  flex: 1;
+  overflow-y: auto;
+  padding: 6px 0 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Hide scrollbar but keep scrollability */
+.ticker-feed::-webkit-scrollbar { width: 3px; }
+.ticker-feed::-webkit-scrollbar-track { background: transparent; }
+.ticker-feed::-webkit-scrollbar-thumb { background: #ddd; }
+
+.ticker-entry {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  padding: 3px 16px;
+  opacity: 0;
+  animation: ticker-fade-in 200ms ease forwards;
+}
+
+@keyframes ticker-fade-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.ticker-time {
+  font-size: 8px;
+  font-family: monospace;
+  color: #bbb;
+  flex-shrink: 0;
+  letter-spacing: 0.04em;
+  line-height: 1.6;
+}
+
+.ticker-text {
+  font-size: 8px;
+  font-family: monospace;
+  letter-spacing: 0.06em;
+  line-height: 1.6;
+  color: var(--black);
+  text-transform: uppercase;
+  word-break: break-word;
+}
+
+.ticker-entry--red    .ticker-text { color: var(--red); }
+.ticker-entry--red    .ticker-time { color: rgba(238,17,17,0.4); }
+.ticker-entry--system .ticker-text { color: #888; }
+.ticker-entry--editorial .ticker-text { color: #555; }
+.ticker-entry--idle   .ticker-text { color: #ccc; }
+
+/* ── Section Structure ──────────────────────────────────────── */
+.sp-section {
+  border-top: var(--rule);
+  padding-top: var(--space-80);
+  padding-bottom: var(--space-120);
+}
+
+.sp-section:first-child {
+  border-top: none;
+  padding-top: calc(var(--space-64) + 16px);
+}
+
+.sp-section-inner {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 var(--space-32);
+}
+
+.sp-section-label {
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #aaa;
+  margin-bottom: var(--space-24);
+  font-family: monospace;
+}
+
+.sp-section-heading {
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-weight: 400;
+  margin-bottom: var(--space-40);
+  color: var(--black);
+}
+
+/* ── § 01 Character Map ─────────────────────────────────────── */
+.sp-charmap-grid {
+  display: grid;
+  /* 10 cols × 80px + 9 gaps × 4px = 836px — matches 900px inner minus 64px padding */
+  grid-template-columns: repeat(10, 80px);
+  gap: 4px;
+}
+
+.sp-glyph-cell {
+  width: 80px;
+  height: 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #ebebeb;
+  cursor: default;
+  transition: border-color 0.12s;
+  gap: 3px;
+  user-select: none;
+}
+
+.sp-glyph-cell.locked:hover {
+  border-color: var(--red);
+}
+
+.sp-glyph-char {
+  font-family: var(--font-licensed);
+  font-size: 34px;
+  line-height: 1;
+  display: block;
+}
+
+.sp-glyph-cell.available .sp-glyph-char { color: var(--black); }
+.sp-glyph-cell.locked    .sp-glyph-char { color: #d0d0d0; }
+
+.sp-glyph-caption {
+  font-size: 7px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--red);
+  font-family: monospace;
+  text-align: center;
+  line-height: 1.2;
+}
+
+/* ── § 02 Type Tester — reuses .specimen-* classes ──────────── */
+/* The .specimen-pre-label, .specimen-display, .specimen-char-bar
+   classes are declared in the earlier Specimen Page section above.
+   No additional rules needed here. */
+
+/* ── § 03 Usage Log ─────────────────────────────────────────── */
+.sp-log-meta {
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #888;
+  margin-bottom: var(--space-32);
+  font-family: monospace;
+}
+
+.sp-log-empty {
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #ccc;
+  font-family: monospace;
+}
+
+.sp-log-entries {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.sp-log-entry {
+  padding: 12px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.sp-log-entry:first-of-type { border-top: 1px solid #f0f0f0; }
+
+.sp-log-entry-header {
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  font-family: monospace;
+  margin-bottom: 5px;
+}
+
+.sp-log-entry-line {
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-family: monospace;
+  color: #666;
+  padding-left: 16px;
+  line-height: 1.9;
+}
+
+/* ── § 04 License Information ───────────────────────────────── */
+.sp-license-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-64);
+  align-items: start;
+}
+
+.sp-license-table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.sp-license-table td {
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-family: monospace;
+  padding: 7px 0;
+  border-bottom: 1px solid #f0f0f0;
+  vertical-align: top;
+}
+
+.sp-license-key {
+  color: #999;
+  width: 50%;
+  padding-right: 12px;
+}
+
+.sp-license-val { color: var(--black); }
+
+.sp-status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.sp-status-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #00c853;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.sp-license-desc {
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  line-height: 1.9;
+  text-transform: uppercase;
+  color: #666;
+  margin-bottom: var(--space-32);
+}
+
+.sp-license-upgrade-btn {
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--black);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  display: inline-block;
+}
+
+/* ── Restricted-Glyph Interest Modal ───────────────────────── */
+.sp-interest-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9998;
+}
+
+.sp-interest-modal-box {
+  background: var(--white);
+  border: var(--rule);
+  padding: var(--space-40);
+  max-width: 460px;
+  width: calc(100% - var(--space-64));
+}
+
+.sp-interest-modal-title {
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-bottom: var(--space-16);
+}
+
+.sp-interest-modal-body {
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  line-height: 1.8;
+  text-transform: uppercase;
+  color: #666;
+  margin-bottom: var(--space-32);
+}
+
+.sp-interest-modal-btns {
+  display: flex;
+  align-items: center;
+  gap: var(--space-24);
+}
+
+.sp-interest-upgrade-btn {
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  background: var(--black);
+  color: var(--white);
+  padding: 10px 20px;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.sp-interest-upgrade-btn:hover { opacity: 0.75; text-decoration: none; }
+
+.sp-interest-dismiss-btn {
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #aaa;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  padding: 0;
+}
+
+/* ── Specimen page responsive ───────────────────────────────── */
+@media (max-width: 1100px) {
+  .ticker-sidebar { display: none; }
+  body#specimen .hud-card { right: 0; }
+  body#specimen .specimen-wrap { padding-right: 0; }
+  .sp-charmap-grid { grid-template-columns: repeat(8, 1fr); }
+  .sp-glyph-cell { width: auto; height: 72px; }
+  .sp-license-cols { grid-template-columns: 1fr; gap: var(--space-40); }
 }
 
 /* ================================================================

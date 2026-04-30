@@ -367,24 +367,87 @@ let popupCount = 0;
 const MAX_POPUPS = 30;
 
 // ================================================================
-// CAMERA / ASCII SYSTEM
+// CAMERA / DIA WORD-TEXTURE SYSTEM
 // ================================================================
 
-const CAM_COLS = 50;
-const CAM_ROWS = 20;
-const CAM_FONT = 6;   // px — tight grid, each cell is exactly 6×6px
-const CAM_W    = 300;
-const CAM_H    = 120;
-const CAM_FPS  = 16;
-// Ramp: index 0 = darkest, last = lightest (trailing spaces = negative space face)
-const CAM_RAMP = ['█','▓','▒','░','+',':','.',' ',' ',' '];
+const CAM_W   = 300;   // popup canvas width (px)
+const CAM_H   = 120;   // popup canvas height (px)
+const CAM_FPS = 15;
+
+// DIA sampling grid
+const DIA_ROWS      = 38;
+const DIA_ASPECT    = CAM_H / CAM_W;                          // 0.4
+const DIA_INPUT_W   = Math.round(DIA_ROWS / DIA_ASPECT);      // 95
+const DIA_INPUT_H   = DIA_ROWS;                               // 38
+const DIA_MIN_LEVEL = 35;
+const DIA_MAX_LEVEL = 200;
+
+// Word textures: index 0 = lightest (blank), index 3 = darkest (VIOLATION)
+const DIA_WORDS    = ['', 'LCN', 'FOUNDRY', 'VIOLATION'];
+const DIA_TEX_SIZE = 1000;
+
+// Glitch ramp — used only by denied-camera fallback
+const _GLITCH_COLS = 50;
+const _GLITCH_ROWS = 20;
+const _GLITCH_FONT = 6;
+const _GLITCH_RAMP = ['█','▓','▒','░','+',':','.',' ',' ',' '];
 
 let cameraState     = 'idle'; // 'idle' | 'requesting' | 'active' | 'denied'
 let cameraVideo     = null;   // hidden <video>
-let cameraOffscreen = null;   // sampling canvas
+let cameraOffscreen = null;   // sampling canvas (DIA_INPUT_W × DIA_INPUT_H)
 let livePopup       = null;   // { el, canvas, rafId } — the currently rendering popup
 const popupStack    = [];     // [{ el, canvas }] oldest → newest
 let _onViolationDecrement = null; // set by initSpecimen; used for biometric refusal
+let wordTextures    = null;   // pre-rendered word canvases [blank, LCN, FOUNDRY, VIOLATION]
+
+// Global ticker function — set by initTicker; callable from any section
+let tickerAdd = null;
+
+function _mapValue(value, inMin, inMax, outMin, outMax) {
+  return ((value - inMin) / (inMax - inMin)) * (outMax - outMin) + outMin;
+}
+
+// Pre-render 4 word textures at 1000×1000 each. Run once at script load.
+// Each word is horizontally stretched to fill the full canvas width;
+// scaleY=3.2 pre-stretches vertically so words read naturally when stamped
+// into thin row cells at render time.
+function _initWordTextures() {
+  wordTextures = [];
+  for (let i = 0; i < 4; i++) {
+    const canvas = document.createElement('canvas');
+    canvas.width  = DIA_TEX_SIZE;
+    canvas.height = DIA_TEX_SIZE;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, DIA_TEX_SIZE, DIA_TEX_SIZE);
+
+    const word = DIA_WORDS[i];
+    if (!word) {
+      // index 0 = blank — transparent canvas, white bg shows through
+      wordTextures.push(canvas);
+      continue;
+    }
+
+    const textSize = 100;
+    ctx.font = `bold ${textSize}px "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif`;
+    const measuredWidth = ctx.measureText(word).width;
+    const scaleX = DIA_TEX_SIZE / measuredWidth;
+    const scaleY = 3.2;
+
+    ctx.save();
+    ctx.fillStyle = '#EE1111';
+    ctx.translate(DIA_TEX_SIZE / 2, DIA_TEX_SIZE / 2);
+    ctx.scale(scaleX, scaleY);
+    ctx.textBaseline = 'middle';
+    ctx.textAlign = 'center';
+    ctx.fillText(word, 0, 0);
+    ctx.restore();
+
+    wordTextures.push(canvas);
+  }
+}
+
+// Initialize textures immediately — pure canvas, no camera permission needed
+_initWordTextures();
 
 function _initCamera(onGranted, onDenied) {
   cameraState = 'requesting';
@@ -404,8 +467,8 @@ function _initCamera(onGranted, onDenied) {
         : 'position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;top:-10px;left:-10px;';
       document.body.appendChild(cameraVideo);
       cameraOffscreen        = document.createElement('canvas');
-      cameraOffscreen.width  = CAM_COLS;
-      cameraOffscreen.height = CAM_ROWS;
+      cameraOffscreen.width  = DIA_INPUT_W;
+      cameraOffscreen.height = DIA_INPUT_H;
       onGranted();
     })
     .catch(() => {
@@ -414,79 +477,86 @@ function _initCamera(onGranted, onDenied) {
     });
 }
 
-function _camChar(brightness) {
-  const idx = Math.min(CAM_RAMP.length - 1, Math.floor((brightness / 256) * CAM_RAMP.length));
-  return CAM_RAMP[idx];
-}
-
+// DIA draw_hor port — per-frame render using pre-cached word textures.
+// Downsamples video to ~95×38, finds consecutive same-brightness runs per row,
+// stamps the matching word texture stretched to each run's output width.
 function _renderAsciiFrame(canvas, ctx) {
   if (cameraState !== 'active' || !cameraVideo || cameraVideo.readyState < 2) return;
+  if (!wordTextures) return;
 
-  // Draw video mirrored to sampling canvas
+  const inputW = DIA_INPUT_W;
+  const inputH = DIA_INPUT_H;
+  const w = canvas.width  / inputW;
+  const h = canvas.height / inputH;
+
+  // Downsample video to tiny sampling canvas
   const sCtx = cameraOffscreen.getContext('2d');
-  sCtx.save();
-  sCtx.scale(-1, 1);
-  sCtx.drawImage(cameraVideo, -CAM_COLS, 0, CAM_COLS, CAM_ROWS);
-  sCtx.restore();
+  sCtx.drawImage(cameraVideo, 0, 0, inputW, inputH);
+  const { data } = sCtx.getImageData(0, 0, inputW, inputH);
 
-  const { data } = sCtx.getImageData(0, 0, CAM_COLS, CAM_ROWS);
-  const total = CAM_COLS * CAM_ROWS;
-
-  // 1. Compute per-pixel luminance
-  const lums = new Float32Array(total);
-  let lo = 255, hi = 0;
-  for (let i = 0; i < total; i++) {
-    const p = i * 4;
-    const l = 0.299 * data[p] + 0.587 * data[p + 1] + 0.114 * data[p + 2];
-    lums[i] = l;
-    if (l < lo) lo = l;
-    if (l > hi) hi = l;
-  }
-
-  // 2. Contrast normalize then apply gamma 0.7 to brighten midtones
-  const range = (hi - lo) || 1;
-  for (let i = 0; i < total; i++) {
-    lums[i] = Math.pow((lums[i] - lo) / range, 0.7) * 255;
-  }
-
-  const cellW = CAM_W / CAM_COLS; // 6px
-  const cellH = CAM_H / CAM_ROWS; // 6px
-
+  // Clear to white, then draw mirrored (selfie view) via output transform
+  ctx.save();
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = '#EE1111';
-  ctx.font = `${CAM_FONT}px monospace`;
-  ctx.textBaseline = 'top';
+  ctx.translate(canvas.width, 0);
+  ctx.scale(-1, 1);
 
-  for (let r = 0; r < CAM_ROWS; r++) {
-    for (let c = 0; c < CAM_COLS; c++) {
-      const ch = _camChar(lums[r * CAM_COLS + c]);
-      if (ch === ' ') continue;
-      ctx.fillText(ch, c * cellW, r * cellH);
+  for (let y = 0; y < inputH; y++) {
+    let startX     = 0;
+    let currentIdx = -1;
+
+    for (let x = 0; x < inputW; x++) {
+      const p   = (y * inputW + x) * 4;
+      const avg = (data[p] + data[p + 1] + data[p + 2]) / 3;
+
+      // Contrast clamp (port of DIA cacheInput)
+      const avgMin     = Math.max(0, avg - DIA_MIN_LEVEL) / (255 - DIA_MIN_LEVEL) * 255;
+      const avgClamped = 255 - Math.max(0, DIA_MAX_LEVEL - avgMin) / DIA_MAX_LEVEL * 255;
+
+      // Map brightness to texture index: bright → 0 (blank), dark → 3 (VIOLATION)
+      const newIdx = Math.max(0, Math.min(3,
+        Math.floor(_mapValue(avgClamped, 0, 255, 3, 0))
+      ));
+
+      if (newIdx !== currentIdx) {
+        // Flush completed run
+        if (currentIdx !== -1) {
+          const segW = x - startX;
+          if (segW > 0) ctx.drawImage(wordTextures[currentIdx], startX * w, y * h, segW * w, h);
+        }
+        startX     = x;
+        currentIdx = newIdx;
+      }
+
+      if (x === inputW - 1) {
+        // Flush final segment of this row
+        ctx.drawImage(wordTextures[currentIdx], startX * w, y * h, (x - startX + 1) * w, h);
+      }
     }
   }
+
+  ctx.restore();
 }
 
+// Denied-camera fallback — block noise, no word textures needed
 function _makeGlitch(canvas, ctx) {
-  const cellW = CAM_W / CAM_COLS;
-  const cellH = CAM_H / CAM_ROWS;
+  const cellW = CAM_W / _GLITCH_COLS;
+  const cellH = CAM_H / _GLITCH_ROWS;
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.fillStyle = '#EE1111';
-  ctx.font = `${CAM_FONT}px monospace`;
+  ctx.font = `${_GLITCH_FONT}px monospace`;
   ctx.textBaseline = 'top';
-  // Use only the dense end of the ramp for glitch noise
-  const glitchRamp = CAM_RAMP.slice(0, 5);
-  for (let r = 0; r < CAM_ROWS; r++) {
-    for (let c = 0; c < CAM_COLS; c++) {
-      const ch = glitchRamp[Math.floor(Math.random() * glitchRamp.length)];
+  for (let r = 0; r < _GLITCH_ROWS; r++) {
+    for (let c = 0; c < _GLITCH_COLS; c++) {
+      const ch = _GLITCH_RAMP[Math.floor(Math.random() * _GLITCH_RAMP.length)];
       ctx.fillText(ch, c * cellW, r * cellH);
     }
   }
 }
 
 function _startLiveRender(popupEl, canvas) {
-  const ctx    = canvas.getContext('2d');
+  const ctx     = canvas.getContext('2d');
   const frameMs = 1000 / CAM_FPS;
   let lastT = 0;
   let rafId;
@@ -649,7 +719,7 @@ function spawnViolationPopup(type, data = {}, isSpawn = false, options = {}) {
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.fillStyle = '#EE1111';
-      ctx.font = `${CAM_FONT}px monospace`;
+      ctx.font = `${_GLITCH_FONT}px monospace`;
       ctx.textBaseline = 'top';
       ctx.fillText('INITIALIZING BIOMETRIC VERIFICATION', 4, 44);
       popupStack.push({ el: popup, canvas });
@@ -1013,6 +1083,11 @@ function initSpecimen() {
     }
 
     spawnViolationPopup(type, { ...data, tier: tierData.name });
+
+    // Notify usage log and ticker
+    document.dispatchEvent(new CustomEvent('violation', {
+      detail: { type, data: { ...data }, tierName: tierData.name }
+    }));
   }
 
   // Expose a decrement-only hook so the camera system can register
@@ -1088,6 +1163,428 @@ function initSpecimen() {
     violations: violationsRemaining,
     sessionChars,
   });
+
+  // Build long-scroll specimen sections
+  const _spUserId = getIDFromStorage() || '—';
+  initTicker(_spUserId, tier);
+  buildCharMap(tier, tierData);
+  buildUsageLog(_spUserId, tierData.name);
+  buildLicenseInfo(_spUserId, tier, tierData);
+}
+
+// ================================================================
+// SPECIMEN — SURVEILLANCE TICKER
+// ================================================================
+
+function initTicker(userId, tier) {
+  const feed = document.getElementById('ticker-feed');
+  if (!feed) return;
+
+  const MAX_ENTRIES   = 60;
+  const MIN_GAP_MS    = 1500;   // minimum ms between any two entries
+  const EDITORIAL_GAP = 12000;  // minimum ms between editorial entries
+  let lastEntryMs     = 0;
+  let lastEditorialMs = 0;
+  const sessionStart  = Date.now();
+
+  function _ts() { return new Date().toTimeString().slice(0, 8); }
+
+  function _addEntry(text, type, force) {
+    const now = Date.now();
+    if (!force && now - lastEntryMs < MIN_GAP_MS) return false;
+    lastEntryMs = now;
+
+    const entry = document.createElement('div');
+    entry.className = `ticker-entry ticker-entry--${type || 'normal'}`;
+
+    const timeSpan = document.createElement('span');
+    timeSpan.className = 'ticker-time';
+    timeSpan.textContent = _ts();
+
+    const textSpan = document.createElement('span');
+    textSpan.className = 'ticker-text';
+    textSpan.textContent = text;
+
+    entry.appendChild(timeSpan);
+    entry.appendChild(textSpan);
+
+    // Newest entries at top
+    feed.insertBefore(entry, feed.firstChild);
+
+    const all = feed.querySelectorAll('.ticker-entry');
+    if (all.length > MAX_ENTRIES) feed.removeChild(all[all.length - 1]);
+
+    return true;
+  }
+
+  // Expose globally for charmap hover and interest modal dismiss
+  tickerAdd = _addEntry;
+
+  // Session init (staggered)
+  setTimeout(() => _addEntry('SESSION INITIATED', 'system', true), 600);
+  setTimeout(() => _addEntry(`MEMBER: ${userId}`, 'system', true), 2100);
+
+  // Editorial pool
+  function _dur() {
+    const s = Math.floor((Date.now() - sessionStart) / 1000);
+    return `${Math.floor(s / 60)}m ${s % 60}s`;
+  }
+  const editorials = [
+    () => `SESSION DURATION: ${_dur()} — INVOICE FORTHCOMING`,
+    () => `GLYPHS PROCESSED THIS SESSION: ${Math.floor(Math.random() * 1800) + 200}`,
+    () => 'YOUR USAGE PATTERNS HAVE BEEN SHARED WITH PARTNER FOUNDRIES',
+    () => 'BIOMETRIC SAMPLE SCHEDULED — STANDBY',
+    () => `COMPLIANCE SCORE: ${(87 + Math.random() * 12.4).toFixed(1)}%`,
+    () => `AUDIT QUEUE POSITION: ${Math.floor(Math.random() * 836) + 12}`,
+    () => 'THE FOUNDRY APPRECIATES YOUR PATRONAGE',
+    () => 'LICENSING TERMS SUBJECT TO REVISION WITHOUT NOTICE',
+    () => 'SURRENDER IS NOT AN OPTION. REFUSAL TO COMPLY IS ITSELF A VIOLATION',
+  ];
+  let editIdx = 0;
+
+  function fireEditorial() {
+    const now = Date.now();
+    if (now - lastEditorialMs < EDITORIAL_GAP) return;
+    const added = _addEntry(editorials[editIdx % editorials.length](), 'editorial');
+    if (added) { lastEditorialMs = now; editIdx++; }
+  }
+
+  function scheduleEditorial() {
+    setTimeout(() => { fireEditorial(); scheduleEditorial(); }, 15000 + Math.random() * 5000);
+  }
+  scheduleEditorial();
+
+  // Idle detection
+  let lastActivity = Date.now();
+  function resetIdle() { lastActivity = Date.now(); }
+  ['mousemove', 'keydown', 'scroll'].forEach(ev =>
+    document.addEventListener(ev, resetIdle, { passive: true })
+  );
+  setInterval(() => {
+    const elapsed = Math.floor((Date.now() - lastActivity) / 1000);
+    if (elapsed >= 8) _addEntry(`USER IDLE (${elapsed}s)`, 'idle');
+  }, 8000);
+
+  // Tab focus / blur
+  let blurTime = null;
+  window.addEventListener('blur', () => {
+    blurTime = Date.now();
+    _addEntry('USER LEFT SESSION — TIMESTAMPED', 'system', true);
+  });
+  window.addEventListener('focus', () => {
+    if (blurTime !== null) {
+      const abs = Math.round((Date.now() - blurTime) / 1000);
+      _addEntry(`USER RETURNED — ABSENCE LOGGED: ${abs}s`, 'system', true);
+      blurTime = null;
+    }
+  });
+
+  // Right-click
+  document.addEventListener('contextmenu', () => {
+    _addEntry('CONTEXT MENU INVOCATION LOGGED', 'normal');
+  });
+
+  // Upgrade link clicks
+  document.querySelectorAll('.js-upgrade-link').forEach(el =>
+    el.addEventListener('click', () => _addEntry('UPGRADE INTEREST DETECTED', 'normal', true))
+  );
+
+  // Keystroke count — every 5th key in the tester fires an entry
+  let keystrokeCount = 0;
+  let typingPauseTimer = null;
+  let lastKeystrokeMs  = 0;
+  const display = document.getElementById('specimen-display');
+  if (display) {
+    display.addEventListener('keydown', (e) => {
+      if (e.key.length !== 1 && e.key !== 'Backspace' && e.key !== 'Delete') return;
+      keystrokeCount++;
+      lastKeystrokeMs = Date.now();
+
+      if (keystrokeCount % 5 === 0) {
+        _addEntry(`KEYSTROKE LOGGED — COUNT: ${keystrokeCount}`, 'normal');
+      }
+
+      if (typingPauseTimer) clearTimeout(typingPauseTimer);
+      typingPauseTimer = setTimeout(() => {
+        if (Date.now() - lastKeystrokeMs >= 3000) {
+          _addEntry('UNUSUAL PAUSE BETWEEN KEYSTROKES — REVIEWING', 'editorial');
+        }
+      }, 3100);
+    });
+  }
+
+  // Violation events
+  document.addEventListener('violation', (e) => {
+    const label = (e.detail.type || '').replace(/_/g, ' ').toUpperCase();
+    _addEntry(`VIOLATION LOGGED — ${label}`, 'red', true);
+  });
+
+  // Section IntersectionObserver — fires once per section
+  const SECTION_NAMES = {
+    'section-charmap':  'CHARACTER MAP',
+    'section-tester':   'TYPE TESTER',
+    'section-log':      'USAGE LOG',
+    'section-license':  'LICENSE INFORMATION',
+  };
+  const viewedSections = new Set();
+  const sectionObs = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.id;
+        if (!viewedSections.has(id)) {
+          viewedSections.add(id);
+          _addEntry(`SECTION VIEWED: ${SECTION_NAMES[id] || id}`, 'normal');
+        }
+      }
+    });
+  }, { threshold: 0.25 });
+
+  document.querySelectorAll('.sp-section').forEach(sec => sectionObs.observe(sec));
+}
+
+// ================================================================
+// SPECIMEN — CHARACTER MAP
+// ================================================================
+
+function buildCharMap(tier, tierData) {
+  const TIER_ORDER = ['basic', 'standard', 'professional', 'enterprise'];
+  const TIER_ABBR  = { basic: 'BASIC', standard: 'STD', professional: 'PRO', enterprise: 'ENT' };
+  const tierIdx    = TIER_ORDER.indexOf(tier);
+
+  const heading = document.getElementById('charmap-heading');
+  if (heading) heading.textContent = `Available Glyphs — ${tierData.name} License`;
+
+  const grid = document.getElementById('charmap-grid');
+  if (!grid) return;
+
+  function minTier(char) {
+    if ('abcdefghijklmnopqrstuvwxyz.'.includes(char))       return 'basic';
+    if ('ABCDEFGHIJKLMNOPQRSTUVWXYZ'.includes(char))        return 'standard';
+    if ('12345'.includes(char))                              return 'standard';
+    if (',;:!?\'"()-'.includes(char))                        return 'standard';
+    if ('06789'.includes(char))                              return 'professional';
+    return 'enterprise'; // & @ # $ %
+  }
+
+  // All glyphs in display order per spec
+  const glyphs = [
+    ...'abcdefghijklmnopqrstuvwxyz',
+    ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+    ...'0123456789',
+    '.', ',', ';', ':', '!', '?', "'", '"', '-', '(', ')', '&', '@', '#', '$', '%',
+  ];
+
+  // Throttle + successive locked hover tracking
+  const hoverTimestamps = new Map();
+  const HOVER_THROTTLE  = 3000;
+  let lockedHoverCount  = 0;
+  let lockedHoverReset  = null;
+  let interestShown     = false;
+
+  for (const char of glyphs) {
+    const mt      = minTier(char);
+    const mtIdx   = TIER_ORDER.indexOf(mt);
+    const avail   = tierIdx >= mtIdx;
+
+    const cell = document.createElement('div');
+    cell.className = `sp-glyph-cell ${avail ? 'available' : 'locked'}`;
+
+    const glyph = document.createElement('span');
+    glyph.className = 'sp-glyph-char';
+    glyph.textContent = char;
+    cell.appendChild(glyph);
+
+    if (!avail) {
+      const caption = document.createElement('span');
+      caption.className = 'sp-glyph-caption';
+      caption.textContent = `\uD83D\uDD12 ${TIER_ABBR[mt]}`;
+      cell.appendChild(caption);
+
+      cell.addEventListener('mouseenter', () => {
+        const now  = Date.now();
+        const last = hoverTimestamps.get(char) || 0;
+        if (now - last < HOVER_THROTTLE) return;
+        hoverTimestamps.set(char, now);
+
+        if (tickerAdd) {
+          tickerAdd(`GLYPH HOVERED — RESTRICTED: '${char}' — UPGRADE TO ${TIER_ABBR[mt]}`, 'normal');
+        }
+
+        lockedHoverCount++;
+        if (lockedHoverReset) clearTimeout(lockedHoverReset);
+        lockedHoverReset = setTimeout(() => { lockedHoverCount = 0; }, 30000);
+
+        if (lockedHoverCount >= 5 && !interestShown) {
+          interestShown = true;
+          showGlyphInterestModal();
+        }
+      });
+    }
+
+    grid.appendChild(cell);
+  }
+}
+
+function showGlyphInterestModal() {
+  const modal = document.getElementById('sp-interest-modal');
+  if (!modal) return;
+  modal.style.display = 'flex';
+
+  const dismissBtn = document.getElementById('sp-interest-dismiss');
+  if (dismissBtn) {
+    dismissBtn.addEventListener('click', () => {
+      modal.style.display = 'none';
+      if (tickerAdd) tickerAdd('UPGRADE PROMPT DISMISSED — INCIDENT LOGGED', 'red', true);
+    }, { once: true });
+  }
+}
+
+// ================================================================
+// SPECIMEN — USAGE LOG
+// ================================================================
+
+function buildUsageLog(userId, tierName) {
+  const metaEl    = document.getElementById('log-meta');
+  const entriesEl = document.getElementById('log-entries');
+  const emptyEl   = document.getElementById('log-empty');
+  if (!entriesEl) return;
+
+  if (metaEl) metaEl.textContent = `MEMBER: ${userId} / TIER: ${tierName}`;
+
+  // Load persisted log
+  let log = [];
+  try { log = JSON.parse(localStorage.getItem('usage_log') || '[]'); } catch (e) { log = []; }
+
+  const MAX_VISIBLE = 50;
+
+  function renderLog() {
+    const visible = log.slice(-MAX_VISIBLE);
+    if (emptyEl) emptyEl.style.display = visible.length ? 'none' : '';
+    entriesEl.querySelectorAll('.sp-log-entry').forEach(el => el.remove());
+
+    visible.forEach(entry => {
+      const div = document.createElement('div');
+      div.className = 'sp-log-entry';
+
+      const header = document.createElement('div');
+      header.className = 'sp-log-entry-header';
+      header.textContent = `VIOLATION #${entry.num} — ${entry.time}`;
+      div.appendChild(header);
+
+      const lines = [
+        `ATTEMPTED: ${entry.attempted}`,
+        entry.tierReq ? `TIER REQUIRED: ${entry.tierReq}` : null,
+        'INCIDENT: LOGGED',
+        entry.num >= 3 ? 'DEVICE FLAGGED.' : null,
+        entry.num >= 5 ? 'FLAGGED FOR REVIEW.' : null,
+      ].filter(Boolean);
+
+      lines.forEach(line => {
+        const p = document.createElement('div');
+        p.className = 'sp-log-entry-line';
+        p.textContent = line;
+        div.appendChild(p);
+      });
+
+      entriesEl.appendChild(div);
+    });
+  }
+
+  renderLog();
+
+  // Listen for new violations
+  document.addEventListener('violation', (e) => {
+    const { type, data } = e.detail;
+    const time = new Date().toTimeString().slice(0, 8);
+
+    let attempted = '—';
+    let tierReq   = null;
+
+    if (data && data.char) {
+      attempted = `"${data.char}"`;
+    } else if (type === 'char_limit' || type === 'session_limit') {
+      attempted = `LIMIT (${(data && data.limit) || '?'} chars)`;
+    } else if (type === 'copy_attempt') {
+      attempted = 'COPY / EXPORT';
+      tierReq = 'ENTERPRISE';
+    } else if (type === 'downgrade_prohibited') {
+      attempted = 'LICENSE DOWNGRADE';
+    } else if (type === 'biometric_refusal') {
+      attempted = 'BIOMETRIC REFUSAL';
+    }
+
+    const entry = { num: log.length + 1, time, type, attempted, tierReq };
+    log.push(entry);
+
+    try {
+      const capped = log.slice(-200);
+      localStorage.setItem('usage_log', JSON.stringify(capped));
+      log = capped;
+    } catch (err) { /* storage full */ }
+
+    renderLog();
+    // Scroll usage log into partial view to acknowledge
+    const sec = document.getElementById('section-log');
+    if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  });
+}
+
+// ================================================================
+// SPECIMEN — LICENSE INFORMATION
+// ================================================================
+
+function buildLicenseInfo(userId, tier, tierData) {
+  const cols = document.getElementById('license-cols');
+  if (!cols) return;
+
+  const MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+  const now = new Date();
+  const today = `${String(now.getDate()).padStart(2,'0')} ${MONTHS[now.getMonth()]} ${now.getFullYear()}`;
+
+  const hoursAgo = Math.floor(Math.random() * 7) + 1;
+  const lastAudit = `${hoursAgo} HOUR${hoursAgo !== 1 ? 'S' : ''} AGO`;
+
+  const nextDays  = Math.floor(Math.random() * 29) + 1;
+  const nextDate  = new Date(Date.now() + nextDays * 86400000);
+  const nextCheck = `${String(nextDate.getDate()).padStart(2,'0')} ${MONTHS[nextDate.getMonth()]} ${nextDate.getFullYear()}`;
+
+  const DESC = {
+    basic:        `The Basic License grants access to lowercase letterforms and the period character exclusively. The Foundry considers this a reasonable starting point for individuals whose typographic ambitions currently exceed their financial circumstances. All uppercase letters, numerals, and punctuation remain the exclusive property of the Foundry. Compliance is expected and monitored.`,
+    standard:     `The Standard License expands access to the full Latin alphabet, standard punctuation, and numerals one through five. Numerals zero and six through nine remain restricted and are not included. The Foundry notes that the Standard tier represents a significant improvement over Basic access and thanks the Licensee for their investment in the Licensed™ ecosystem.`,
+    professional: `The Professional License provides the broadest individual access available, including all numerals and standard punctuation. Public display, copy, and export rights are not included. All Professional tier sessions are monitored for compliance. Two violations are permitted per session. The third is final and will result in immediate access termination.`,
+    enterprise:   `The Enterprise License is the Foundry's highest-priced offering. It is not the most permissive. Full glyph access is provided subject to a fifty-character session limit, no public display rights, no cloud storage, and mandatory monthly wellness check-ins. The Foundry extends its conditional congratulations and has nothing further to add at this time.`,
+  };
+
+  const rows = [
+    ['Licensee',             userId],
+    ['Tier',                 tierData.name],
+    ['Status',               '<span class="sp-status-indicator"><span class="sp-status-dot"></span>ACTIVE</span>'],
+    ['Issued',               today],
+    ['Expires',              'NEVER'],
+    ['Version',              '1.0.0'],
+    ['Last Audit',           lastAudit],
+    ['Next Wellness Check',  nextCheck],
+  ];
+
+  const tableRows = rows.map(([k, v]) =>
+    `<tr><td class="sp-license-key">${k}</td><td class="sp-license-val">${v}</td></tr>`
+  ).join('');
+
+  cols.innerHTML = `
+    <div class="sp-license-left">
+      <table class="sp-license-table"><tbody>${tableRows}</tbody></table>
+    </div>
+    <div class="sp-license-right">
+      <p class="sp-license-desc">${DESC[tier] || ''}</p>
+      <a href="upgrade.html" class="sp-license-upgrade-btn js-upgrade-link">Upgrade License →</a>
+    </div>
+  `;
+
+  // Wire the upgrade button into the ticker (it's dynamically created)
+  const upgradeBtn = cols.querySelector('.js-upgrade-link');
+  if (upgradeBtn && tickerAdd) {
+    upgradeBtn.addEventListener('click', () => tickerAdd('UPGRADE INTEREST DETECTED', 'normal', true));
+  }
 }
 
 // ================================================================
@@ -1468,6 +1965,7 @@ function init404() {
   // Clear all stored access
   localStorage.removeItem('user_id');
   localStorage.removeItem('user_tier');
+  localStorage.removeItem('usage_log');
   ['basic','standard','professional','enterprise'].forEach(t => {
     localStorage.removeItem(`violations_remaining_${t}`);
   });

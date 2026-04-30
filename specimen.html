@@ -11,9 +11,7 @@
   <!-- Fixed header -->
   <header class="site-header">
     <a href="specimen.html" class="header-logo">
-      <span class="header-logo-mark" id="header-logo">
-        <!-- SVG via JS -->
-      </span>
+      <span class="header-logo-mark" id="header-logo"></span>
       <span class="header-logo-name">The Licensed Foundry™</span>
     </a>
     <div class="header-right">
@@ -22,41 +20,81 @@
     </div>
   </header>
 
-  <!-- HUD card injected by JS into body (fixed top-right) -->
+  <!-- HUD card injected by JS (fixed top-right, offset for ticker) -->
+
+  <!-- Surveillance ticker sidebar -->
+  <aside class="ticker-sidebar" id="ticker-sidebar" aria-label="Surveillance Feed">
+    <div class="ticker-header">
+      <span class="ticker-label">Surveillance Feed</span>
+      <span class="ticker-dot" aria-hidden="true"></span>
+    </div>
+    <div class="ticker-divider"></div>
+    <div class="ticker-feed" id="ticker-feed"></div>
+  </aside>
 
   <!-- Page content -->
   <div class="page-wrap specimen-wrap">
 
-    <main class="specimen-main">
-      <p class="specimen-pre-label">
-        APPROVED SPECIMEN v.1.0.0 — Pre-cleared for your license tier.
-      </p>
-
-      <!-- Editable specimen display -->
-      <div
-        id="specimen-display"
-        class="specimen-display"
-        contenteditable="true"
-        spellcheck="false"
-        autocorrect="off"
-        autocapitalize="none"
-        data-placeholder="Begin typing your specimen."
-        role="textbox"
-        aria-label="Type specimen input"
-        aria-multiline="true"
-      ></div>
-
-      <!-- Character count bar -->
-      <div class="specimen-char-bar">
-        <span class="specimen-char-info" id="specimen-tier-label">—</span>
-        <span class="specimen-char-count" id="specimen-char-count">0</span>
+    <!-- § 01 — CHARACTER MAP -->
+    <section class="sp-section" id="section-charmap">
+      <div class="sp-section-inner">
+        <p class="sp-section-label">§ 01 — Character Map</p>
+        <h2 class="sp-section-heading" id="charmap-heading">Available Glyphs — License</h2>
+        <div class="sp-charmap-grid" id="charmap-grid"></div>
       </div>
-    </main>
+    </section>
+
+    <!-- § 02 — TYPE TESTER -->
+    <section class="sp-section" id="section-tester">
+      <div class="sp-section-inner">
+        <p class="sp-section-label">§ 02 — Type Tester</p>
+        <p class="specimen-pre-label">
+          APPROVED SPECIMEN v.1.0.0 — Pre-cleared for your license tier.
+        </p>
+        <div
+          id="specimen-display"
+          class="specimen-display"
+          contenteditable="true"
+          spellcheck="false"
+          autocorrect="off"
+          autocapitalize="none"
+          data-placeholder="Begin typing your specimen."
+          role="textbox"
+          aria-label="Type specimen input"
+          aria-multiline="true"
+        ></div>
+        <div class="specimen-char-bar">
+          <span class="specimen-char-info" id="specimen-tier-label">—</span>
+          <span class="specimen-char-count" id="specimen-char-count">0</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- § 03 — USAGE LOG -->
+    <section class="sp-section" id="section-log">
+      <div class="sp-section-inner">
+        <p class="sp-section-label">§ 03 — Usage Log</p>
+        <h2 class="sp-section-heading">Violations Recorded — Current Session</h2>
+        <p class="sp-log-meta" id="log-meta">—</p>
+        <div class="sp-log-entries" id="log-entries">
+          <p class="sp-log-empty" id="log-empty">NO VIOLATIONS RECORDED. CONTINUE.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- § 04 — LICENSE INFORMATION -->
+    <section class="sp-section" id="section-license">
+      <div class="sp-section-inner">
+        <p class="sp-section-label">§ 04 — License Information</p>
+        <h2 class="sp-section-heading">Active License</h2>
+        <div class="sp-license-cols" id="license-cols"></div>
+      </div>
+    </section>
 
     <!-- Bottom bar -->
     <div class="specimen-bottom-bar">
       <span class="specimen-tier-info" id="specimen-restriction-info">—</span>
-      <a href="upgrade.html" class="specimen-upgrade-link">Upgrade your license →</a>
+      <a href="upgrade.html" class="specimen-upgrade-link js-upgrade-link">Upgrade your license →</a>
     </div>
 
   </div>
@@ -68,9 +106,23 @@
     </span>
   </footer>
 
+  <!-- Restricted-glyph interest modal -->
+  <div class="sp-interest-modal" id="sp-interest-modal" aria-modal="true" role="dialog" style="display:none;">
+    <div class="sp-interest-modal-box">
+      <p class="sp-interest-modal-title">We Noticed Your Interest.</p>
+      <p class="sp-interest-modal-body">
+        Your engagement with restricted glyphs has been logged.
+        Would you like to upgrade your license?
+      </p>
+      <div class="sp-interest-modal-btns">
+        <a href="upgrade.html" class="sp-interest-upgrade-btn js-upgrade-link">Upgrade Now</a>
+        <button class="sp-interest-dismiss-btn" id="sp-interest-dismiss">Dismiss</button>
+      </div>
+    </div>
+  </div>
+
   <script src="scripts.js"></script>
   <script>
-    // Augment initSpecimen to set tier labels
     document.addEventListener('DOMContentLoaded', () => {
       const tier = localStorage.getItem('user_tier');
       if (!tier) return;
@@ -89,11 +141,8 @@
       }
 
       const restrictionInfo = document.getElementById('specimen-restriction-info');
-      if (restrictionInfo) {
-        restrictionInfo.textContent = tierData.restrictedDescription;
-      }
+      if (restrictionInfo) restrictionInfo.textContent = tierData.restrictedDescription;
 
-      // Live update char count display below specimen
       const display = document.getElementById('specimen-display');
       const countEl = document.getElementById('specimen-char-count');
       if (display && countEl) {
