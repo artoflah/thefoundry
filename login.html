@@ -16,44 +16,41 @@
     is a violation of subsection 4(b) of your agreement.
   </aside>
 
-  <!-- Center stage -->
+  <!-- Center stage — absolute layout -->
   <main class="login-stage">
-    <div class="login-assembly">
 
-      <!-- Logo mark -->
-      <div class="login-logo-mark" id="login-logo">
-        <!-- SVG rendered by JS -->
-      </div>
-
-      <!-- L-shape connector + input -->
-      <div class="login-connector-row">
-        <div class="login-L" aria-hidden="true">
-          <div class="login-L-vert"></div>
-          <div class="login-L-horiz"></div>
-        </div>
-
-        <div class="login-field-group">
-          <span class="login-field-label">Member Access Portal v.1.0.0</span>
-          <form id="login-form" autocomplete="off">
-            <input
-              type="text"
-              id="login-input"
-              class="login-input"
-              placeholder="ENTER / SCAN YOUR MEMBERSHIP ID"
-              spellcheck="false"
-              autocorrect="off"
-              autocapitalize="characters"
-              required
-            >
-            <button type="submit" class="login-submit-btn" aria-hidden="true">Submit</button>
-          </form>
-          <span class="login-error-msg" id="login-error">
-            ID NOT RECOGNIZED. UNAUTHORIZED ACCESS ATTEMPTS ARE LOGGED.
-          </span>
-        </div>
-      </div>
-
+    <!-- Logo mark — centered, upper third -->
+    <div class="login-logo-mark" id="login-logo">
+      <!-- SVG rendered by JS -->
     </div>
+
+    <!-- Vertical drip line — page spine -->
+    <div class="login-drip-vert" aria-hidden="true"></div>
+
+    <!-- Horizontal branch + login form -->
+    <div class="login-branch">
+      <div class="login-drip-horiz" aria-hidden="true"></div>
+      <div class="login-field-group">
+        <span class="login-field-label">Member Access Portal v.1.0.0</span>
+        <form id="login-form" autocomplete="off">
+          <input
+            type="text"
+            id="login-input"
+            class="login-input"
+            placeholder="ENTER / SCAN YOUR MEMBERSHIP ID"
+            spellcheck="false"
+            autocorrect="off"
+            autocapitalize="characters"
+            required
+          >
+          <button type="submit" class="login-submit-btn" aria-hidden="true">Submit</button>
+        </form>
+        <span class="login-error-msg" id="login-error">
+          ID NOT RECOGNIZED. UNAUTHORIZED ACCESS ATTEMPTS ARE LOGGED.
+        </span>
+      </div>
+    </div>
+
   </main>
 
   <!-- Bottom-left upgrade link -->

@@ -189,73 +189,62 @@ body#login {
 }
 
 .login-stage {
+  position: relative;
   width: 100vw;
   height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  overflow: hidden;
 }
 
-.login-assembly {
-  position: relative;
+/* Logo — large, centered horizontally, upper third */
+.login-logo-mark {
+  position: absolute;
+  top: 32vh;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 200px;
+  height: 200px;
+  z-index: 1;
+}
+
+/* Vertical drip — page spine, starts at logo bottom, drips to bottom */
+.login-drip-vert {
+  position: absolute;
+  top: calc(32vh + 200px);
+  left: calc(50% - 5px);
+  width: 10px;
+  height: 0;
+  background: var(--black);
+  animation: login-drip-v 2200ms cubic-bezier(0.08, 0, 0.92, 1) 400ms forwards;
+  z-index: 0;
+}
+
+/* Horizontal branch — shoots right off the spine to the login form */
+.login-branch {
+  position: absolute;
+  top: calc(32vh + 268px);
+  left: calc(50% + 5px);
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: flex-start;
 }
 
-.login-logo-mark {
-  width: 120px;
-  height: 120px;
-  position: relative;
-  z-index: 1;
-  /* shifted right so its center aligns with the L corner below */
-  margin-left: 0;
-}
-
-.login-connector-row {
-  display: flex;
-  flex-direction: row;
-  align-items: flex-end;
-  /* offset so the L-corner sits under the logo center */
-  margin-left: 60px;
-}
-
-.login-L {
+.login-drip-horiz {
   flex-shrink: 0;
-  position: relative;
-  width: 80px;
-  height: 80px;
-}
-
-.login-L-vert {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 4px;
-  height: 0;
-  background: var(--black);
-  animation: login-draw-vert 800ms ease-in-out 600ms forwards;
-}
-
-.login-L-horiz {
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  height: 4px;
-  background: var(--black);
+  height: 10px;
   width: 0;
-  animation: login-draw-horiz 600ms ease-in-out 1400ms forwards;
+  background: var(--black);
+  animation: login-drip-h 500ms cubic-bezier(0.08, 0, 0.92, 1) 1300ms forwards;
 }
 
 .login-field-group {
   display: flex;
   flex-direction: column;
   gap: var(--space-8);
-  margin-bottom: -2px; /* sit on the line */
-  margin-left: 0;
+  padding-left: var(--space-16);
+  margin-top: -1px;
   opacity: 0;
   transform: translateY(8px);
-  animation: login-fade-up 400ms ease-in-out 2000ms forwards;
+  animation: login-fade-up 400ms ease-out 1800ms forwards;
 }
 
 .login-field-label {
@@ -266,23 +255,22 @@ body#login {
 }
 
 .login-input {
-  width: 420px;
+  width: 380px;
   height: 48px;
   border: var(--rule);
-  border-left: none; /* bleeds from the L */
-  background: var(--white);
+  background: var(--black);
   font-family: var(--font-licensed);
   font-size: 11px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--black);
+  color: var(--white);
   padding: 0 var(--space-16);
   outline: none;
   transition: border-color 0.15s;
 }
 
 .login-input::placeholder {
-  color: #999;
+  color: rgba(255,255,255,0.35);
   letter-spacing: 0.14em;
 }
 
@@ -312,17 +300,17 @@ body#login {
   display: none; /* form submits on enter; button is hidden */
 }
 
+/* Large bottom-left upgrade link — typographic anchor */
 .login-upgrade-link {
   position: fixed;
-  bottom: var(--space-48);
+  bottom: var(--space-32);
   left: var(--space-32);
-  font-size: 11px;
-  letter-spacing: 0.2em;
+  font-size: 52px;
+  line-height: 1;
+  letter-spacing: -0.01em;
   text-transform: uppercase;
   color: var(--black);
   text-decoration: none;
-  border-bottom: var(--rule);
-  padding-bottom: 2px;
 }
 
 .login-upgrade-link:hover {
@@ -341,14 +329,14 @@ body#login {
 }
 
 /* Login entrance animation keyframes */
-@keyframes login-draw-vert {
-  from { height: 0; }
-  to   { height: 80px; }
+@keyframes login-drip-v {
+  0%   { height: 0; }
+  100% { height: calc(68vh - 200px); }
 }
 
-@keyframes login-draw-horiz {
-  from { width: 0; }
-  to   { width: 80px; }
+@keyframes login-drip-h {
+  0%   { width: 0; }
+  100% { width: 80px; }
 }
 
 @keyframes login-fade-up {
