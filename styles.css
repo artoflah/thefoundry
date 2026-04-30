@@ -222,10 +222,29 @@ body#login {
 
 .login-L {
   flex-shrink: 0;
+  position: relative;
   width: 80px;
   height: 80px;
-  border-left: 4px solid var(--black);
-  border-bottom: 4px solid var(--black);
+}
+
+.login-L-vert {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 4px;
+  height: 0;
+  background: var(--black);
+  animation: login-draw-vert 800ms ease-in-out 600ms forwards;
+}
+
+.login-L-horiz {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 4px;
+  background: var(--black);
+  width: 0;
+  animation: login-draw-horiz 600ms ease-in-out 1400ms forwards;
 }
 
 .login-field-group {
@@ -234,6 +253,9 @@ body#login {
   gap: var(--space-8);
   margin-bottom: -2px; /* sit on the line */
   margin-left: 0;
+  opacity: 0;
+  transform: translateY(8px);
+  animation: login-fade-up 400ms ease-in-out 2000ms forwards;
 }
 
 .login-field-label {
@@ -316,6 +338,22 @@ body#login {
   letter-spacing: 0.14em;
   text-transform: uppercase;
   text-align: right;
+}
+
+/* Login entrance animation keyframes */
+@keyframes login-draw-vert {
+  from { height: 0; }
+  to   { height: 100%; }
+}
+
+@keyframes login-draw-horiz {
+  from { width: 0; }
+  to   { width: 100%; }
+}
+
+@keyframes login-fade-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 /* ================================================================
@@ -1109,6 +1147,14 @@ body#license .page-wrap {
   opacity: 0.8;
 }
 
+.upgrade-modal-processing {
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #999;
+  margin-top: var(--space-32);
+}
+
 /* ================================================================
    VIOLATION POPUPS
    ================================================================ */
@@ -1346,5 +1392,355 @@ body#not-found .site-footer {
 
   .error-code {
     font-size: 80px;
+  }
+}
+
+/* ================================================================
+   ENTERPRISE APPLICATION PAGE
+   ================================================================ */
+.enterprise-app-main {
+  padding: var(--space-64) var(--space-32);
+  max-width: 720px;
+  margin: 0 auto;
+  width: 100%;
+  min-height: calc(100vh - 52px);
+  display: flex;
+  flex-direction: column;
+}
+
+.enterprise-app-progress {
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #999;
+  margin-bottom: var(--space-64);
+}
+
+.enterprise-app-question-wrap {
+  flex: 1;
+}
+
+.enterprise-app-question {
+  font-size: 28px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+  margin-bottom: var(--space-48);
+  max-width: 560px;
+}
+
+.enterprise-app-textarea {
+  width: 100%;
+  border: var(--rule);
+  background: var(--white);
+  font-family: var(--font-licensed);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  line-height: 1.6;
+  padding: var(--space-16);
+  resize: vertical;
+  outline: none;
+  min-height: 160px;
+  transition: border-color 0.15s;
+}
+
+.enterprise-app-textarea:focus {
+  border-color: var(--black);
+}
+
+.enterprise-app-wordcount {
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #999;
+  margin-top: var(--space-8);
+  text-align: right;
+}
+
+/* Range */
+.enterprise-app-range-wrap {
+  max-width: 440px;
+}
+
+.enterprise-app-range-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #999;
+  margin-bottom: var(--space-16);
+}
+
+.enterprise-app-range {
+  width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 2px;
+  background: var(--black);
+  outline: none;
+  cursor: pointer;
+}
+
+.enterprise-app-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  background: var(--black);
+  cursor: pointer;
+}
+
+.enterprise-app-range::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  background: var(--black);
+  border: none;
+  cursor: pointer;
+}
+
+.enterprise-app-range-value {
+  font-size: 48px;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  margin-top: var(--space-24);
+  line-height: 1;
+}
+
+/* Radio */
+.enterprise-app-radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  margin-bottom: var(--space-24);
+}
+
+.enterprise-app-radio-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-16);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+}
+
+.enterprise-app-radio-label input[type="radio"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border: var(--rule);
+  border-radius: 50%;
+  flex-shrink: 0;
+  cursor: pointer;
+  position: relative;
+}
+
+.enterprise-app-radio-label input[type="radio"]:checked::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  background: var(--black);
+  border-radius: 50%;
+}
+
+.enterprise-app-conditional {
+  padding-top: var(--space-24);
+}
+
+.enterprise-app-conditional-label {
+  display: block;
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #999;
+  margin-bottom: var(--space-12);
+}
+
+/* File */
+.enterprise-app-file-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.enterprise-app-file-input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+}
+
+.enterprise-app-file-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: var(--rule);
+  padding: var(--space-16) var(--space-32);
+  font-family: var(--font-licensed);
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  cursor: pointer;
+  min-width: 200px;
+}
+
+/* Checkbox */
+.enterprise-app-checkbox-label {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-16);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  line-height: 1.6;
+  cursor: pointer;
+  max-width: 520px;
+}
+
+.enterprise-app-checkbox {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border: var(--rule);
+  flex-shrink: 0;
+  cursor: pointer;
+  position: relative;
+  margin-top: 3px;
+}
+
+.enterprise-app-checkbox:checked::after {
+  content: '×';
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  line-height: 16px;
+}
+
+/* Text input (Q8) */
+.enterprise-app-text-input {
+  width: 320px;
+  height: 48px;
+  border: var(--rule);
+  border-left: 4px solid var(--black);
+  background: var(--white);
+  font-family: var(--font-licensed);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--black);
+  padding: 0 var(--space-16);
+  outline: none;
+}
+
+/* Navigation */
+.enterprise-app-nav {
+  margin-top: var(--space-64);
+  padding-top: var(--space-32);
+  border-top: var(--rule);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.enterprise-app-prev {
+  font-family: var(--font-licensed);
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--black);
+  background: none;
+  border: none;
+  cursor: pointer;
+  opacity: 0.45;
+  padding: 0;
+}
+
+.enterprise-app-prev:hover {
+  opacity: 1;
+}
+
+.enterprise-app-next {
+  font-family: var(--font-licensed);
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  background: var(--black);
+  color: var(--white);
+  border: none;
+  padding: var(--space-16) var(--space-32);
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.enterprise-app-next:hover:not(:disabled) {
+  opacity: 0.8;
+}
+
+.enterprise-app-next:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* Processing screen */
+.enterprise-app-processing {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.enterprise-app-processing-text {
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #999;
+}
+
+/* Success screen */
+.enterprise-app-success {
+  max-width: 600px;
+}
+
+.enterprise-app-success-body {
+  margin-top: var(--space-48);
+}
+
+.enterprise-app-success-line {
+  font-size: 13px;
+  letter-spacing: 0.03em;
+  line-height: 1.7;
+  margin-bottom: var(--space-24);
+}
+
+.enterprise-app-success-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 var(--space-48);
+}
+
+.enterprise-app-success-list li {
+  font-size: 12px;
+  letter-spacing: 0.03em;
+  line-height: 1.7;
+  padding: var(--space-12) 0;
+  border-top: var(--rule);
+}
+
+.enterprise-app-success-list li:last-child {
+  border-bottom: var(--rule);
+}
+
+@media (max-width: 600px) {
+  .enterprise-app-question {
+    font-size: 22px;
+  }
+
+  .enterprise-app-text-input {
+    width: 100%;
   }
 }

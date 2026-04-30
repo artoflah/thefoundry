@@ -925,6 +925,8 @@ function initUpgrade() {
 
     if (targetIdx < currentIdx) {
       spawnViolationPopup('downgrade_prohibited', {});
+    } else if (targetTier === 'enterprise') {
+      window.location.href = 'enterprise-application.html';
     } else {
       openUpgradeModal(tier, targetTier, tierFees[targetTier]);
     }
@@ -932,46 +934,301 @@ function initUpgrade() {
 }
 
 function openUpgradeModal(fromTier, toTier, fee) {
-  const fromName = TIERS[fromTier] ? TIERS[fromTier].name : fromTier.toUpperCase();
   const toName = TIERS[toTier] ? TIERS[toTier].name : toTier.toUpperCase();
 
   const overlay = document.createElement('div');
   overlay.className = 'upgrade-modal-overlay';
   overlay.innerHTML = `
-    <div class="upgrade-modal">
+    <div class="upgrade-modal" id="upgrade-modal">
       <div class="upgrade-modal-header">
-        <span class="upgrade-modal-title">TIER UPGRADE CONFIRMATION</span>
-        <span class="upgrade-modal-close" id="modal-close">×</span>
+        <span class="upgrade-modal-title" id="modal-header-title">PROCESSING UPGRADE</span>
       </div>
-      <div class="upgrade-modal-body">
-        <p class="upgrade-modal-line">${fromName} insufficient. We anticipated this.</p>
-        <p class="upgrade-modal-line">By proceeding, you acknowledge that your previous license was inadequate for your needs.</p>
-        <div class="upgrade-modal-fee">Non-refundable processing fee: $${fee}</div>
-        <div class="upgrade-modal-initial-label">Initial here</div>
-        <input type="text" class="upgrade-modal-initial-input" id="modal-initial" placeholder="_______________" maxlength="10">
-        <p class="upgrade-modal-fine-print">By upgrading, you waive the right to downgrade. This decision is final and non-reversible under the terms of your Licensee Agreement. The Foundry thanks you for your continued investment.</p>
-        <button class="upgrade-modal-accept-btn" id="modal-accept">I ACCEPT THE TERMS</button>
+      <div class="upgrade-modal-body" id="modal-body">
+        <p class="upgrade-modal-line">Your card on file has been charged $${fee}. Thank you for your continued patronage of The Licensed Foundry™.</p>
+        <div class="upgrade-modal-processing">PROCESSING<span class="processing-dots" id="processing-dots"></span></div>
       </div>
     </div>
   `;
 
   document.body.appendChild(overlay);
 
-  document.getElementById('modal-close').addEventListener('click', () => overlay.remove());
-  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+  // Animate dots
+  const dotsEl = document.getElementById('processing-dots');
+  let dotCount = 0;
+  const dotInterval = setInterval(() => {
+    dotCount = (dotCount + 1) % 4;
+    dotsEl.textContent = '.'.repeat(dotCount);
+  }, 400);
 
-  document.getElementById('modal-accept').addEventListener('click', () => {
-    const initial = document.getElementById('modal-initial').value.trim();
-    if (!initial) {
-      document.getElementById('modal-initial').style.borderColor = '#E11';
-      return;
+  // After 2 seconds, show step 2
+  setTimeout(() => {
+    clearInterval(dotInterval);
+
+    const headerTitle = document.getElementById('modal-header-title');
+    const body = document.getElementById('modal-body');
+    if (!headerTitle || !body) return;
+
+    headerTitle.textContent = 'PAYMENT CONFIRMED';
+    body.innerHTML = `
+      <p class="upgrade-modal-line">Your license has been upgraded to ${toName}. This decision is final. Downgrades are not permitted under your current agreement.</p>
+      <p class="upgrade-modal-fine-print">By proceeding, you waive the right to dispuge.</p>
+      <button class="upgrade-modal-accept-btn" id="modal-return">RETURN TO SPECIMEN</button>
+    `;
+
+    document.getElementById('modal-return').addEventListener('click', () => {
+      localStorage.setItem('user_tier', toTier);
+      localStorage.setItem(`violations_remaining_${toTier}`, TIERS[toTier].violationsAllowed);
+      overlay.remove();
+      window.location.href = 'specimen.html';
+    });
+  }, 2000);
+}
+
+// ================================================================
+// PAGE: ENTERPRISE APPLICATION
+// ================================================================
+
+function initEnterpriseApplication() {
+  const tier = getTierFromStorage();
+  if (tier) buildHUD();
+
+  const logoEl = document.getElementById('header-logo');
+  if (logoEl) logoEl.innerHTML = getLogo(28);
+
+  const main = document.getElementById('enterprise-app-main');
+  if (!main) return;
+
+  const questions = [
+    {
+      type: 'textarea',
+      question: 'In 250 words or less, describe what makes you feel you deserve Enterprise tier access.',
+      wordLimit: 250,
+    },
+    {
+      type: 'textarea',
+      question: 'Have you ever felt that your typographic ambitions exceeded your means? Please elaborate.',
+    },
+    {
+      type: 'range',
+      question: 'Rate your relationship with serif typefaces.',
+      labelMin: 'Strained',
+      labelMax: 'Reverent',
+    },
+    {
+      type: 'radio-conditional',
+      question: 'Do you currently own, or have you ever owned, a competing license?',
+      conditionalLabel: 'Please explain why it failed you.',
+    },
+    {
+      type: 'textarea',
+      question: 'What is your gravest typographic regret?',
+    },
+    {
+      type: 'file',
+      question: 'Upload a photograph of your workspace. We will not return it.',
+    },
+    {
+      type: 'checkbox',
+      question: 'The Foundry retains spiritual and moral rights to your submitted answers and any derivative works conceived during the application process.',
+      checkboxLabel: 'Yes, I consent.',
+    },
+    {
+      type: 'text',
+      question: 'vilege. Initial below to acknowledge.',
+      placeholder: '[ initial here ]',
+    },
+  ];
+
+  let currentStep = 0;
+
+  function renderInput(q) {
+    switch (q.type) {
+      case 'textarea':
+        return `
+          <textarea class="enterprise-app-textarea" id="q-input" rows="6"></textarea>
+          ${q.wordLimit ? `<div class="enterprise-app-wordcount" id="word-count">0 / ${q.wordLimit} words</div>` : ''}
+        `;
+      case 'range':
+        return `
+          <div class="enterprise-app-range-wrap">
+            <div class="enterprise-app-range-labels">
+              <span>1 — ${q.labelMin}</span>
+              <span>${q.labelMax} — 10</span>
+            </div>
+            <input type="range" class="enterprise-app-range" id="q-input" min="1" max="10" value="5">
+            <div class="enterprise-app-range-value" id="range-display">5</div>
+          </div>
+        `;
+      case 'radio-conditional':
+        return `
+          <div class="enterprise-app-radio-group">
+            <label class="enterprise-app-radio-label">
+              <input type="radio" name="q-radio" value="yes"> Yes
+            </label>
+            <label class="enterprise-app-radio-label">
+              <input type="radio" name="q-radio" value="no"> No
+            </label>
+          </div>
+          <div class="enterprise-app-conditional" id="conditional-field" style="display:none;">
+            <label class="enterprise-app-conditional-label">${q.conditionalLabel}</label>
+            <textarea class="enterprise-app-textarea" id="conditional-input" rows="4"></textarea>
+          </div>
+        `;
+      case 'file':
+        return `
+          <div class="enterprise-app-file-wrap">
+            <label class="enterprise-app-file-label" for="q-input">
+              <span id="file-label-text">SELECT FILE</span>
+            </label>
+            <input type="file" id="q-input" accept="image/*" class="enterprise-app-file-input">
+          </div>
+        `;
+      case 'checkbox':
+        return `
+          <label class="enterprise-app-checkbox-label">
+            <input type="checkbox" id="q-input" class="enterprise-app-checkbox">
+            <span>${q.checkboxLabel}</span>
+          </label>
+        `;
+      case 'text':
+        return `
+          <input type="text" class="enterprise-app-text-input" id="q-input" placeholder="${q.placeholder}">
+        `;
+      default:
+        return '';
     }
-    // Apply upgrade
-    localStorage.setItem('user_tier', toTier);
-    localStorage.setItem(`violations_remaining_${toTier}`, TIERS[toTier].violationsAllowed);
-    overlay.remove();
-    window.location.reload();
-  });
+  }
+
+  function renderStep(stepIdx) {
+    const q = questions[stepIdx];
+    const stepNum = stepIdx + 1;
+    const isLast = stepIdx === questions.length - 1;
+    const isFirst = stepIdx === 0;
+    const nextDisabled = q.type === 'checkbox' ? 'disabled' : '';
+
+    main.innerHTML = `
+      <p class="enterprise-app-progress">ENTERPRISE APPLICATION — QUESTION ${stepNum} OF ${questions.length}</p>
+      <div class="enterprise-app-question-wrap">
+        <h2 class="enterprise-app-question">${q.question}</h2>
+        <div class="enterprise-app-input-wrap">
+          ${renderInput(q)}
+        </div>
+      </div>
+      <nav class="enterprise-app-nav">
+        ${isFirst ? '<span></span>' : '<button class="enterprise-app-prev" id="btn-prev">PREVIOUS</button>'}
+        <button class="enterprise-app-next" id="btn-next" ${nextDisabled}>
+          ${isLast ? 'SUBMIT APPLICATION' : 'NEXT'}
+        </button>
+      </nav>
+    `;
+
+    // Wire input behaviors
+    if (q.type === 'textarea' && q.wordLimit) {
+      const ta = document.getElementById('q-input');
+      const wc = document.getElementById('word-count');
+      ta.addEventListener('input', () => {
+        const words = ta.value.trim() === '' ? 0 : ta.value.trim().split(/\s+/).length;
+        wc.textContent = `${words} / ${q.wordLimit} words`;
+      });
+    }
+
+    if (q.type === 'range') {
+      const range = document.getElementById('q-input');
+      const display = document.getElementById('range-display');
+      range.addEventListener('input', () => { display.textContent = range.value; });
+    }
+
+    if (q.type === 'radio-conditional') {
+      document.querySelectorAll('input[name="q-radio"]').forEach(radio => {
+        radio.addEventListener('change', () => {
+          document.getElementById('conditional-field').style.display =
+            radio.value === 'yes' ? 'block' : 'none';
+        });
+      });
+    }
+
+    if (q.type === 'file') {
+      const fileInput = document.getElementById('q-input');
+      const labelText = document.getElementById('file-label-text');
+      fileInput.addEventListener('change', () => {
+        if (fileInput.files && fileInput.files[0]) {
+          labelText.textContent = fileInput.files[0].name;
+        }
+      });
+    }
+
+    if (q.type === 'checkbox') {
+      const checkbox = document.getElementById('q-input');
+      const nextBtn = document.getElementById('btn-next');
+      checkbox.addEventListener('change', () => {
+        nextBtn.disabled = !checkbox.checked;
+      });
+    }
+
+    const prevBtn = document.getElementById('btn-prev');
+    if (prevBtn) {
+      prevBtn.addEventListener('click', () => { currentStep--; renderStep(currentStep); });
+    }
+
+    document.getElementById('btn-next').addEventListener('click', () => {
+      if (isLast) {
+        handleSubmit();
+      } else {
+        currentStep++;
+        renderStep(currentStep);
+      }
+    });
+  }
+
+  function handleSubmit() {
+    main.innerHTML = `
+      <div class="enterprise-app-processing">
+        <p class="enterprise-app-processing-text">TRANSMITTING APPLICATION TO LICENSING COMMITTEE<span class="processing-dots" id="processing-dots"></span></p>
+      </div>
+    `;
+
+    const dotsEl = document.getElementById('processing-dots');
+    let dotCount = 0;
+    const dotInterval = setInterval(() => {
+      dotCount = (dotCount + 1) % 4;
+      dotsEl.textContent = '.'.repeat(dotCount);
+    }, 400);
+
+    // Update tier immediately — the review is theater
+    localStorage.setItem('user_tier', 'enterprise');
+    localStorage.setItem('violations_remaining_enterprise', TIERS.enterprise.violationsAllowed);
+
+    setTimeout(() => {
+      clearInterval(dotInterval);
+      showSuccess();
+    }, 2000);
+  }
+
+  function showSuccess() {
+    main.innerHTML = `
+      <div class="enterprise-app-success">
+        <p class="enterprise-app-progress">APPLICATION RECEIVED</p>
+        <div class="enterprise-app-success-body">
+          <p class="enterprise-app-success-line">Thank you for your interest in ENTERPRISE tier access.</p>
+          <p class="enterprise-app-success-line">Your responses have been forwarded to our Licensing Committee for review. The committee meets quarterly. Your application will be evaluated within 6–8 business weeks.</p>
+          <p class="enterprise-app-success-line">In the interim:</p>
+          <ul class="enterprise-app-success-list">
+            <li>— Your card on file has been charged $890 (non-refundable processing fee).</li>
+            <li>— Your access tier has been provisionally updated to ENTERPRISE pending review.</li>
+            <li>— Should your application be denied, the processing fee will be retained as compensation for the committee's time.</li>
+            <li>— Should your application be approved, no further action is required from you.</li>
+          </ul>
+          <button class="upgrade-modal-accept-btn" id="btn-return">RETURN TO SPECIMEN</button>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('btn-return').addEventListener('click', () => {
+      window.location.href = 'specimen.html';
+    });
+  }
+
+  renderStep(0);
 }
 
 // ================================================================
@@ -1007,6 +1264,7 @@ document.addEventListener('DOMContentLoaded', () => {
     license: initLicense,
     specimen: initSpecimen,
     upgrade: initUpgrade,
+    'enterprise-application': initEnterpriseApplication,
     'not-found': init404,
   };
   if (routes[page]) routes[page]();
