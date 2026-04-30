@@ -8,7 +8,7 @@
 </head>
 <body id="login">
 
-  <!-- Top-right copyright block -->
+  <!-- Top-right copyright — visible from page load -->
   <aside class="login-copyright-block">
     © 2026 The Licensed Foundry™<br>
     All glyphs monitored.<br>
@@ -16,47 +16,46 @@
     is a violation of subsection 4(b) of your agreement.
   </aside>
 
-  <!-- Center stage — absolute layout -->
   <main class="login-stage">
 
-    <!-- Logo mark — centered, upper third -->
+    <!-- Logo — fixed in place, no animation -->
     <div class="login-logo-mark" id="login-logo">
       <!-- SVG rendered by JS -->
     </div>
 
-    <!-- Vertical drip line — page spine -->
-    <div class="login-drip-vert" aria-hidden="true"></div>
+    <!-- Vertical line — draws downward from logo bottom -->
+    <div class="login-vert-line" aria-hidden="true"></div>
 
-    <!-- Horizontal branch + login form -->
-    <div class="login-branch">
-      <div class="login-drip-horiz" aria-hidden="true"></div>
-      <div class="login-field-group">
-        <span class="login-field-label">Member Access Portal v.1.0.0</span>
-        <form id="login-form" autocomplete="off">
-          <input
-            type="text"
-            id="login-input"
-            class="login-input"
-            placeholder="ENTER / SCAN YOUR MEMBERSHIP ID"
-            spellcheck="false"
-            autocorrect="off"
-            autocapitalize="characters"
-            required
-          >
-          <button type="submit" class="login-submit-btn" aria-hidden="true">Submit</button>
-        </form>
-        <span class="login-error-msg" id="login-error">
-          ID NOT RECOGNIZED. UNAUTHORIZED ACCESS ATTEMPTS ARE LOGGED.
-        </span>
-      </div>
+    <!-- Horizontal branch — draws rightward from vertical line at 60vh -->
+    <div class="login-horiz-line" aria-hidden="true"></div>
+
+    <!-- Login form — fades up at same time as horizontal line -->
+    <div class="login-field-group">
+      <span class="login-field-label">Member Access Portal v.1.0.0</span>
+      <form id="login-form" autocomplete="off">
+        <input
+          type="text"
+          id="login-input"
+          class="login-input"
+          placeholder="ENTER / SCAN YOUR MEMBERSHIP ID"
+          spellcheck="false"
+          autocorrect="off"
+          autocapitalize="characters"
+          required
+        >
+        <button type="submit" class="login-submit-btn" aria-hidden="true">Submit</button>
+      </form>
+      <span class="login-error-msg" id="login-error">
+        ID NOT RECOGNIZED. UNAUTHORIZED ACCESS ATTEMPTS ARE LOGGED.
+      </span>
     </div>
 
   </main>
 
-  <!-- Bottom-left upgrade link -->
+  <!-- Bottom-left — wipes in left-to-right after vertical line completes -->
   <a href="upgrade.html" class="login-upgrade-link">THEFOUNDRY.COM/UPGRADE</a>
 
-  <!-- Bottom-right footer -->
+  <!-- Bottom-right footer — visible from page load -->
   <footer class="login-footer">
     © 2026 THE LICENSED FOUNDRY™ v.1.0.0 — EST. NEVER — ALL GLYPHS MONITORED
   </footer>

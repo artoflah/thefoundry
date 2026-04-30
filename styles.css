@@ -175,6 +175,7 @@ body#login {
   overflow: hidden;
 }
 
+/* Top-right — visible from page load */
 .login-copyright-block {
   position: fixed;
   top: var(--space-32);
@@ -195,10 +196,10 @@ body#login {
   overflow: hidden;
 }
 
-/* Logo — large, centered horizontally, upper third */
+/* Logo — large, centered, ~25% from top. No animation. */
 .login-logo-mark {
   position: absolute;
-  top: 32vh;
+  top: 25vh;
   left: 50%;
   transform: translateX(-50%);
   width: 200px;
@@ -206,45 +207,40 @@ body#login {
   z-index: 1;
 }
 
-/* Vertical drip — page spine, starts at logo bottom, drips to bottom */
-.login-drip-vert {
+/* Vertical line — draws down from logo bottom over 1.8s, starts at t=2s */
+.login-vert-line {
   position: absolute;
-  top: calc(32vh + 200px);
-  left: calc(50% - 5px);
-  width: 10px;
+  top: calc(25vh + 200px);
+  left: calc(50% - 2px);
+  width: 4px;
   height: 0;
   background: var(--black);
-  animation: login-drip-v 2200ms cubic-bezier(0.08, 0, 0.92, 1) 400ms forwards;
+  animation: login-vert-draw 1800ms ease-in-out 2000ms forwards;
   z-index: 0;
 }
 
-/* Horizontal branch — shoots right off the spine to the login form */
-.login-branch {
+/* Horizontal line — branches right at 60vh, starts at t=2.7s */
+.login-horiz-line {
   position: absolute;
-  top: calc(32vh + 268px);
-  left: calc(50% + 5px);
-  display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-}
-
-.login-drip-horiz {
-  flex-shrink: 0;
-  height: 10px;
+  top: 60vh;
+  left: calc(50% + 2px);
+  height: 4px;
   width: 0;
   background: var(--black);
-  animation: login-drip-h 500ms cubic-bezier(0.08, 0, 0.92, 1) 1300ms forwards;
+  animation: login-horiz-draw 800ms ease-in-out 2700ms forwards;
 }
 
+/* Login form — fades up in parallel with horizontal line, t=2.7s */
 .login-field-group {
+  position: absolute;
+  top: calc(60vh + 20px);
+  left: calc(50% + 16px);
   display: flex;
   flex-direction: column;
   gap: var(--space-8);
-  padding-left: var(--space-16);
-  margin-top: -1px;
   opacity: 0;
   transform: translateY(8px);
-  animation: login-fade-up 400ms ease-out 1800ms forwards;
+  animation: login-fade-up 800ms ease-out 2700ms forwards;
 }
 
 .login-field-label {
@@ -254,23 +250,25 @@ body#login {
   color: var(--black);
 }
 
+/* Input: white bg, underline only, no box */
 .login-input {
   width: 380px;
-  height: 48px;
-  border: var(--rule);
-  background: var(--black);
+  height: 44px;
+  border: none;
+  border-bottom: 1px solid var(--black);
+  background: var(--white);
   font-family: var(--font-licensed);
   font-size: 11px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--white);
-  padding: 0 var(--space-16);
+  color: var(--black);
+  padding: 0;
   outline: none;
   transition: border-color 0.15s;
 }
 
 .login-input::placeholder {
-  color: rgba(255,255,255,0.35);
+  color: #aaa;
   letter-spacing: 0.14em;
 }
 
@@ -297,10 +295,10 @@ body#login {
 }
 
 .login-submit-btn {
-  display: none; /* form submits on enter; button is hidden */
+  display: none;
 }
 
-/* Large bottom-left upgrade link — typographic anchor */
+/* Large bottom-left text — wipes in left-to-right when vert line completes, t=3.8s */
 .login-upgrade-link {
   position: fixed;
   bottom: var(--space-32);
@@ -311,13 +309,15 @@ body#login {
   text-transform: uppercase;
   color: var(--black);
   text-decoration: none;
+  clip-path: inset(0 100% 0 0);
+  animation: login-wipe-in 600ms ease-out 3800ms forwards;
 }
 
 .login-upgrade-link:hover {
-  text-decoration: none;
   opacity: 0.5;
 }
 
+/* Bottom-right footer — visible from page load */
 .login-footer {
   position: fixed;
   bottom: var(--space-32);
@@ -328,20 +328,30 @@ body#login {
   text-align: right;
 }
 
-/* Login entrance animation keyframes */
-@keyframes login-drip-v {
-  0%   { height: 0; }
-  100% { height: calc(68vh - 200px); }
+/* ── Keyframes ────────────────────────────────────────────────── */
+
+/* Vertical line grows top-to-bottom, logo bottom → viewport bottom */
+@keyframes login-vert-draw {
+  from { height: 0; }
+  to   { height: calc(75vh - 200px); }
 }
 
-@keyframes login-drip-h {
-  0%   { width: 0; }
-  100% { width: 80px; }
+/* Horizontal branch draws right across most of the right half */
+@keyframes login-horiz-draw {
+  from { width: 0; }
+  to   { width: calc(50vw - 48px); }
 }
 
+/* Form fades up into position */
 @keyframes login-fade-up {
   from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Upgrade text wipes in left-to-right */
+@keyframes login-wipe-in {
+  from { clip-path: inset(0 100% 0 0); }
+  to   { clip-path: inset(0 0% 0 0); }
 }
 
 /* ================================================================
@@ -1219,7 +1229,7 @@ body#license .page-wrap {
 .popup-camera-canvas {
   display: block;
   width: 100%;
-  height: 100px;
+  height: 120px;
   image-rendering: pixelated; /* keep ASCII characters crisp when scaled */
 }
 

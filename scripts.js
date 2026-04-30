@@ -370,14 +370,14 @@ const MAX_POPUPS = 30;
 // CAMERA / ASCII SYSTEM
 // ================================================================
 
-const CAM_COLS = 40;
-const CAM_ROWS = 14;
-const CAM_FONT = 8;   // px — words overflow cells at this size → sludge effect
-const CAM_W    = 280;
-const CAM_H    = 100;
+const CAM_COLS = 50;
+const CAM_ROWS = 20;
+const CAM_FONT = 6;   // px — tight grid, each cell is exactly 6×6px
+const CAM_W    = 300;
+const CAM_H    = 120;
 const CAM_FPS  = 16;
-// Ramp: index 0 = darkest (dense words), last = lightest (spaces)
-const CAM_RAMP = ['VIOLATION','UNAUTHORIZED','LCN','FOUNDRY','█','#','*','+',':','.',' '];
+// Ramp: index 0 = darkest, last = lightest (trailing spaces = negative space face)
+const CAM_RAMP = ['█','▓','▒','░','+',':','.',' ',' ',' '];
 
 let cameraState     = 'idle'; // 'idle' | 'requesting' | 'active' | 'denied'
 let cameraVideo     = null;   // hidden <video>
@@ -397,8 +397,11 @@ function _initCamera(onGranted, onDenied) {
       cameraVideo.autoplay    = true;
       cameraVideo.playsInline = true;
       cameraVideo.muted       = true;
-      cameraVideo.style.cssText =
-        'position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;top:-10px;left:-10px;';
+      // Debug mode: ?debug=camera shows raw feed at bottom-left
+      const _dbg = new URLSearchParams(location.search).get('debug') === 'camera';
+      cameraVideo.style.cssText = _dbg
+        ? 'position:fixed;bottom:16px;left:16px;width:160px;height:120px;object-fit:cover;z-index:99999;border:2px solid red;opacity:0.85;'
+        : 'position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;top:-10px;left:-10px;';
       document.body.appendChild(cameraVideo);
       cameraOffscreen        = document.createElement('canvas');
       cameraOffscreen.width  = CAM_COLS;
@@ -427,25 +430,39 @@ function _renderAsciiFrame(canvas, ctx) {
   sCtx.restore();
 
   const { data } = sCtx.getImageData(0, 0, CAM_COLS, CAM_ROWS);
-  const cellW = CAM_W / CAM_COLS;
-  const cellH = CAM_H / CAM_ROWS;
+  const total = CAM_COLS * CAM_ROWS;
+
+  // 1. Compute per-pixel luminance
+  const lums = new Float32Array(total);
+  let lo = 255, hi = 0;
+  for (let i = 0; i < total; i++) {
+    const p = i * 4;
+    const l = 0.299 * data[p] + 0.587 * data[p + 1] + 0.114 * data[p + 2];
+    lums[i] = l;
+    if (l < lo) lo = l;
+    if (l > hi) hi = l;
+  }
+
+  // 2. Contrast normalize then apply gamma 0.7 to brighten midtones
+  const range = (hi - lo) || 1;
+  for (let i = 0; i < total; i++) {
+    lums[i] = Math.pow((lums[i] - lo) / range, 0.7) * 255;
+  }
+
+  const cellW = CAM_W / CAM_COLS; // 6px
+  const cellH = CAM_H / CAM_ROWS; // 6px
 
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.fillStyle = '#EE1111';
-  ctx.font      = `${CAM_FONT}px monospace`;
+  ctx.font = `${CAM_FONT}px monospace`;
   ctx.textBaseline = 'top';
 
   for (let r = 0; r < CAM_ROWS; r++) {
     for (let c = 0; c < CAM_COLS; c++) {
-      const i   = (r * CAM_COLS + c) * 4;
-      const lum = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
-      const ch  = _camChar(lum);
+      const ch = _camChar(lums[r * CAM_COLS + c]);
       if (ch === ' ') continue;
-      // Slight jitter per character for the typography-sludge look
-      const x = c * cellW + (Math.random() * 1.5 - 0.75);
-      const y = r * cellH + (Math.random() * 1.0 - 0.5);
-      ctx.fillText(ch, x, y);
+      ctx.fillText(ch, c * cellW, r * cellH);
     }
   }
 }
@@ -456,13 +473,14 @@ function _makeGlitch(canvas, ctx) {
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.fillStyle = '#EE1111';
-  ctx.font      = `${CAM_FONT}px monospace`;
+  ctx.font = `${CAM_FONT}px monospace`;
   ctx.textBaseline = 'top';
+  // Use only the dense end of the ramp for glitch noise
+  const glitchRamp = CAM_RAMP.slice(0, 5);
   for (let r = 0; r < CAM_ROWS; r++) {
     for (let c = 0; c < CAM_COLS; c++) {
-      const ch = CAM_RAMP[Math.floor(Math.random() * CAM_RAMP.length)];
-      if (ch === ' ') continue;
-      ctx.fillText(ch, c * cellW + (Math.random() * 2 - 1), r * cellH);
+      const ch = glitchRamp[Math.floor(Math.random() * glitchRamp.length)];
+      ctx.fillText(ch, c * cellW, r * cellH);
     }
   }
 }
