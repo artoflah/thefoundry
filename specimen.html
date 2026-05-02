@@ -10,17 +10,15 @@
 
   <!-- Fixed header -->
   <header class="site-header">
-    <a href="specimen.html" class="header-logo">
-      <span class="header-logo-mark" id="header-logo"></span>
-      <span class="header-logo-name">The Licensed Foundry™</span>
-    </a>
-    <div class="header-right">
-      Licensed™ v.1.0.0<br>
-      All glyphs monitored.
+    <div class="header-left">
+      <a href="specimen.html" class="header-logo">
+        <span class="header-logo-mark" id="header-logo"></span>
+      </a>
+      <!-- HUD card injected here by JS -->
+      <div id="hud-header-slot"></div>
     </div>
+    <div class="header-right">LICENSED™ V.1.0.0 / ALL GLYPHS MONITORED.</div>
   </header>
-
-  <!-- HUD card injected by JS (fixed top-right, offset for ticker) -->
 
   <!-- Surveillance ticker sidebar -->
   <aside class="ticker-sidebar" id="ticker-sidebar" aria-label="Surveillance Feed">
@@ -51,18 +49,36 @@
         <p class="specimen-pre-label">
           APPROVED SPECIMEN v.1.0.0 — Pre-cleared for your license tier.
         </p>
-        <div
-          id="specimen-display"
-          class="specimen-display"
-          contenteditable="true"
-          spellcheck="false"
-          autocorrect="off"
-          autocapitalize="none"
-          data-placeholder="Begin typing your specimen."
-          role="textbox"
-          aria-label="Type specimen input"
-          aria-multiline="true"
-        ></div>
+        <div class="tester-frame">
+          <div class="tester-meta tester-meta--tl" aria-hidden="true">
+            <div>GLYPHS: 36</div><div>WEIGHTS: 1/1</div>
+            <div>STYLES: ROMAN</div><div>RELEASE: V.1.0.0</div>
+          </div>
+          <div class="tester-meta tester-meta--tr" aria-hidden="true">
+            <div>ASCENDER: +740</div><div>X-HEIGHT: 520</div>
+            <div>DESCENDER: -240</div><div>CAP-HEIGHT: 712</div>
+          </div>
+          <div
+            id="specimen-display"
+            class="specimen-display"
+            contenteditable="true"
+            spellcheck="false"
+            autocorrect="off"
+            autocapitalize="none"
+            data-placeholder="Begin typing your specimen."
+            role="textbox"
+            aria-label="Type specimen input"
+            aria-multiline="true"
+          ></div>
+          <div class="tester-meta tester-meta--bl" aria-hidden="true">
+            <div>KERNING PAIRS: 1,247</div><div>OT FEATURES: LOCKED</div>
+            <div>LANGUAGE: ENG ONLY</div><div>ENCODING: LATIN-1</div>
+          </div>
+          <div class="tester-meta tester-meta--br" aria-hidden="true">
+            <div>BASELINE: 0.0</div><div>LINE-GAP: 200</div>
+            <div>UPM: 1000</div><div>HINTING: NONE</div>
+          </div>
+        </div>
         <div class="specimen-char-bar">
           <span class="specimen-char-info" id="specimen-tier-label">—</span>
           <span class="specimen-char-count" id="specimen-char-count">0</span>
@@ -70,24 +86,30 @@
       </div>
     </section>
 
-    <!-- § 03 — USAGE LOG -->
-    <section class="sp-section" id="section-log">
+    <!-- § 03 — LICENSE INFORMATION -->
+    <section class="sp-section" id="section-license">
       <div class="sp-section-inner">
-        <p class="sp-section-label">§ 03 — Usage Log</p>
-        <h2 class="sp-section-heading">Violations Recorded — Current Session</h2>
-        <p class="sp-log-meta" id="log-meta">—</p>
-        <div class="sp-log-entries" id="log-entries">
-          <p class="sp-log-empty" id="log-empty">NO VIOLATIONS RECORDED. CONTINUE.</p>
-        </div>
+        <p class="sp-section-label">§ 03 — License Information</p>
+        <h2 class="sp-section-heading">Active License</h2>
+        <div class="sp-license-cols" id="license-cols"></div>
       </div>
     </section>
 
-    <!-- § 04 — LICENSE INFORMATION -->
-    <section class="sp-section" id="section-license">
+    <!-- § 04 — REDACTED -->
+    <section class="sp-section" id="section-redacted">
       <div class="sp-section-inner">
-        <p class="sp-section-label">§ 04 — License Information</p>
-        <h2 class="sp-section-heading">Active License</h2>
-        <div class="sp-license-cols" id="license-cols"></div>
+        <p class="sp-section-label">§ 04 — <span class="sp-redact-bar" aria-label="[REDACTED]"></span></p>
+        <h2 class="sp-section-heading sp-section-heading--violation">CONTENT REMOVED PER LEGAL REQUEST</h2>
+        <div class="sp-redacted-box">
+          <p class="sp-redacted-box-text">
+            MATERIAL UNDER REVIEW<br>
+            DOCKET #LF-2026-0042<br>
+            FURTHER DETAILS UNAVAILABLE
+          </p>
+        </div>
+        <p class="sp-redacted-caption">
+          By order of the Foundry. This section will be restored upon resolution of the active investigation. Estimated review period: 6–8 business years.
+        </p>
       </div>
     </section>
 

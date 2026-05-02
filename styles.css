@@ -10,6 +10,7 @@
   --white: #ffffff;
   --red: #EE1111;
   --rule: 1px solid #000000;
+  --wordmark-w: 96px;
 
   --space-2: 2px;
   --space-4: 4px;
@@ -196,51 +197,60 @@ body#login {
   overflow: hidden;
 }
 
-/* Logo — 300px, center at 45% from left, 30% from top. No animation. */
+/* Logo — 280px, centered horizontally, 25% from top. No animation. */
 .login-logo-mark {
   position: absolute;
-  top: 30vh;
-  left: 45%;
+  top: 25vh;
+  left: 50%;
   transform: translateX(-50%);
-  width: 300px;
-  height: 300px;
+  width: 280px;
+  height: 280px;
   z-index: 1;
 }
 
-/* Vertical line — 35px wide, draws down from logo bottom to ~75vh, starts at t=2s */
+/* Scale the SVG/img to fill the container */
+.login-logo-mark img,
+.login-logo-mark svg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+/* Vertical line — 35px wide, draws down from logo bottom to ~70vh, starts at t=2s */
 .login-vert-line {
   position: absolute;
-  top: calc(30vh + 300px);
-  left: calc(45% - 17px);
+  top: calc(25vh + 280px);
+  left: calc(50% - 17px);
   width: 35px;
   height: 0;
   background: var(--black);
-  animation: login-vert-draw 1500ms ease-in-out 2000ms forwards;
+  animation: login-vert-draw 1800ms ease-in-out 2000ms forwards;
   z-index: 0;
 }
 
-/* Horizontal line — 35px tall, branches right from vert bottom at ~75vh, starts at t=3.5s */
+/* Horizontal line — 35px tall, branches right at ~70vh, starts when vert finishes (t=3.8s) */
 .login-horiz-line {
   position: absolute;
-  top: calc(75vh - 35px);
-  left: calc(45% + 18px);
+  top: calc(70vh - 35px);
+  left: calc(50% + 18px);
   height: 35px;
   width: 0;
   background: var(--black);
-  animation: login-horiz-draw 1000ms ease-in-out 3500ms forwards;
+  animation: login-horiz-draw 1000ms ease-in-out 3800ms forwards;
 }
 
-/* Login form — fades in simultaneously with horizontal line, t=3.5s */
+/* Login form — just below the horizontal bar's bottom edge, fades in with horiz (t=3.8s) */
 .login-field-group {
   position: absolute;
-  top: calc(75vh + 4px);
-  left: calc(45% + 18px);
+  top: calc(70vh + 8px);
+  left: calc(50% + 18px);
   display: flex;
   flex-direction: column;
   gap: var(--space-8);
   opacity: 0;
   transform: translateY(8px);
-  animation: login-fade-up 800ms ease-out 3500ms forwards;
+  animation: login-fade-up 800ms ease-out 3800ms forwards;
 }
 
 .login-field-label {
@@ -298,21 +308,22 @@ body#login {
   display: none;
 }
 
-/* Large bottom-left text — wipes in left-to-right when vert line completes, t=3.5s */
-/* Bottom edge aligns with vert line terminus at ~75vh from top = 25vh from bottom */
+/* Large bottom-left text — wipes in left-to-right when vert completes (t=3.8s).
+   Own row at bottom of viewport, fully separate from input area. */
 .login-upgrade-link {
   position: fixed;
-  bottom: 25vh;
+  bottom: var(--space-32);
   left: var(--space-32);
-  font-size: 90px;
+  font-size: 88px;
   font-weight: 700;
   line-height: 1;
   letter-spacing: -0.02em;
   text-transform: uppercase;
+  white-space: nowrap;          /* prevent wrap — keeps element exactly 1 line tall */
   color: var(--black);
   text-decoration: none;
   clip-path: inset(0 100% 0 0);
-  animation: login-wipe-in 600ms ease-out 3500ms forwards;
+  animation: login-wipe-in 600ms ease-out 3800ms forwards;
 }
 
 .login-upgrade-link:hover {
@@ -332,16 +343,16 @@ body#login {
 
 /* ── Keyframes ────────────────────────────────────────────────── */
 
-/* Vertical line grows top-to-bottom: logo bottom (30vh + 300px) → 75vh */
+/* Vertical line: logo bottom (25vh + 280px) → 70vh. Duration 1.8s. */
 @keyframes login-vert-draw {
   from { height: 0; }
-  to   { height: calc(45vh - 300px); }
+  to   { height: calc(45vh - 280px); }
 }
 
-/* Horizontal branch draws right from vert line (at 45vw + 18px) to ~90vw */
+/* Horizontal branch: from 50vw+18px to ~75vw */
 @keyframes login-horiz-draw {
   from { width: 0; }
-  to   { width: calc(45vw - 18px); }
+  to   { width: calc(25vw - 18px); }
 }
 
 /* Form fades up into position */
@@ -754,9 +765,10 @@ body#license .page-wrap {
   text-overflow: ellipsis;
 }
 
-.hud-divider {
+.hud-divider,
+.hud-hr {
   border: none;
-  border-top: var(--rule);
+  border-top: 1px solid #e8e8e8;
   margin: 0;
 }
 
@@ -1231,7 +1243,7 @@ body#license .page-wrap {
 .popup-camera-canvas {
   display: block;
   width: 100%;
-  height: 120px;
+  height: 200px;
   image-rendering: pixelated; /* keep ASCII characters crisp when scaled */
 }
 
@@ -1413,11 +1425,6 @@ body#not-found .site-footer {
    SPECIMEN — LONG-SCROLL LAYOUT
    ================================================================ */
 
-/* Sidebar offset for HUD card on specimen page */
-body#specimen .hud-card {
-  right: 280px;
-}
-
 /* Content area leaves room for fixed ticker sidebar */
 body#specimen .specimen-wrap {
   padding-right: 280px;
@@ -1578,13 +1585,52 @@ body#specimen .specimen-wrap {
   justify-content: center;
   border: 1px solid #ebebeb;
   cursor: default;
-  transition: border-color 0.12s;
+  transition: background 0.1s, border-color 0.1s;
   gap: 3px;
   user-select: none;
+  position: relative;  /* for ::after corner badge */
 }
 
+/* ── Available cell hover: black bg, white glyph, green checkmark ── */
+.sp-glyph-cell.available:hover {
+  background: var(--black);
+  border-color: var(--black);
+}
+.sp-glyph-cell.available:hover .sp-glyph-char {
+  color: var(--white);
+}
+.sp-glyph-cell.available::after {
+  content: '✓';
+  position: absolute;
+  top: 5px;
+  right: 6px;
+  font-size: 8px;
+  color: #0A7E3D;
+  opacity: 0;
+  transition: opacity 0.1s;
+  line-height: 1;
+}
+.sp-glyph-cell.available:hover::after {
+  opacity: 1;
+}
+.sp-glyph-caption--avail {
+  display: none;
+  color: #0A7E3D;
+}
+.sp-glyph-cell.available:hover .sp-glyph-caption--avail {
+  display: block;
+}
+
+/* ── Locked cell hover: red bg, white glyph, white caption ── */
 .sp-glyph-cell.locked:hover {
+  background: var(--red);
   border-color: var(--red);
+}
+.sp-glyph-cell.locked:hover .sp-glyph-char {
+  color: var(--white);
+}
+.sp-glyph-cell.locked:hover .sp-glyph-caption {
+  color: var(--white);
 }
 
 .sp-glyph-char {
@@ -1793,7 +1839,6 @@ body#specimen .specimen-wrap {
 /* ── Specimen page responsive ───────────────────────────────── */
 @media (max-width: 1100px) {
   .ticker-sidebar { display: none; }
-  body#specimen .hud-card { right: 0; }
   body#specimen .specimen-wrap { padding-right: 0; }
   .sp-charmap-grid { grid-template-columns: repeat(8, 1fr); }
   .sp-glyph-cell { width: auto; height: 72px; }
@@ -2148,4 +2193,280 @@ body#specimen .specimen-wrap {
   .enterprise-app-text-input {
     width: 100%;
   }
+}
+
+/* ================================================================
+   HEADER — INLINE HUD LAYOUT (logged-in pages)
+   ================================================================ */
+
+/* Header-left: logo link + inline HUD card side by side */
+.header-left {
+  display: flex;
+  align-items: center;
+}
+
+/* Logged-in page headers expand vertically to fit the inline HUD */
+body#specimen .site-header,
+body#upgrade .site-header {
+  height: auto;
+  min-height: 80px;
+  padding-top: var(--space-8);
+  padding-bottom: var(--space-8);
+}
+
+/* Page-wrap top padding must clear the taller header */
+body#specimen .page-wrap,
+body#upgrade .page-wrap {
+  padding-top: 80px;
+}
+
+/* Ticker sidebar top must match expanded header */
+body#specimen .ticker-sidebar {
+  top: 80px;
+}
+
+/* Inline HUD card — static flow inside .header-left */
+.hud-card--inline {
+  position: static !important;
+  top: auto !important;
+  right: auto !important;
+  width: auto;
+  min-width: 160px;
+  border: none;
+  border-left: var(--rule);
+  border-bottom: none;
+  margin-left: var(--space-16);
+  padding-left: var(--space-16);
+  background: transparent;
+}
+
+.hud-card--inline.active {
+  display: block;
+}
+
+.hud-card--inline .hud-body {
+  padding: 4px 0;
+  gap: 4px;
+}
+
+/* Responsive: restore compact header when ticker is hidden */
+@media (max-width: 1100px) {
+  body#specimen .site-header,
+  body#upgrade .site-header {
+    min-height: 52px;
+    height: 52px;
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+
+  body#specimen .page-wrap,
+  body#upgrade .page-wrap {
+    padding-top: 52px;
+  }
+}
+
+/* ================================================================
+   TYPOGRAPHY — GLOBAL SCALE INCREASE
+   ================================================================ */
+
+/* Section labels: § 01 — Character Map, etc. */
+.sp-section-label {
+  font-size: 14px;
+  margin-bottom: var(--space-16);
+}
+
+/* Subheadings under section labels */
+.sp-section-heading {
+  font-size: 28px;
+  letter-spacing: 0.06em;
+  margin-bottom: var(--space-48);
+}
+
+/* Usage log metadata */
+.sp-log-meta { font-size: 13px; }
+.sp-log-empty { font-size: 13px; }
+.sp-log-entry-header { font-size: 13px; }
+.sp-log-entry-line { font-size: 13px; }
+
+/* License table + desc */
+.sp-license-table td { font-size: 13px; padding: 9px 0; }
+.sp-license-upgrade-btn { font-size: 13px; }
+
+/* License body text — larger for readability */
+.sp-license-desc {
+  font-size: 16px;
+  letter-spacing: 0.04em;
+}
+
+/* Legal clause body text */
+.license-clause { font-size: 16px; }
+.license-intro  { font-size: 16px; }
+
+/* Specimen bar / bottom bar */
+.specimen-pre-label  { font-size: 13px; }
+.specimen-char-info  { font-size: 13px; }
+.specimen-char-count { font-size: 13px; }
+.specimen-tier-info  { font-size: 13px; }
+.specimen-upgrade-link { font-size: 13px; }
+
+/* Upgrade page label */
+.upgrade-page-label { font-size: 13px; }
+
+/* Header right */
+.header-right { font-size: 13px; }
+
+/* Footer copy */
+.site-footer .footer-copy { font-size: 13px; }
+
+/* HUD stats */
+.hud-stat-label { font-size: 11px; }
+.hud-stat-value { font-size: 13px; }
+.hud-id-line    { font-size: 11px; letter-spacing: 0.1em; }
+
+/* Surveillance ticker */
+.ticker-label { font-size: 11px; }
+.ticker-text  { font-size: 11px; }
+.ticker-time  { font-size: 10px; }
+
+/* Interest modal */
+.sp-interest-modal-title { font-size: 14px; }
+.sp-interest-modal-body  { font-size: 13px; }
+
+/* ================================================================
+   WORDMARK COLUMN
+   ================================================================ */
+
+.page-wordmark {
+  position: fixed;
+  left: 0; top: 0; bottom: 0;
+  width: var(--wordmark-w);
+  border-right: 1px solid var(--black);
+  background: var(--white);
+  z-index: 550;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.page-wordmark-top,
+.page-wordmark-bottom {
+  font-family: monospace;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  line-height: 1.6;
+  text-align: center;
+  color: var(--black);
+  flex-shrink: 0;
+  padding: 0 8px;
+}
+.page-wordmark-center {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+}
+.page-wordmark-rotated {
+  font-family: var(--font-licensed);
+  font-size: 80px;
+  font-weight: 400;
+  color: var(--black);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  transform: rotate(-90deg);
+  white-space: nowrap;
+  line-height: 1;
+  display: block;
+}
+
+/* Content offset for wordmark column */
+.site-header  { padding-left: calc(var(--wordmark-w) + var(--space-32)); }
+.license-header { padding-left: calc(var(--wordmark-w) + var(--space-32)); }
+.site-footer  { padding-left: calc(var(--wordmark-w) + var(--space-32)); }
+.page-wrap    { padding-left: var(--wordmark-w); }
+body#license .page-wrap { padding-left: var(--wordmark-w); }
+.login-upgrade-link { left: calc(var(--wordmark-w) + var(--space-32)); }
+
+/* ================================================================
+   TESTER-FRAME CORNER CLUSTERS
+   ================================================================ */
+
+.tester-frame {
+  position: relative;
+  padding-top: 60px;
+  padding-bottom: 60px;
+}
+.tester-meta {
+  position: absolute;
+  font-family: monospace;
+  font-size: 10px;
+  line-height: 1.5;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  pointer-events: none;
+  user-select: none;
+  white-space: nowrap;
+}
+.tester-meta--tl { top: 8px; left: 0; }
+.tester-meta--tr { top: 8px; right: 0; text-align: right; }
+.tester-meta--bl { bottom: 8px; left: 0; }
+.tester-meta--br { bottom: 8px; right: 0; text-align: right; }
+
+/* ================================================================
+   §04 REDACTED SECTION
+   ================================================================ */
+
+.sp-redact-bar {
+  display: inline-block;
+  background: var(--black);
+  width: 200px;
+  height: 14px;
+  vertical-align: middle;
+}
+.sp-section-heading--violation { color: var(--red); }
+.sp-redacted-box {
+  width: 600px;
+  max-width: 100%;
+  height: 280px;
+  border: var(--rule);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--space-32);
+}
+.sp-redacted-box-text {
+  font-family: monospace;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  text-align: center;
+  line-height: 2.2;
+  color: #aaa;
+}
+.sp-redacted-caption {
+  font-family: monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  line-height: 1.9;
+  color: var(--red);
+  max-width: 600px;
+  font-style: italic;
+}
+
+/* ================================================================
+   RESPONSIVE — hide wordmark on narrow screens
+   ================================================================ */
+
+@media (max-width: 900px) {
+  .page-wordmark { display: none; }
+  .site-header  { padding-left: var(--space-16); }
+  .license-header { padding-left: var(--space-32); }
+  .site-footer  { padding-left: var(--space-32); }
+  .page-wrap    { padding-left: 0; }
+  body#license .page-wrap { padding-left: 0; }
+  .login-upgrade-link { left: var(--space-32); }
 }

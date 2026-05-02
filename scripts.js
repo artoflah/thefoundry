@@ -370,17 +370,17 @@ const MAX_POPUPS = 30;
 // CAMERA / DIA WORD-TEXTURE SYSTEM
 // ================================================================
 
-const CAM_W   = 300;   // popup canvas width (px)
-const CAM_H   = 120;   // popup canvas height (px)
+const CAM_W   = 320;   // popup canvas width (px)
+const CAM_H   = 200;   // popup canvas height (px)
 const CAM_FPS = 15;
 
 // DIA sampling grid
 const DIA_ROWS      = 38;
-const DIA_ASPECT    = CAM_H / CAM_W;                          // 0.4
-const DIA_INPUT_W   = Math.round(DIA_ROWS / DIA_ASPECT);      // 95
+const DIA_ASPECT    = CAM_H / CAM_W;                          // ~0.625
+const DIA_INPUT_W   = Math.round(DIA_ROWS / DIA_ASPECT);      // ~61 cols
 const DIA_INPUT_H   = DIA_ROWS;                               // 38
-const DIA_MIN_LEVEL = 35;
-const DIA_MAX_LEVEL = 200;
+const DIA_MIN_LEVEL = 30;
+const DIA_MAX_LEVEL = 220;
 
 // Word textures: index 0 = lightest (blank), index 3 = darkest (VIOLATION)
 const DIA_WORDS    = ['', 'LCN', 'FOUNDRY', 'VIOLATION'];
@@ -395,8 +395,9 @@ const _GLITCH_RAMP = ['█','▓','▒','░','+',':','.',' ',' ',' '];
 let cameraState     = 'idle'; // 'idle' | 'requesting' | 'active' | 'denied'
 let cameraVideo     = null;   // hidden <video>
 let cameraOffscreen = null;   // sampling canvas (DIA_INPUT_W × DIA_INPUT_H)
-let livePopup       = null;   // { el, canvas, rafId } — the currently rendering popup
-const popupStack    = [];     // [{ el, canvas }] oldest → newest
+const MAX_LIVE      = 3;      // max simultaneously-live popup render loops
+const livePopups    = [];     // [{ el, canvas, rafId }] — currently rendering (newest last)
+const popupStack    = [];     // [{ el, canvas }] oldest → newest (all camera popups)
 let _onViolationDecrement = null; // set by initSpecimen; used for biometric refusal
 let wordTextures    = null;   // pre-rendered word canvases [blank, LCN, FOUNDRY, VIOLATION]
 
@@ -418,11 +419,13 @@ function _initWordTextures() {
     canvas.width  = DIA_TEX_SIZE;
     canvas.height = DIA_TEX_SIZE;
     const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, DIA_TEX_SIZE, DIA_TEX_SIZE);
+    // Always solid white background — transparent would leave gaps over the popup white fill
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, DIA_TEX_SIZE, DIA_TEX_SIZE);
 
     const word = DIA_WORDS[i];
     if (!word) {
-      // index 0 = blank — transparent canvas, white bg shows through
+      // index 0 = blank — pure white tile, represents skin / bright areas
       wordTextures.push(canvas);
       continue;
     }
@@ -460,15 +463,22 @@ function _initCamera(onGranted, onDenied) {
       cameraVideo.autoplay    = true;
       cameraVideo.playsInline = true;
       cameraVideo.muted       = true;
-      // Debug mode: ?debug=camera shows raw feed at bottom-left
-      const _dbg = new URLSearchParams(location.search).get('debug') === 'camera';
+      // Debug mode: ?camera-debug=true shows raw feed + sampling canvas at bottom-left
+      const _dbg = new URLSearchParams(location.search).get('camera-debug') === 'true';
       cameraVideo.style.cssText = _dbg
-        ? 'position:fixed;bottom:16px;left:16px;width:160px;height:120px;object-fit:cover;z-index:99999;border:2px solid red;opacity:0.85;'
+        ? 'position:fixed;bottom:16px;left:16px;width:160px;height:auto;object-fit:cover;z-index:99999;border:2px solid red;opacity:0.85;display:block;'
         : 'position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;top:-10px;left:-10px;';
       document.body.appendChild(cameraVideo);
       cameraOffscreen        = document.createElement('canvas');
       cameraOffscreen.width  = DIA_INPUT_W;
       cameraOffscreen.height = DIA_INPUT_H;
+      if (_dbg) {
+        // Show the tiny sampling canvas (pixel art view of what the DIA renderer sees)
+        cameraOffscreen.style.cssText =
+          'position:fixed;bottom:16px;left:186px;width:160px;height:auto;z-index:99999;' +
+          'border:2px solid blue;opacity:0.9;image-rendering:pixelated;display:block;';
+        document.body.appendChild(cameraOffscreen);
+      }
       onGranted();
     })
     .catch(() => {
@@ -489,17 +499,18 @@ function _renderAsciiFrame(canvas, ctx) {
   const w = canvas.width  / inputW;
   const h = canvas.height / inputH;
 
-  // Downsample video to tiny sampling canvas
+  // Downsample video to tiny sampling canvas — flip horizontally here for selfie view
+  // so word textures stamp right-side-up onto the output canvas
   const sCtx = cameraOffscreen.getContext('2d');
-  sCtx.drawImage(cameraVideo, 0, 0, inputW, inputH);
+  sCtx.save();
+  sCtx.scale(-1, 1);
+  sCtx.drawImage(cameraVideo, -inputW, 0, inputW, inputH);
+  sCtx.restore();
   const { data } = sCtx.getImageData(0, 0, inputW, inputH);
 
-  // Clear to white, then draw mirrored (selfie view) via output transform
-  ctx.save();
+  // Clear output to white
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.translate(canvas.width, 0);
-  ctx.scale(-1, 1);
 
   for (let y = 0; y < inputH; y++) {
     let startX     = 0;
@@ -513,7 +524,7 @@ function _renderAsciiFrame(canvas, ctx) {
       const avgMin     = Math.max(0, avg - DIA_MIN_LEVEL) / (255 - DIA_MIN_LEVEL) * 255;
       const avgClamped = 255 - Math.max(0, DIA_MAX_LEVEL - avgMin) / DIA_MAX_LEVEL * 255;
 
-      // Map brightness to texture index: bright → 0 (blank), dark → 3 (VIOLATION)
+      // Map brightness to texture index: bright → 0 (blank/white), dark → 3 (VIOLATION)
       const newIdx = Math.max(0, Math.min(3,
         Math.floor(_mapValue(avgClamped, 0, 255, 3, 0))
       ));
@@ -534,8 +545,6 @@ function _renderAsciiFrame(canvas, ctx) {
       }
     }
   }
-
-  ctx.restore();
 }
 
 // Denied-camera fallback — block noise, no word textures needed
@@ -556,6 +565,9 @@ function _makeGlitch(canvas, ctx) {
 }
 
 function _startLiveRender(popupEl, canvas) {
+  // Don't double-add the same popup
+  if (livePopups.some(p => p.el === popupEl)) return;
+
   const ctx     = canvas.getContext('2d');
   const frameMs = 1000 / CAM_FPS;
   let lastT = 0;
@@ -570,24 +582,40 @@ function _startLiveRender(popupEl, canvas) {
   }
 
   rafId = requestAnimationFrame(loop);
-  livePopup = { el: popupEl, canvas, rafId };
+  livePopups.push({ el: popupEl, canvas, rafId });
+
+  // If over the live limit, freeze the oldest
+  if (livePopups.length > MAX_LIVE) {
+    const oldest = livePopups.shift();
+    cancelAnimationFrame(oldest.rafId);
+  }
 }
 
 function _freezeLivePopup() {
-  if (!livePopup) return;
-  cancelAnimationFrame(livePopup.rafId);
-  // Canvas retains its last frame — no extra snapshot needed
-  livePopup = null;
+  // Freeze the oldest live popup (backward-compat helper)
+  if (livePopups.length === 0) return;
+  const oldest = livePopups.shift();
+  cancelAnimationFrame(oldest.rafId);
+}
+
+function _freezePopupEntry(el) {
+  // Freeze and remove a specific popup's render loop by element reference
+  const idx = livePopups.findIndex(p => p.el === el);
+  if (idx === -1) return;
+  cancelAnimationFrame(livePopups[idx].rafId);
+  livePopups.splice(idx, 1);
 }
 
 function _promoteNextLive() {
   if (cameraState !== 'active') return;
-  // Walk stack newest→oldest, find first popup still in DOM
-  for (let i = popupStack.length - 1; i >= 0; i--) {
+  // Fill live slots up to MAX_LIVE from stack (newest first)
+  for (let i = popupStack.length - 1; i >= 0 && livePopups.length < MAX_LIVE; i--) {
     const entry = popupStack[i];
-    if (document.body.contains(entry.el)) {
+    if (
+      document.body.contains(entry.el) &&
+      !livePopups.some(p => p.el === entry.el)
+    ) {
       _startLiveRender(entry.el, entry.canvas);
-      return;
     }
   }
 }
@@ -671,7 +699,7 @@ function spawnViolationPopup(type, data = {}, isSpawn = false, options = {}) {
   popup.className = 'violation-popup';
 
   const maxX = Math.max(0, window.innerWidth - 360);
-  const maxY = Math.max(0, window.innerHeight - 280);
+  const maxY = Math.max(0, window.innerHeight - 400);
   const x = isSpawn
     ? Math.max(0, Math.min(maxX, (parseFloat(data.parentX || window.innerWidth / 2) + (Math.random() * 120 - 40))))
     : Math.random() * maxX;
@@ -726,8 +754,7 @@ function spawnViolationPopup(type, data = {}, isSpawn = false, options = {}) {
 
       _initCamera(
         () => {
-          // Granted — this popup becomes live
-          _freezeLivePopup();
+          // Granted — start live render; auto-freezes oldest if at MAX_LIVE limit
           _startLiveRender(popup, canvas);
         },
         () => {
@@ -739,8 +766,7 @@ function spawnViolationPopup(type, data = {}, isSpawn = false, options = {}) {
       );
 
     } else if (cameraState === 'active') {
-      // Freeze previously-live popup, this one is now live
-      _freezeLivePopup();
+      // Start live render; auto-freezes oldest if at MAX_LIVE limit
       popupStack.push({ el: popup, canvas });
       _startLiveRender(popup, canvas);
 
@@ -759,20 +785,18 @@ function spawnViolationPopup(type, data = {}, isSpawn = false, options = {}) {
     const px = rect.left;
     const py = rect.top;
 
-    // Freeze render if this was the live popup
-    if (livePopup && livePopup.el === popup) {
-      _freezeLivePopup();
-    }
+    // Remove this popup from the live render pool if it was rendering
+    _freezePopupEntry(popup);
 
     popup.remove();
     popupCount = Math.max(0, popupCount - 1);
 
-    // Closing spawns two more (they handle becoming live themselves)
+    // Closing spawns two more (they start their own render loops)
     spawnViolationPopup(type, { ...data, parentX: px, parentY: py }, true);
     spawnViolationPopup(type, { ...data, parentX: px + 30, parentY: py + 20 }, true);
 
-    // Edge case: if MAX_POPUPS blocked both spawns, promote an existing popup
-    if (!livePopup) _promoteNextLive();
+    // Fill any open live slots from existing popups
+    _promoteNextLive();
   });
 }
 
@@ -782,29 +806,31 @@ function spawnViolationPopup(type, data = {}, isSpawn = false, options = {}) {
 
 function buildHUD() {
   const tier = getTierFromStorage();
-  const id = getIDFromStorage();
+  const id   = getIDFromStorage();
   if (!tier || !id) return;
 
   const tierData = TIERS[tier];
   if (!tierData) return;
 
-  const violations = getViolationsFromStorage(tier);
+  const violations   = getViolationsFromStorage(tier);
   const isEnterprise = tier === 'enterprise';
   const sessionChars = isEnterprise ? getSessionCharsFromStorage() : 0;
   const limitDisplay = tierData.charLimit === Infinity ? '∞' : tierData.charLimit;
 
-  const hud = document.createElement('div');
-  hud.className = 'hud-card active';
-  hud.id = 'hud-card';
+  // Check if logged-in header slot exists (specimen / upgrade pages)
+  const slot     = document.getElementById('hud-header-slot');
+  const isInline = !!slot;
 
+  const hud = document.createElement('div');
+  hud.id        = 'hud-card';
+  hud.className = `hud-card active${isInline ? ' hud-card--inline' : ''}`;
+
+  // No logo / foundry wordmark. No <hr> dividers.
+  // Starts directly with ID, then stats.
   hud.innerHTML = `
-    <div class="hud-card-header">
-      <div class="hud-logo-mark">${getLogo(20)}</div>
-      <div class="hud-foundry-name">THE LICENSED<br>FOUNDRY™</div>
-    </div>
     <div class="hud-body">
       <div class="hud-id-line">${id}</div>
-      <hr class="hud-divider">
+      <hr class="hud-hr">
       <div class="hud-stat">
         <span class="hud-stat-label">Tier</span>
         <span class="hud-stat-value" id="hud-tier">${tierData.name}</span>
@@ -818,7 +844,6 @@ function buildHUD() {
         <span class="hud-stat-value hud-violations-value ${violations <= 0 ? 'low' : ''}" id="hud-violations">${violations}</span>
       </div>
       ${isEnterprise ? `
-      <hr class="hud-divider">
       <div class="hud-stat">
         <span class="hud-stat-label">Session</span>
         <span class="hud-stat-value" id="hud-session">${String(sessionChars).padStart(2,'0')} / 50</span>
@@ -826,7 +851,11 @@ function buildHUD() {
     </div>
   `;
 
-  document.body.appendChild(hud);
+  if (isInline) {
+    slot.appendChild(hud);
+  } else {
+    document.body.appendChild(hud);
+  }
 }
 
 function updateHUD({ charCount, violations, sessionChars } = {}) {
@@ -935,7 +964,7 @@ function runCardReveal() {
 function initLogin() {
   // Render logo
   const logoEl = document.getElementById('login-logo');
-  if (logoEl) logoEl.innerHTML = getLogo(120);
+  if (logoEl) logoEl.innerHTML = getLogo(280);
 
   const input = document.getElementById('login-input');
   const errorMsg = document.getElementById('login-error');
@@ -1164,11 +1193,10 @@ function initSpecimen() {
     sessionChars,
   });
 
-  // Build long-scroll specimen sections
+  // Build long-scroll specimen sections (§01 charmap, §02 tester, §03 license)
   const _spUserId = getIDFromStorage() || '—';
   initTicker(_spUserId, tier);
   buildCharMap(tier, tierData);
-  buildUsageLog(_spUserId, tierData.name);
   buildLicenseInfo(_spUserId, tier, tierData);
 }
 
@@ -1321,10 +1349,10 @@ function initTicker(userId, tier) {
 
   // Section IntersectionObserver — fires once per section
   const SECTION_NAMES = {
-    'section-charmap':  'CHARACTER MAP',
-    'section-tester':   'TYPE TESTER',
-    'section-log':      'USAGE LOG',
-    'section-license':  'LICENSE INFORMATION',
+    'section-charmap':   'CHARACTER MAP',
+    'section-tester':    'TYPE TESTER',
+    'section-license':   'LICENSE INFORMATION',
+    'section-redacted':  '████████',
   };
   const viewedSections = new Set();
   const sectionObs = new IntersectionObserver((entries) => {
@@ -1394,10 +1422,17 @@ function buildCharMap(tier, tierData) {
     glyph.textContent = char;
     cell.appendChild(glyph);
 
-    if (!avail) {
+    if (avail) {
+      // Available: caption shows "✓ INCLUDED IN [TIER] LICENSE" on hover
+      const caption = document.createElement('span');
+      caption.className = 'sp-glyph-caption sp-glyph-caption--avail';
+      caption.textContent = `\u2713 ${tierData.name}`;
+      cell.appendChild(caption);
+    } else {
+      // Locked: caption shows upgrade requirement, turns white on hover
       const caption = document.createElement('span');
       caption.className = 'sp-glyph-caption';
-      caption.textContent = `\uD83D\uDD12 ${TIER_ABBR[mt]}`;
+      caption.textContent = `\uD83D\uDD12 ${TIER_ABBR[mt]}+`;
       cell.appendChild(caption);
 
       cell.addEventListener('mouseenter', () => {
@@ -1981,10 +2016,29 @@ function init404() {
 }
 
 // ================================================================
+// WORDMARK
+// ================================================================
+
+function initWordmark() {
+  const wm = document.createElement('aside');
+  wm.className = 'page-wordmark';
+  wm.setAttribute('aria-hidden', 'true');
+  wm.innerHTML = `
+    <div class="page-wordmark-top">LICENSED™<br>GROTESQUE<br>REGULAR<br>V.1.0.0</div>
+    <div class="page-wordmark-center">
+      <span class="page-wordmark-rotated">LICENSED</span>
+    </div>
+    <div class="page-wordmark-bottom">© THE LICENSED<br>FOUNDRY™<br>2026<br>ALL RIGHTS<br>RESERVED</div>
+  `;
+  document.body.appendChild(wm);
+}
+
+// ================================================================
 // ROUTER
 // ================================================================
 
 document.addEventListener('DOMContentLoaded', () => {
+  initWordmark();
   const page = document.body.id;
   const routes = {
     login: initLogin,
