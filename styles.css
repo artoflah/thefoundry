@@ -2199,10 +2199,23 @@ body#specimen .specimen-wrap {
    HEADER — INLINE HUD LAYOUT (logged-in pages)
    ================================================================ */
 
-/* Header-left: logo link + inline HUD card side by side */
+/* Header-left: logo link + inline HUD card */
 .header-left {
   display: flex;
   align-items: center;
+}
+
+/* Upgrade page: HUD side-by-side with logo */
+body#upgrade .header-left {
+  flex-direction: row;
+  align-items: center;
+}
+
+/* Specimen page: logo on top, HUD stacked below — both left-aligned */
+body#specimen .header-left {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-8);
 }
 
 /* Logged-in page headers expand vertically to fit the inline HUD */
@@ -2212,6 +2225,7 @@ body#upgrade .site-header {
   min-height: 80px;
   padding-top: var(--space-8);
   padding-bottom: var(--space-8);
+  align-items: flex-start;
 }
 
 /* Page-wrap top padding must clear the taller header */
@@ -2225,7 +2239,7 @@ body#specimen .ticker-sidebar {
   top: 80px;
 }
 
-/* Inline HUD card — static flow inside .header-left */
+/* Inline HUD card — upgrade page: side-by-side with border-left */
 .hud-card--inline {
   position: static !important;
   top: auto !important;
@@ -2238,6 +2252,17 @@ body#specimen .ticker-sidebar {
   margin-left: var(--space-16);
   padding-left: var(--space-16);
   background: transparent;
+}
+
+/* Specimen page inline HUD: stacked, border on top instead of left */
+body#specimen .hud-card--inline {
+  border-left: none;
+  border-top: var(--rule);
+  margin-left: 0;
+  padding-left: 0;
+  padding-top: var(--space-8);
+  min-width: 0;
+  width: auto;
 }
 
 .hud-card--inline.active {
@@ -2257,6 +2282,21 @@ body#specimen .ticker-sidebar {
     height: 52px;
     padding-top: 0;
     padding-bottom: 0;
+    align-items: center;
+  }
+
+  body#specimen .header-left {
+    flex-direction: row;
+    align-items: center;
+    gap: 0;
+  }
+
+  body#specimen .hud-card--inline {
+    border-top: none;
+    border-left: var(--rule);
+    margin-left: var(--space-16);
+    padding-left: var(--space-16);
+    padding-top: 0;
   }
 
   body#specimen .page-wrap,
@@ -2390,14 +2430,26 @@ body#specimen .ticker-sidebar {
 body#license .page-wrap { padding-left: var(--wordmark-w); }
 .login-upgrade-link { left: calc(var(--wordmark-w) + var(--space-32)); }
 
+/* Login has no wordmark — right-align upgrade text to vertical line's left edge */
+body#login .login-upgrade-link {
+  left: auto;
+  right: calc(50% + 17px);
+}
+
 /* ================================================================
    TESTER-FRAME CORNER CLUSTERS
    ================================================================ */
 
+/* Extra padding on the §02 Type Tester section */
+#section-tester {
+  padding-top: calc(var(--space-80) + var(--space-40));
+  padding-bottom: calc(var(--space-120) + var(--space-40));
+}
+
 .tester-frame {
   position: relative;
-  padding-top: 60px;
-  padding-bottom: 60px;
+  padding-top: 90px;   /* 90px = 80px clearance + 10px offset above cluster labels */
+  padding-bottom: 90px;
 }
 .tester-meta {
   position: absolute;
@@ -2469,4 +2521,492 @@ body#license .page-wrap { padding-left: var(--wordmark-w); }
   .page-wrap    { padding-left: 0; }
   body#license .page-wrap { padding-left: 0; }
   .login-upgrade-link { left: var(--space-32); }
+  body#login .login-upgrade-link { left: auto; right: var(--space-32); }
+}
+
+/* ================================================================
+   CHECKOUT PAGE
+   ================================================================ */
+
+body#checkout {
+  min-height: 100vh;
+  background: var(--white);
+  display: block;
+}
+
+/* Top bar */
+.co-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--black);
+  color: var(--white);
+  padding: 0 var(--space-32);
+  height: 52px;
+}
+.co-topbar-logo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+  color: var(--white);
+  text-decoration: none;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+.co-topbar-logo svg path,
+.co-topbar-logo svg rect,
+.co-topbar-logo svg circle {
+  fill: var(--white);
+  stroke: var(--white);
+}
+.co-topbar-cart {
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--white);
+  text-decoration: none;
+}
+.co-topbar-cart:hover { opacity: 0.7; }
+
+/* Page header */
+.co-page-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: var(--space-40) var(--space-40);
+  border-bottom: var(--rule);
+}
+.co-page-heading {
+  font-size: 48px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+.co-page-subtotal {
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--black);
+}
+
+/* Layout */
+.co-layout {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  min-height: calc(100vh - 52px - 80px);
+  align-items: start;
+}
+
+/* Left column — steps */
+.co-steps-col {
+  border-right: var(--rule);
+  padding: var(--space-40);
+}
+
+/* Step nav */
+.co-step-nav {
+  display: flex;
+  gap: var(--space-40);
+  list-style: none;
+  margin-bottom: var(--space-48);
+  border-bottom: var(--rule);
+  padding-bottom: var(--space-24);
+}
+.co-step-nav-item {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1.5px solid #ccc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: #aaa;
+  font-weight: 400;
+  flex-shrink: 0;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  position: relative;
+}
+.co-step-nav-item + .co-step-nav-item::before {
+  content: '';
+  position: absolute;
+  right: 100%;
+  top: 50%;
+  width: var(--space-40);
+  height: 1px;
+  background: #ddd;
+  transform: translateX(0);
+}
+.co-step-nav-item.active {
+  background: var(--black);
+  border-color: var(--black);
+  color: var(--white);
+}
+.co-step-nav-item.completed {
+  background: var(--black);
+  border-color: var(--black);
+  color: var(--white);
+}
+.co-step-nav-item.completed::after {
+  content: '✓';
+  font-size: 12px;
+}
+.co-step-nav-item.completed span { display: none; }
+
+/* Step panels */
+.co-step-panel { display: block; }
+.co-step-panel[hidden] { display: none; }
+
+.co-step-heading {
+  font-size: 18px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 700;
+  margin-bottom: var(--space-8);
+}
+.co-step-subtitle {
+  font-size: 11px;
+  color: #888;
+  margin-bottom: var(--space-32);
+  line-height: 1.6;
+  max-width: 520px;
+}
+
+/* Form fields */
+.co-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-16) var(--space-24);
+  max-width: 560px;
+  margin-bottom: var(--space-24);
+}
+.co-form-grid--single {
+  grid-template-columns: 1fr;
+}
+.co-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.co-field-label {
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #888;
+}
+.co-field-input {
+  height: 44px;
+  border: none;
+  border-bottom: 1.5px solid #ccc;
+  background: transparent;
+  font-family: var(--font-licensed);
+  font-size: 13px;
+  color: var(--black);
+  padding: 0;
+  outline: none;
+  transition: border-color 0.15s;
+  width: 100%;
+}
+.co-field-input:focus { border-color: var(--black); }
+.co-field-input::placeholder { color: #ccc; }
+select.co-field-input {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23000' stroke-width='1.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0 center;
+  padding-right: var(--space-20);
+  cursor: pointer;
+}
+.co-field--full {
+  grid-column: 1 / -1;
+}
+
+.co-form-caption {
+  font-size: 10px;
+  color: #aaa;
+  line-height: 1.7;
+  max-width: 520px;
+  margin-bottom: var(--space-24);
+}
+
+/* Buttons */
+.co-continue-btn {
+  display: block;
+  width: 100%;
+  max-width: 560px;
+  height: 52px;
+  background: var(--black);
+  color: var(--white);
+  border: none;
+  font-family: var(--font-licensed);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  margin-bottom: var(--space-16);
+}
+.co-continue-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+.co-continue-btn:not(:disabled):hover { opacity: 0.8; }
+
+.co-back-link {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #888;
+  cursor: pointer;
+  text-decoration: underline;
+  background: none;
+  border: none;
+  font-family: var(--font-licensed);
+  display: block;
+  margin-top: var(--space-8);
+}
+.co-back-link:hover { color: var(--black); }
+
+/* Step 2 — tier confirm */
+.co-tier-confirm-name {
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  margin-bottom: var(--space-4);
+}
+.co-tier-confirm-price {
+  font-size: 18px;
+  letter-spacing: 0.06em;
+  color: #555;
+  margin-bottom: var(--space-24);
+}
+.co-tier-confirm-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-24);
+  max-width: 560px;
+  margin-bottom: var(--space-24);
+}
+.co-tier-col-label {
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #aaa;
+  margin-bottom: var(--space-12);
+}
+.co-tier-col-label--restricted { color: var(--red); }
+.co-tier-list {
+  list-style: none;
+  font-size: 12px;
+  line-height: 2;
+  color: var(--black);
+}
+.co-tier-list--restricted { color: var(--red); }
+.co-tier-list--restricted li::before {
+  content: '— ';
+}
+
+.co-step-disclaimer {
+  font-size: 10px;
+  color: #aaa;
+  line-height: 1.7;
+  max-width: 520px;
+  margin-bottom: var(--space-24);
+  font-style: italic;
+}
+
+/* Step 3 — payment */
+.co-secure-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #aaa;
+  border: 1px solid #e8e8e8;
+  padding: 6px 12px;
+  margin-bottom: var(--space-24);
+}
+.co-secure-badge::before {
+  content: '🔒';
+  font-size: 10px;
+}
+
+/* Step 4 — review */
+.co-review-lines {
+  max-width: 560px;
+  border: var(--rule);
+  margin-bottom: var(--space-24);
+}
+.co-review-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: var(--space-12) var(--space-16);
+  border-bottom: 1px solid #e8e8e8;
+  gap: var(--space-24);
+}
+.co-review-row:last-child { border-bottom: none; }
+.co-review-label {
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #888;
+  flex-shrink: 0;
+}
+.co-review-value {
+  font-size: 12px;
+  color: var(--black);
+  text-align: right;
+}
+
+.co-agree-row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-12);
+  max-width: 560px;
+  margin-bottom: var(--space-24);
+}
+.co-agree-check {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  margin-top: 2px;
+  accent-color: var(--black);
+  cursor: pointer;
+}
+.co-agree-label {
+  font-size: 10px;
+  color: #555;
+  line-height: 1.7;
+  cursor: pointer;
+}
+
+/* Processing / success screens */
+.co-processing-screen,
+.co-success-screen {
+  max-width: 560px;
+  padding: var(--space-40) 0;
+}
+.co-processing-title,
+.co-success-title {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: var(--space-12);
+}
+.co-processing-sub,
+.co-success-sub {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #888;
+  margin-bottom: var(--space-24);
+}
+.co-processing-dots {
+  font-size: 20px;
+  color: var(--red);
+  letter-spacing: 4px;
+}
+.co-success-id-block {
+  border: var(--rule);
+  padding: var(--space-24);
+  margin-bottom: var(--space-32);
+}
+.co-success-id-label {
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #aaa;
+  margin-bottom: var(--space-8);
+}
+.co-success-id {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  font-family: monospace;
+  margin-bottom: var(--space-8);
+}
+.co-success-id-note {
+  font-size: 10px;
+  color: #888;
+  line-height: 1.6;
+}
+.co-proceed-btn {
+  display: block;
+  width: 100%;
+  height: 52px;
+  background: var(--black);
+  color: var(--white);
+  border: none;
+  font-family: var(--font-licensed);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.co-proceed-btn:hover { opacity: 0.8; }
+
+/* Right column — order summary */
+.co-summary-col {
+  padding: var(--space-40) var(--space-32);
+  position: sticky;
+  top: 52px;
+}
+.co-summary-heading {
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #aaa;
+  margin-bottom: var(--space-24);
+  font-family: monospace;
+}
+.co-summary-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: var(--space-12) 0;
+  border-bottom: 1px solid #e8e8e8;
+  gap: var(--space-16);
+}
+.co-summary-total {
+  font-size: 13px;
+  font-weight: 700;
+  border-bottom: none;
+  border-top: var(--rule);
+  padding-top: var(--space-16);
+}
+.co-summary-legal {
+  font-size: 9px;
+  color: #aaa;
+  line-height: 1.7;
+  margin-top: var(--space-24);
+}
+.co-summary-help {
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #aaa;
+  margin-top: var(--space-16);
+  border-top: 1px solid #e8e8e8;
+  padding-top: var(--space-16);
+}
+
+@media (max-width: 900px) {
+  .co-layout { grid-template-columns: 1fr; }
+  .co-steps-col { border-right: none; }
+  .co-summary-col { position: static; border-top: var(--rule); }
+  .co-page-heading { font-size: 32px; }
 }

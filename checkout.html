@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CHECKOUT — THE LICENSED FOUNDRY™</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body id="checkout">
+
+  <!-- Top bar -->
+  <header class="co-topbar">
+    <a href="upgrade.html" class="co-topbar-logo">
+      <span id="checkout-top-logo"></span>
+      THE LICENSED FOUNDRY™
+    </a>
+    <span class="co-topbar-cart">VIEW CART (1)</span>
+  </header>
+
+  <!-- Page header -->
+  <div class="co-page-header">
+    <h1 class="co-page-heading">Checkout</h1>
+    <div class="co-page-subtotal">Order Subtotal: <span class="js-co-subtotal">—</span>/mo</div>
+  </div>
+
+  <!-- Two-column layout -->
+  <div class="co-layout">
+
+    <!-- LEFT — step content -->
+    <div class="co-steps-col">
+
+      <!-- Step nav -->
+      <ol class="co-step-nav" aria-label="Checkout steps">
+        <li class="co-step-nav-item" aria-label="Step 1: Licensee Information"><span>1</span></li>
+        <li class="co-step-nav-item" aria-label="Step 2: Tier Confirmation"><span>2</span></li>
+        <li class="co-step-nav-item" aria-label="Step 3: Payment"><span>3</span></li>
+        <li class="co-step-nav-item" aria-label="Step 4: Review"><span>4</span></li>
+      </ol>
+
+      <!-- STEP 1 — Licensee Information -->
+      <div class="co-step-panel" id="co-step1-panel">
+        <h2 class="co-step-heading">Licensee Information</h2>
+        <p class="co-step-subtitle">*Indicates required field. The Foundry uses this information to identify, monitor, and bill the licensee.</p>
+
+        <form id="co-step1-form" autocomplete="off" novalidate>
+          <div class="co-form-grid">
+            <div class="co-field co-field--full">
+              <label class="co-field-label" for="co-f-name">Full Legal Name *</label>
+              <input class="co-field-input" type="text" id="co-f-name" placeholder="As it appears on government-issued ID" required>
+            </div>
+            <div class="co-field co-field--full">
+              <label class="co-field-label" for="co-f-email">Email Address *</label>
+              <input class="co-field-input" type="email" id="co-f-email" placeholder="you@domain.com" required>
+            </div>
+            <div class="co-field">
+              <label class="co-field-label" for="co-f-dob">Date of Birth *</label>
+              <input class="co-field-input" type="date" id="co-f-dob" required>
+            </div>
+            <div class="co-field">
+              <label class="co-field-label" for="co-f-zip">ZIP / Postal Code *</label>
+              <input class="co-field-input" type="text" id="co-f-zip" placeholder="00000" required>
+            </div>
+            <div class="co-field">
+              <label class="co-field-label" for="co-f-city">City *</label>
+              <input class="co-field-input" type="text" id="co-f-city" placeholder="City" required>
+            </div>
+            <div class="co-field">
+              <label class="co-field-label" for="co-f-state">State / Province *</label>
+              <select class="co-field-input" id="co-f-state" required>
+                <option value="">Select…</option>
+                <option>AL</option><option>AK</option><option>AZ</option><option>AR</option>
+                <option>CA</option><option>CO</option><option>CT</option><option>DE</option>
+                <option>FL</option><option>GA</option><option>HI</option><option>ID</option>
+                <option>IL</option><option>IN</option><option>IA</option><option>KS</option>
+                <option>KY</option><option>LA</option><option>ME</option><option>MD</option>
+                <option>MA</option><option>MI</option><option>MN</option><option>MS</option>
+                <option>MO</option><option>MT</option><option>NE</option><option>NV</option>
+                <option>NH</option><option>NJ</option><option>NM</option><option>NY</option>
+                <option>NC</option><option>ND</option><option>OH</option><option>OK</option>
+                <option>OR</option><option>PA</option><option>RI</option><option>SC</option>
+                <option>SD</option><option>TN</option><option>TX</option><option>UT</option>
+                <option>VT</option><option>VA</option><option>WA</option><option>WV</option>
+                <option>WI</option><option>WY</option><option>Other</option>
+              </select>
+            </div>
+            <div class="co-field co-field--full">
+              <label class="co-field-label" for="co-f-country">Country *</label>
+              <select class="co-field-input" id="co-f-country" required>
+                <option value="">Select…</option>
+                <option>United States</option>
+                <option>Canada</option>
+                <option>United Kingdom</option>
+                <option>Australia</option>
+                <option>Germany</option>
+                <option>France</option>
+                <option>Japan</option>
+                <option>Other</option>
+              </select>
+            </div>
+          </div>
+
+          <p class="co-form-caption">By proceeding, you grant the Foundry first right of refusal on derivative works produced under this license.</p>
+
+          <button class="co-continue-btn" type="submit" id="co-step1-continue" disabled>
+            Continue to Tier Confirmation →
+          </button>
+        </form>
+      </div>
+
+      <!-- STEP 2 — Tier Confirmation -->
+      <div class="co-step-panel" id="co-step2-panel" hidden>
+        <h2 class="co-step-heading">Tier Confirmation</h2>
+        <p class="co-step-subtitle">Confirm your selected license tier. Tier selections are final.</p>
+
+        <div id="co-tier-block"></div>
+
+        <p class="co-step-disclaimer">By proceeding, you waive the right to downgrade. This decision is final.</p>
+
+        <button class="co-continue-btn" id="co-step2-continue">
+          Continue to Payment →
+        </button>
+        <button class="co-back-link" id="co-step2-back" type="button">
+          ← Return to Licensee Information
+        </button>
+      </div>
+
+      <!-- STEP 3 — Payment -->
+      <div class="co-step-panel" id="co-step3-panel" hidden>
+        <h2 class="co-step-heading">Payment</h2>
+        <p class="co-step-subtitle">Payment is non-refundable. Card on file will be retained for renewal billing.</p>
+
+        <div class="co-secure-badge">SECURE PAYMENT — FOUNDRY INTERNAL BILLING SYSTEM v1.0.0</div>
+
+        <form id="co-step3-form" autocomplete="off" novalidate>
+          <div class="co-form-grid co-form-grid--single">
+            <div class="co-field">
+              <label class="co-field-label" for="co-f-card-num">Card Number *</label>
+              <input class="co-field-input" type="text" id="co-f-card-num" placeholder="0000 0000 0000 0000" maxlength="19" required>
+            </div>
+            <div class="co-field">
+              <label class="co-field-label" for="co-f-card-name">Cardholder Name *</label>
+              <input class="co-field-input" type="text" id="co-f-card-name" placeholder="As it appears on card" required>
+            </div>
+          </div>
+          <div class="co-form-grid">
+            <div class="co-field">
+              <label class="co-field-label" for="co-f-card-exp">Expiration Date *</label>
+              <input class="co-field-input" type="text" id="co-f-card-exp" placeholder="MM/YY" maxlength="5" required>
+            </div>
+            <div class="co-field">
+              <label class="co-field-label" for="co-f-card-cvc">CVC *</label>
+              <input class="co-field-input" type="text" id="co-f-card-cvc" placeholder="123" maxlength="3" required>
+            </div>
+            <div class="co-field co-field--full">
+              <label class="co-field-label" for="co-f-billing-zip">Billing ZIP *</label>
+              <input class="co-field-input" type="text" id="co-f-billing-zip" placeholder="Auto-filled from Step 1" required>
+            </div>
+          </div>
+
+          <p class="co-form-caption">Your payment information is processed by The Foundry's internal billing system. The Foundry retains the right to bill recurring charges in perpetuity. See subsection 4(b) of your agreement.</p>
+
+          <button class="co-continue-btn" type="submit" id="co-step3-continue" disabled>
+            Continue to Review →
+          </button>
+          <button class="co-back-link" id="co-step3-back" type="button">
+            ← Return to Tier Confirmation
+          </button>
+        </form>
+      </div>
+
+      <!-- STEP 4 — Review & Process -->
+      <div class="co-step-panel" id="co-step4-panel" hidden>
+        <h2 class="co-step-heading">Review &amp; Process Order</h2>
+        <p class="co-step-subtitle">Verify all information before processing. This order cannot be cancelled.</p>
+
+        <div class="co-review-lines" id="co-review-lines">
+          <!-- populated by JS -->
+        </div>
+
+        <div class="co-agree-row">
+          <input class="co-agree-check" type="checkbox" id="co-agree-check">
+          <label class="co-agree-label" for="co-agree-check">
+            I have read and accept the Terms of Service and the Licensee Agreement. I understand that my data, biometric samples, and creative output may be retained by the Foundry indefinitely.
+          </label>
+        </div>
+
+        <button class="co-continue-btn" id="co-process-btn" disabled>
+          Process Order
+        </button>
+        <button class="co-back-link" id="co-step4-back" type="button">
+          ← Return to Payment
+        </button>
+      </div>
+
+    </div><!-- /co-steps-col -->
+
+    <!-- RIGHT — order summary -->
+    <div class="co-summary-col">
+      <div class="co-summary-heading">Summary</div>
+      <div id="co-summary-lines">
+        <!-- populated by JS -->
+      </div>
+      <p class="co-summary-legal">By proceeding, you authorize The Foundry to charge this amount and any future renewal amounts to your card on file.</p>
+      <p class="co-summary-help">NEED HELP? Contact your assigned Foundry Representative.</p>
+    </div>
+
+  </div><!-- /co-layout -->
+
+  <footer class="site-footer" style="margin-top:auto;">
+    <span class="footer-copy">
+      © 2026 THE LICENSED FOUNDRY™ v.1.0.0 — EST. NEVER — ALL GLYPHS MONITORED
+    </span>
+  </footer>
+
+  <script src="scripts.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const logoEl = document.getElementById('checkout-top-logo');
+      if (logoEl) logoEl.innerHTML = getLogo(20);
+    });
+  </script>
+</body>
+</html>

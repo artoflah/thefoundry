@@ -379,8 +379,8 @@ const DIA_ROWS      = 38;
 const DIA_ASPECT    = CAM_H / CAM_W;                          // ~0.625
 const DIA_INPUT_W   = Math.round(DIA_ROWS / DIA_ASPECT);      // ~61 cols
 const DIA_INPUT_H   = DIA_ROWS;                               // 38
-const DIA_MIN_LEVEL = 30;
-const DIA_MAX_LEVEL = 220;
+const DIA_MIN_LEVEL = 40;
+const DIA_MAX_LEVEL = 200;
 
 // Word textures: index 0 = lightest (blank), index 3 = darkest (VIOLATION)
 const DIA_WORDS    = ['', 'LCN', 'FOUNDRY', 'VIOLATION'];
@@ -517,8 +517,11 @@ function _renderAsciiFrame(canvas, ctx) {
     let currentIdx = -1;
 
     for (let x = 0; x < inputW; x++) {
-      const p   = (y * inputW + x) * 4;
-      const avg = (data[p] + data[p + 1] + data[p + 2]) / 3;
+      const p = (y * inputW + x) * 4;
+      let avg = (data[p] + data[p + 1] + data[p + 2]) / 3;
+
+      // Gamma correction — brightens midtones so skin maps to blank (index 0)
+      avg = Math.pow(avg / 255, 0.7) * 255;
 
       // Contrast clamp (port of DIA cacheInput)
       const avgMin     = Math.max(0, avg - DIA_MIN_LEVEL) / (255 - DIA_MIN_LEVEL) * 255;
@@ -570,24 +573,38 @@ function _startLiveRender(popupEl, canvas) {
 
   const ctx     = canvas.getContext('2d');
   const frameMs = 1000 / CAM_FPS;
-  let lastT = 0;
-  let rafId;
+  let lastT     = 0;
+  let frameCount = 0;
+  let running   = true;
 
   function loop(t) {
+    if (!running) return;
     if (t - lastT >= frameMs) {
       _renderAsciiFrame(canvas, ctx);
+      frameCount++;
+      // DEBUG — frame counter (bottom-right corner). Remove once loop confirmed running.
+      ctx.save();
+      ctx.fillStyle = 'rgba(220,220,220,0.75)';
+      ctx.fillRect(canvas.width - 38, canvas.height - 14, 38, 14);
+      ctx.fillStyle = '#888';
+      ctx.font = '8px monospace';
+      ctx.textBaseline = 'top';
+      ctx.textAlign = 'right';
+      ctx.fillText(`f${frameCount}`, canvas.width - 2, canvas.height - 13);
+      ctx.restore();
       lastT = t;
     }
-    rafId = requestAnimationFrame(loop);
+    requestAnimationFrame(loop);
   }
 
-  rafId = requestAnimationFrame(loop);
-  livePopups.push({ el: popupEl, canvas, rafId });
+  requestAnimationFrame(loop);
+  const stop = () => { running = false; };
+  livePopups.push({ el: popupEl, canvas, stop });
 
   // If over the live limit, freeze the oldest
   if (livePopups.length > MAX_LIVE) {
     const oldest = livePopups.shift();
-    cancelAnimationFrame(oldest.rafId);
+    oldest.stop();
   }
 }
 
@@ -595,14 +612,14 @@ function _freezeLivePopup() {
   // Freeze the oldest live popup (backward-compat helper)
   if (livePopups.length === 0) return;
   const oldest = livePopups.shift();
-  cancelAnimationFrame(oldest.rafId);
+  oldest.stop();
 }
 
 function _freezePopupEntry(el) {
   // Freeze and remove a specific popup's render loop by element reference
   const idx = livePopups.findIndex(p => p.el === el);
   if (idx === -1) return;
-  cancelAnimationFrame(livePopups[idx].rafId);
+  livePopups[idx].stop();
   livePopups.splice(idx, 1);
 }
 
@@ -980,8 +997,12 @@ function initLogin() {
     e.preventDefault();
     const val = input.value.trim().toUpperCase();
 
-    if (VALID_IDS[val]) {
-      const tier = VALID_IDS[val];
+    // Also check dynamically-purchased IDs stored in localStorage
+    const customIds = JSON.parse(localStorage.getItem('custom_ids') || '{}');
+    const allIds = Object.assign({}, VALID_IDS, customIds);
+
+    if (allIds[val]) {
+      const tier = allIds[val];
       localStorage.setItem('user_id', val);
       localStorage.setItem('user_tier', tier);
       // Reset violations for fresh session
@@ -1679,10 +1700,19 @@ function initUpgrade() {
     if (!btn || btn.disabled) return;
 
     const targetTier = btn.dataset.tier;
-    if (!tier) { window.location.href = 'login.html'; return; }
+
+    // Guest mode (no login) — send to checkout
+    if (!tier) {
+      if (targetTier === 'enterprise') {
+        window.location.href = 'enterprise-application.html';
+      } else {
+        window.location.href = `checkout.html?tier=${targetTier}`;
+      }
+      return;
+    }
 
     const currentIdx = tierOrder.indexOf(tier);
-    const targetIdx = tierOrder.indexOf(targetTier);
+    const targetIdx  = tierOrder.indexOf(targetTier);
 
     if (targetIdx < currentIdx) {
       spawnViolationPopup('downgrade_prohibited', {});
@@ -2016,6 +2046,281 @@ function init404() {
 }
 
 // ================================================================
+// PAGE: CHECKOUT
+// ================================================================
+
+function initCheckout() {
+  const params   = new URLSearchParams(location.search);
+  const tierKey  = params.get('tier');
+  const tierData = tierKey && TIERS[tierKey];
+
+  if (!tierData || tierKey === 'enterprise') {
+    window.location.href = 'upgrade.html';
+    return;
+  }
+
+  // Parse fee from tier price string: "$12/mo" → 12
+  const rawPrice = tierData.price;
+  const baseAmt  = parseInt(rawPrice.replace(/[^0-9]/g, ''), 10) || 0;
+  const feeProc  = 29;
+  const feeBio   = 14;
+  const total    = baseAmt + feeProc + feeBio;
+
+  // ── Render the logo in top bar ──────────────────────────────────
+  const topLogo = document.getElementById('checkout-top-logo');
+  if (topLogo) topLogo.innerHTML = getLogo(24);
+
+  // ── Subtitle amounts ────────────────────────────────────────────
+  document.querySelectorAll('.js-co-subtotal').forEach(el => {
+    el.textContent = `$${total}`;
+  });
+  document.querySelectorAll('.js-co-price').forEach(el => {
+    el.textContent = rawPrice;
+  });
+  document.querySelectorAll('.js-co-tier-name').forEach(el => {
+    el.textContent = tierData.name;
+  });
+
+  // ── Build order summary sidebar ─────────────────────────────────
+  const summaryEl = document.getElementById('co-summary-lines');
+  if (summaryEl) {
+    summaryEl.innerHTML = `
+      <div class="co-summary-line">
+        <span>${tierData.name} LICENSE</span>
+        <span>${rawPrice}</span>
+      </div>
+      <div class="co-summary-line">
+        <span>PROCESSING FEE</span>
+        <span>$${feeProc}</span>
+      </div>
+      <div class="co-summary-line">
+        <span>BIOMETRIC ENROLLMENT</span>
+        <span>$${feeBio}</span>
+      </div>
+      <div class="co-summary-line co-summary-total">
+        <span>TOTAL</span>
+        <span>$${total}/mo</span>
+      </div>
+    `;
+  }
+
+  // ── Step state ──────────────────────────────────────────────────
+  let currentStep = 0;
+  const formData  = { name: '', email: '', dob: '', zip: '', city: '', state: '', country: '' };
+
+  function setStep(n) {
+    currentStep = n;
+    document.querySelectorAll('.co-step-panel').forEach((panel, i) => {
+      panel.hidden = i !== n;
+    });
+    document.querySelectorAll('.co-step-nav-item').forEach((item, i) => {
+      item.classList.toggle('active',    i === n);
+      item.classList.toggle('completed', i < n);
+    });
+    // Auto-fill billing zip when landing on payment step
+    if (n === 2 && formData.zip) {
+      const bz = document.getElementById('co-f-billing-zip');
+      if (bz && !bz.value) bz.value = formData.zip;
+    }
+    // Populate review when landing on review step
+    if (n === 3) _populateReview();
+  }
+
+  // ── Step 1: Licensee Information ────────────────────────────────
+  const step1Form = document.getElementById('co-step1-form');
+  if (step1Form) {
+    const requiredFields = step1Form.querySelectorAll('[required]');
+    const continueBtn    = document.getElementById('co-step1-continue');
+
+    function checkStep1() {
+      const allFilled = Array.from(requiredFields).every(f => f.value.trim() !== '');
+      if (continueBtn) continueBtn.disabled = !allFilled;
+    }
+    requiredFields.forEach(f => f.addEventListener('input', checkStep1));
+    requiredFields.forEach(f => f.addEventListener('change', checkStep1));
+    checkStep1();
+
+    step1Form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      formData.name    = document.getElementById('co-f-name').value.trim();
+      formData.email   = document.getElementById('co-f-email').value.trim();
+      formData.dob     = document.getElementById('co-f-dob').value.trim();
+      formData.zip     = document.getElementById('co-f-zip').value.trim();
+      formData.city    = document.getElementById('co-f-city').value.trim();
+      formData.state   = document.getElementById('co-f-state').value;
+      formData.country = document.getElementById('co-f-country').value;
+      setStep(1);
+    });
+  }
+
+  // ── Step 2: Tier Confirmation ────────────────────────────────────
+  const tierConfirmBlock = document.getElementById('co-tier-block');
+  if (tierConfirmBlock) {
+    const inclusions = {
+      basic:        ['Lowercase a–z and period only', '80 chars per session', '1 violation permitted', 'Personal use only', 'No copy or export'],
+      standard:     ['Full alphabet + punctuation', '280 chars per session', '3 violations permitted', 'Numbers 1–5 included', 'Email and print permitted'],
+      professional: ['Full alphabet 0–9 + punctuation', '1,000 chars per session', '2 violations permitted', 'Print and digital use', 'Standard OS/web embedding'],
+    };
+    const exclusions = {
+      basic:        ['Uppercase letters', 'All numerals', 'Most punctuation', 'Commercial use', 'Redistribution'],
+      standard:     ['Numerals 0, 6–9', 'Em dash', 'Commercial use', 'Redistribution', 'Copy/export rights'],
+      professional: ['Public display rights', 'Copy and export', 'Commercial redistribution', 'Cloud storage', 'Sub-licensing'],
+    };
+    const incl = inclusions[tierKey] || [];
+    const excl = exclusions[tierKey] || [];
+    tierConfirmBlock.innerHTML = `
+      <div class="co-tier-confirm-name">${tierData.name}</div>
+      <div class="co-tier-confirm-price">${rawPrice}</div>
+      <div class="co-tier-confirm-cols">
+        <div class="co-tier-confirm-col">
+          <div class="co-tier-col-label">INCLUDED</div>
+          <ul class="co-tier-list">${incl.map(l => `<li>${l}</li>`).join('')}</ul>
+        </div>
+        <div class="co-tier-confirm-col">
+          <div class="co-tier-col-label co-tier-col-label--restricted">RESTRICTIONS</div>
+          <ul class="co-tier-list co-tier-list--restricted">${excl.map(l => `<li>${l}</li>`).join('')}</ul>
+        </div>
+      </div>
+    `;
+  }
+
+  document.getElementById('co-step2-continue')?.addEventListener('click', () => setStep(2));
+  document.getElementById('co-step2-back')?. addEventListener('click', () => setStep(0));
+
+  // ── Step 3: Payment ──────────────────────────────────────────────
+  const step3Form = document.getElementById('co-step3-form');
+  if (step3Form) {
+    // Auto-fill billing zip from step 1
+    const billingZip = document.getElementById('co-f-billing-zip');
+    const cardNum    = document.getElementById('co-f-card-num');
+    const cardName   = document.getElementById('co-f-card-name');
+    const cardExp    = document.getElementById('co-f-card-exp');
+    const cardCvc    = document.getElementById('co-f-card-cvc');
+    const step3Btn   = document.getElementById('co-step3-continue');
+
+    // Format card number with spaces
+    if (cardNum) {
+      cardNum.addEventListener('input', () => {
+        let v = cardNum.value.replace(/\D/g, '').substring(0, 16);
+        cardNum.value = v.replace(/(.{4})/g, '$1 ').trim();
+      });
+    }
+    // Format expiry MM/YY
+    if (cardExp) {
+      cardExp.addEventListener('input', () => {
+        let v = cardExp.value.replace(/\D/g, '').substring(0, 4);
+        if (v.length > 2) v = v.substring(0, 2) + '/' + v.substring(2);
+        cardExp.value = v;
+      });
+    }
+
+    function checkStep3() {
+      if (!step3Btn) return;
+      const num  = (cardNum?.value.replace(/\s/g, '') || '').length === 16;
+      const name = (cardName?.value.trim() || '') !== '';
+      const exp  = /^\d{2}\/\d{2}$/.test(cardExp?.value || '');
+      const cvc  = /^\d{3}$/.test(cardCvc?.value || '');
+      const zip  = (billingZip?.value.trim() || '') !== '';
+      step3Btn.disabled = !(num && name && exp && cvc && zip);
+    }
+    [cardNum, cardName, cardExp, cardCvc, billingZip].forEach(f => {
+      if (f) f.addEventListener('input', checkStep3);
+    });
+
+    step3Form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      formData.card      = (cardNum?.value.replace(/\s/g, '') || '');
+      formData.cardLast4 = formData.card.slice(-4);
+      formData.cardName  = cardName?.value.trim() || '';
+      setStep(3);
+    });
+
+    document.getElementById('co-step3-back')?.addEventListener('click', () => setStep(1));
+  }
+
+  // ── Step 4: Review & Process ────────────────────────────────────
+  function _populateReview() {
+    const el = document.getElementById('co-review-lines');
+    if (!el) return;
+    el.innerHTML = `
+      <div class="co-review-row"><span class="co-review-label">LICENSEE</span><span class="co-review-value">${formData.name} (${formData.email})</span></div>
+      <div class="co-review-row"><span class="co-review-label">BILLING</span><span class="co-review-value">${formData.city}, ${formData.state} ${formData.zip}, ${formData.country}</span></div>
+      <div class="co-review-row"><span class="co-review-label">TIER</span><span class="co-review-value">${tierData.name} — ${rawPrice}</span></div>
+      <div class="co-review-row"><span class="co-review-label">PAYMENT</span><span class="co-review-value">•••• •••• •••• ${formData.cardLast4 || '——'}</span></div>
+    `;
+  }
+
+  document.getElementById('co-step4-back')?.addEventListener('click', () => setStep(2));
+
+  const agreeChk  = document.getElementById('co-agree-check');
+  const processBtn = document.getElementById('co-process-btn');
+  if (agreeChk && processBtn) {
+    agreeChk.addEventListener('change', () => {
+      processBtn.disabled = !agreeChk.checked;
+    });
+    processBtn.addEventListener('click', () => {
+      if (!agreeChk.checked) return;
+      _runProcessing();
+    });
+  }
+
+  function _runProcessing() {
+    const panel = document.getElementById('co-step4-panel');
+    if (!panel) return;
+    panel.innerHTML = `
+      <div class="co-processing-screen">
+        <div class="co-processing-title">PROCESSING ORDER...</div>
+        <div class="co-processing-sub">DO NOT REFRESH. DO NOT NAVIGATE AWAY.</div>
+        <div class="co-processing-dots" id="co-proc-dots"></div>
+      </div>
+    `;
+    const dotsEl = document.getElementById('co-proc-dots');
+    let d = 0;
+    const dotInt = setInterval(() => {
+      d = (d + 1) % 4;
+      if (dotsEl) dotsEl.textContent = '▐'.repeat(d + 1);
+    }, 400);
+
+    setTimeout(() => {
+      clearInterval(dotInt);
+      // Generate new ID
+      const chars  = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+      const suffix = Array.from({ length: 5 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+      const newId  = `LCN-2026-NEW-${suffix}`;
+
+      // Persist to localStorage so login page accepts it
+      const stored = JSON.parse(localStorage.getItem('custom_ids') || '{}');
+      stored[newId] = tierKey;
+      localStorage.setItem('custom_ids', JSON.stringify(stored));
+
+      // Set active session
+      localStorage.setItem('user_id', newId);
+      localStorage.setItem('user_tier', tierKey);
+      localStorage.setItem(`violations_remaining_${tierKey}`, TIERS[tierKey].violationsAllowed);
+      sessionStorage.removeItem('session_chars');
+
+      panel.innerHTML = `
+        <div class="co-success-screen">
+          <div class="co-success-title">ORDER COMPLETE.</div>
+          <div class="co-success-sub">Your membership ID is being generated.</div>
+          <div class="co-success-id-block">
+            <div class="co-success-id-label">MEMBERSHIP ID</div>
+            <div class="co-success-id">${newId}</div>
+            <div class="co-success-id-note">Please save this ID. It will be required for future access.</div>
+          </div>
+          <button class="co-proceed-btn" id="co-proceed-btn">PROCEED TO YOUR LICENSE →</button>
+        </div>
+      `;
+      document.getElementById('co-proceed-btn')?.addEventListener('click', () => {
+        window.location.href = 'license.html';
+      });
+    }, 2500);
+  }
+
+  setStep(0);
+}
+
+// ================================================================
 // WORDMARK
 // ================================================================
 
@@ -2038,13 +2343,16 @@ function initWordmark() {
 // ================================================================
 
 document.addEventListener('DOMContentLoaded', () => {
-  initWordmark();
   const page = document.body.id;
+  // Wordmark column on all pages EXCEPT login (login has its own layout)
+  if (page !== 'login') initWordmark();
+
   const routes = {
     login: initLogin,
     license: initLicense,
     specimen: initSpecimen,
     upgrade: initUpgrade,
+    checkout: initCheckout,
     'enterprise-application': initEnterpriseApplication,
     'not-found': init404,
   };
