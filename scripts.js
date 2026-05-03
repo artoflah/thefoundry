@@ -372,15 +372,15 @@ const MAX_POPUPS = 30;
 
 const CAM_W   = 320;   // popup canvas width (px)
 const CAM_H   = 200;   // popup canvas height (px)
-const CAM_FPS = 15;
 
-// DIA sampling grid
-const DIA_ROWS      = 38;
-const DIA_ASPECT    = CAM_H / CAM_W;                          // ~0.625
-const DIA_INPUT_W   = Math.round(DIA_ROWS / DIA_ASPECT);      // ~61 cols
-const DIA_INPUT_H   = DIA_ROWS;                               // 38
-const DIA_MIN_LEVEL = 40;
-const DIA_MAX_LEVEL = 200;
+// DIA sampling grid — 60 cols matches DIA accordion default
+const DIA_ROWS      = 60;
+const DIA_ASPECT    = CAM_H / CAM_W;                          // 0.625
+const DIA_INPUT_W   = Math.round(DIA_ROWS / DIA_ASPECT);      // 96 cols
+const DIA_INPUT_H   = DIA_ROWS;                               // 60
+// Full 0–255 range, no clamp — matches DIA defaults exactly
+const DIA_MIN_LEVEL = 0;
+const DIA_MAX_LEVEL = 255;
 
 // Word textures: index 0 = lightest (blank), index 3 = darkest (VIOLATION)
 const DIA_WORDS    = ['', 'LCN', 'FOUNDRY', 'VIOLATION'];
@@ -519,14 +519,11 @@ function _renderAsciiFrame(canvas, ctx) {
 
     for (let y = 0; y < inputH; y++) {
       const p = (y * inputW + x) * 4;
-      let avg = (data[p] + data[p + 1] + data[p + 2]) / 3;
+      const avg = (data[p] + data[p + 1] + data[p + 2]) / 3;
 
-      // Gamma correction: brightens midtones so skin reliably maps to index 0
-      avg = Math.pow(avg / 255, 0.7) * 255;
-
-      // DIA cacheInput contrast clamp
-      const avgMin     = Math.max(0, avg - DIA_MIN_LEVEL) / (255 - DIA_MIN_LEVEL) * 255;
-      const avgClamped = 255 - Math.max(0, DIA_MAX_LEVEL - avgMin) / DIA_MAX_LEVEL * 255;
+      // DIA accordion mapping — no gamma, full 0–255 range
+      // Splits cleanly into 4 equal brightness bands
+      const avgClamped = avg;
 
       // bright → 0 (blank), dark → 3 (VIOLATION)
       const newIdx = Math.max(0, Math.min(3,
@@ -575,28 +572,12 @@ function _startLiveRender(popupEl, canvas) {
   if (livePopups.some(p => p.el === popupEl)) return;
 
   const ctx     = canvas.getContext('2d');
-  const frameMs = 1000 / CAM_FPS;
-  let lastT     = 0;
-  let frameCount = 0;
   let running   = true;
 
-  function loop(t) {
+  // Render every animation frame — no throttle, maximally live (matches DIA behavior)
+  function loop() {
     if (!running) return;
-    if (t - lastT >= frameMs) {
-      _renderAsciiFrame(canvas, ctx);
-      frameCount++;
-      // DEBUG — frame counter (bottom-right corner). Remove once loop confirmed running.
-      ctx.save();
-      ctx.fillStyle = 'rgba(220,220,220,0.75)';
-      ctx.fillRect(canvas.width - 38, canvas.height - 14, 38, 14);
-      ctx.fillStyle = '#888';
-      ctx.font = '8px monospace';
-      ctx.textBaseline = 'top';
-      ctx.textAlign = 'right';
-      ctx.fillText(`f${frameCount}`, canvas.width - 2, canvas.height - 13);
-      ctx.restore();
-      lastT = t;
-    }
+    _renderAsciiFrame(canvas, ctx);
     requestAnimationFrame(loop);
   }
 
