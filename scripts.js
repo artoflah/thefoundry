@@ -364,121 +364,72 @@ function setSessionCharsInStorage(n) {
 // ================================================================
 
 let popupCount = 0;
-const MAX_POPUPS = 30;
+const MAX_POPUPS = 12;
 
 // ================================================================
-// CAMERA / DIA WORD-TEXTURE SYSTEM
+// CAMERA / EMBLEM-TILE SYSTEM
 // ================================================================
 
-const CAM_W   = 320;   // popup canvas width (px)
-const CAM_H   = 200;   // popup canvas height (px)
+const CAM_W          = 320;
+const CAM_H          = 200;
+const EMBLEM_SIZE    = 15;
+const EMBLEM_INPUT_W = Math.floor(CAM_W / EMBLEM_SIZE);  // 21 cols
+const EMBLEM_INPUT_H = Math.floor(CAM_H / EMBLEM_SIZE);  // 13 rows
 
-// DIA sampling grid — 60 cols matches DIA accordion default
-const DIA_ROWS      = 60;
-const DIA_ASPECT    = CAM_H / CAM_W;                          // 0.625
-const DIA_INPUT_W   = Math.round(DIA_ROWS / DIA_ASPECT);      // 96 cols
-const DIA_INPUT_H   = DIA_ROWS;                               // 60
-// Full 0–255 range, no clamp — matches DIA defaults exactly
-const DIA_MIN_LEVEL = 0;
-const DIA_MAX_LEVEL = 255;
+// Brightness order: index 0 = darkest (YIELD), index 3 = lightest non-blank (FOUNDRY).
+// Brightness > 200 stamps nothing (white background shows through).
+const EMBLEM_SRCS = [
+  'assets/emblem-14.svg',  // 0 — YIELD    (purple #1b1464)
+  'assets/emblem-12.svg',  // 1 — DOMINION (blue   #4e7c93)
+  'assets/emblem-13.svg',  // 2 — REGISTRY (yellow #fbb03b)
+  'assets/emblem-04.svg',  // 3 — FOUNDRY  (red    #b10a18)
+];
+const EMBLEM_FALLBACK_COLORS = ['#1b1464', '#4e7c93', '#fbb03b', '#b10a18'];
 
-// Word textures: index 0 = lightest (blank), index 3 = darkest (VIOLATION)
-const DIA_WORDS    = ['', 'LCN', 'FOUNDRY', 'VIOLATION'];
-const DIA_TEX_SIZE = 1000;
-
-// Glitch ramp — used only by denied-camera fallback
-const _GLITCH_COLS = 50;
-const _GLITCH_ROWS = 20;
-const _GLITCH_FONT = 6;
-const _GLITCH_RAMP = ['█','▓','▒','░','+',':','.',' ',' ',' '];
-
-let cameraState     = 'idle'; // 'idle' | 'requesting' | 'active' | 'denied'
-let cameraVideo     = null;   // hidden <video>
-let cameraOffscreen = null;   // sampling canvas (DIA_INPUT_W × DIA_INPUT_H)
-const MAX_LIVE      = 3;      // max simultaneously-live popup render loops
-const livePopups    = [];     // [{ el, canvas, rafId }] — currently rendering (newest last)
-const popupStack    = [];     // [{ el, canvas }] oldest → newest (all camera popups)
-let _onViolationDecrement = null; // set by initSpecimen; used for biometric refusal
-let wordTextures    = null;   // pre-rendered word canvases [blank, LCN, FOUNDRY, VIOLATION]
+let cameraState           = 'idle'; // 'idle' | 'requesting' | 'active' | 'denied'
+let sharedStream          = null;
+let emblemTextures        = null;   // Array<Canvas> — 32×32 each, dark→light
+let emblemTexturesReady   = false;
+const _pendingCameraPopups = [];    // { popup, canvas } — queued while camera initializes
+let _onViolationDecrement = null;   // set by initSpecimen; used for biometric refusal
 
 // Global ticker function — set by initTicker; callable from any section
 let tickerAdd = null;
 
-function _mapValue(value, inMin, inMax, outMin, outMax) {
-  return ((value - inMin) / (inMax - inMin)) * (outMax - outMin) + outMin;
-}
-
-// Pre-render 4 word textures at 1000×1000 each. Run once at script load.
-// Each word is horizontally stretched to fill the full canvas width;
-// scaleY=3.2 pre-stretches vertically so words read naturally when stamped
-// into thin row cells at render time.
-function _initWordTextures() {
-  wordTextures = [];
-  for (let i = 0; i < 4; i++) {
-    const canvas = document.createElement('canvas');
-    canvas.width  = DIA_TEX_SIZE;
-    canvas.height = DIA_TEX_SIZE;
+// Pre-render 4 emblem textures at 32×32. Runs once at script load.
+function _initEmblemTextures() {
+  emblemTextures = new Array(4).fill(null);
+  let loaded = 0;
+  EMBLEM_SRCS.forEach((src, i) => {
+    const canvas  = document.createElement('canvas');
+    canvas.width  = 32;
+    canvas.height = 32;
     const ctx = canvas.getContext('2d');
-    // Black background — canvas bg is black, text stamps over it
-    ctx.fillStyle = '#000000';
-    ctx.fillRect(0, 0, DIA_TEX_SIZE, DIA_TEX_SIZE);
-
-    const word = DIA_WORDS[i];
-    if (!word) {
-      // index 0 = blank — pure black tile, bright/skin areas vanish into bg
-      wordTextures.push(canvas);
-      continue;
-    }
-
-    const textSize = 100;
-    ctx.font = `bold ${textSize}px "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif`;
-    const measuredWidth = ctx.measureText(word).width;
-    const scaleX = DIA_TEX_SIZE / measuredWidth;
-    const scaleY = 3.2;
-
-    ctx.save();
-    ctx.fillStyle = '#EE1111';
-    ctx.translate(DIA_TEX_SIZE / 2, DIA_TEX_SIZE / 2);
-    ctx.scale(scaleX, scaleY);
-    ctx.textBaseline = 'middle';
-    ctx.textAlign = 'center';
-    ctx.fillText(word, 0, 0);
-    ctx.restore();
-
-    wordTextures.push(canvas);
-  }
+    const img = new Image();
+    img.onload = () => {
+      ctx.drawImage(img, 0, 0, 32, 32);
+      emblemTextures[i] = canvas;
+      if (++loaded === 4) emblemTexturesReady = true;
+    };
+    img.onerror = () => {
+      ctx.fillStyle = EMBLEM_FALLBACK_COLORS[i];
+      ctx.fillRect(0, 0, 32, 32);
+      emblemTextures[i] = canvas;
+      if (++loaded === 4) emblemTexturesReady = true;
+    };
+    img.src = src;
+  });
 }
 
-// Initialize textures immediately — pure canvas, no camera permission needed
-_initWordTextures();
+_initEmblemTextures();
 
 function _initCamera(onGranted, onDenied) {
   cameraState = 'requesting';
   navigator.mediaDevices
     .getUserMedia({ video: { width: 320, height: 240 }, audio: false })
     .then(stream => {
-      cameraState = 'active';
-      cameraVideo = document.createElement('video');
-      cameraVideo.srcObject   = stream;
-      cameraVideo.autoplay    = true;
-      cameraVideo.playsInline = true;
-      cameraVideo.muted       = true;
-      // Debug mode: ?camera-debug=true shows raw feed + sampling canvas at bottom-left
-      const _dbg = new URLSearchParams(location.search).get('camera-debug') === 'true';
-      cameraVideo.style.cssText = _dbg
-        ? 'position:fixed;bottom:16px;left:16px;width:160px;height:auto;object-fit:cover;z-index:99999;border:2px solid red;opacity:0.85;display:block;'
-        : 'position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;top:-10px;left:-10px;';
-      document.body.appendChild(cameraVideo);
-      cameraOffscreen        = document.createElement('canvas');
-      cameraOffscreen.width  = DIA_INPUT_W;
-      cameraOffscreen.height = DIA_INPUT_H;
-      if (_dbg) {
-        // Show the tiny sampling canvas (pixel art view of what the DIA renderer sees)
-        cameraOffscreen.style.cssText =
-          'position:fixed;bottom:16px;left:186px;width:160px;height:auto;z-index:99999;' +
-          'border:2px solid blue;opacity:0.9;image-rendering:pixelated;display:block;';
-        document.body.appendChild(cameraOffscreen);
-      }
+      cameraState  = 'active';
+      sharedStream = stream;
       onGranted();
     })
     .catch(() => {
@@ -487,138 +438,108 @@ function _initCamera(onGranted, onDenied) {
     });
 }
 
-// DIA accordion camera render — vertical scan, per-column segment merging.
-// Matches tools.dia.tv/accordion camera mode: outer loop = columns (x),
-// inner loop = rows (y). Same-brightness runs in a column merge into one
-// tall stretched word tile — this is the accordion stretch effect.
-function _renderAsciiFrame(canvas, ctx) {
-  if (cameraState !== 'active' || !cameraVideo || cameraVideo.readyState < 2) return;
-  if (!wordTextures) return;
+// Render one emblem-tile frame from a per-popup video element onto the popup canvas.
+function _renderEmblemFrame(ctx, canvas, tinyCtx, tinyCanvas, videoEl) {
+  if (!emblemTexturesReady) return;
+  if (videoEl.readyState < 2) return;
 
-  const inputW = DIA_INPUT_W;
-  const inputH = DIA_INPUT_H;
-  const cellW  = canvas.width  / inputW;   // output px per sample column
-  const cellH  = canvas.height / inputH;   // output px per sample row
+  // Downsample + mirror (selfie view)
+  tinyCtx.save();
+  tinyCtx.scale(-1, 1);
+  tinyCtx.drawImage(videoEl, -EMBLEM_INPUT_W, 0, EMBLEM_INPUT_W, EMBLEM_INPUT_H);
+  tinyCtx.restore();
 
-  // Downsample video into tiny sampling canvas; mirror for selfie view
-  const sCtx = cameraOffscreen.getContext('2d');
-  sCtx.save();
-  sCtx.scale(-1, 1);
-  sCtx.drawImage(cameraVideo, -inputW, 0, inputW, inputH);
-  sCtx.restore();
-  const { data } = sCtx.getImageData(0, 0, inputW, inputH);
+  const { data } = tinyCtx.getImageData(0, 0, EMBLEM_INPUT_W, EMBLEM_INPUT_H);
 
-  // Black background — index 0 (bright/skin) is a blank black tile, vanishes here
-  ctx.fillStyle = '#000000';
+  // Adaptive contrast: find brightness range across this frame
+  let minB = 255, maxB = 0;
+  for (let i = 0; i < data.length; i += 4) {
+    const b = (data[i] + data[i + 1] + data[i + 2]) / 3;
+    if (b < minB) minB = b;
+    if (b > maxB) maxB = b;
+  }
+  const range = (maxB - minB) || 1;
+
+  // Clear to white (blank cells show as white)
+  ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // Vertical scan: columns outer, rows inner — merges vertical runs per column
-  for (let x = 0; x < inputW; x++) {
-    let startY     = 0;
-    let currentIdx = -1;
+  for (let y = 0; y < EMBLEM_INPUT_H; y++) {
+    for (let x = 0; x < EMBLEM_INPUT_W; x++) {
+      const p   = (y * EMBLEM_INPUT_W + x) * 4;
+      let   avg = (data[p] + data[p + 1] + data[p + 2]) / 3;
 
-    for (let y = 0; y < inputH; y++) {
-      const p = (y * inputW + x) * 4;
-      const avg = (data[p] + data[p + 1] + data[p + 2]) / 3;
+      // Normalize to 0–255 then apply gamma to brighten midtones
+      avg = ((avg - minB) / range) * 255;
+      avg = Math.pow(avg / 255, 0.7) * 255;
 
-      // DIA accordion mapping — no gamma, full 0–255 range
-      // Splits cleanly into 4 equal brightness bands
-      const avgClamped = avg;
+      let idx;
+      if      (avg <=  50) idx = 0;  // YIELD
+      else if (avg <= 100) idx = 1;  // DOMINION
+      else if (avg <= 150) idx = 2;  // REGISTRY
+      else if (avg <= 200) idx = 3;  // FOUNDRY
+      else continue;                  // > 200 — blank
 
-      // bright → 0 (blank), dark → 3 (VIOLATION)
-      const newIdx = Math.max(0, Math.min(3,
-        Math.floor(_mapValue(avgClamped, 0, 255, 3, 0))
-      ));
-
-      if (newIdx !== currentIdx) {
-        // Flush completed vertical run
-        if (currentIdx !== -1 && currentIdx !== 0) {
-          const segH = y - startY;
-          if (segH > 0) ctx.drawImage(wordTextures[currentIdx], x * cellW, startY * cellH, cellW, segH * cellH);
-        }
-        startY     = y;
-        currentIdx = newIdx;
-      }
-
-      if (y === inputH - 1) {
-        // Flush final segment of this column
-        if (currentIdx !== 0) {
-          ctx.drawImage(wordTextures[currentIdx], x * cellW, startY * cellH, cellW, (y - startY + 1) * cellH);
-        }
-      }
+      ctx.drawImage(emblemTextures[idx], x * EMBLEM_SIZE, y * EMBLEM_SIZE, EMBLEM_SIZE, EMBLEM_SIZE);
     }
   }
 }
 
-// Denied-camera fallback — block noise, no word textures needed
-function _makeGlitch(canvas, ctx) {
-  const cellW = CAM_W / _GLITCH_COLS;
-  const cellH = CAM_H / _GLITCH_ROWS;
-  ctx.fillStyle = '#000000';
+// Static placeholder grid for denied-camera state (random emblem distribution).
+function _renderStaticPlaceholder(canvas, ctx) {
+  ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = '#EE1111';
-  ctx.font = `${_GLITCH_FONT}px monospace`;
-  ctx.textBaseline = 'top';
-  for (let r = 0; r < _GLITCH_ROWS; r++) {
-    for (let c = 0; c < _GLITCH_COLS; c++) {
-      const ch = _GLITCH_RAMP[Math.floor(Math.random() * _GLITCH_RAMP.length)];
-      ctx.fillText(ch, c * cellW, r * cellH);
+  if (!emblemTexturesReady) return;
+  for (let y = 0; y < EMBLEM_INPUT_H; y++) {
+    for (let x = 0; x < EMBLEM_INPUT_W; x++) {
+      const idx = Math.floor(Math.random() * 4);
+      ctx.drawImage(emblemTextures[idx], x * EMBLEM_SIZE, y * EMBLEM_SIZE, EMBLEM_SIZE, EMBLEM_SIZE);
     }
   }
 }
 
-function _startLiveRender(popupEl, canvas) {
-  // Don't double-add the same popup
-  if (livePopups.some(p => p.el === popupEl)) return;
+// Attach sharedStream to a new per-popup video element and start its render loop.
+function _attachAndStartRender(popupEl, canvas) {
+  const videoEl       = document.createElement('video');
+  videoEl.srcObject   = sharedStream;
+  videoEl.autoplay    = true;
+  videoEl.playsInline = true;
+  videoEl.muted       = true;
+  videoEl.style.cssText =
+    'position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;top:-10px;left:-10px;';
+  popupEl.appendChild(videoEl);
+  videoEl.play().catch(() => {});
+  popupEl._videoEl = videoEl;
 
-  const ctx     = canvas.getContext('2d');
-  let running   = true;
+  const ctx         = canvas.getContext('2d');
+  const tinyCanvas  = document.createElement('canvas');
+  tinyCanvas.width  = EMBLEM_INPUT_W;
+  tinyCanvas.height = EMBLEM_INPUT_H;
+  const tinyCtx     = tinyCanvas.getContext('2d');
 
-  // Render every animation frame — no throttle, maximally live (matches DIA behavior)
+  let running    = true;
+  let frameCount = 0;
+
   function loop() {
     if (!running) return;
-    _renderAsciiFrame(canvas, ctx);
+    if (++frameCount % 4 === 0) {
+      _renderEmblemFrame(ctx, canvas, tinyCtx, tinyCanvas, videoEl);
+    }
     requestAnimationFrame(loop);
   }
 
   requestAnimationFrame(loop);
-  const stop = () => { running = false; };
-  livePopups.push({ el: popupEl, canvas, stop });
-
-  // If over the live limit, freeze the oldest
-  if (livePopups.length > MAX_LIVE) {
-    const oldest = livePopups.shift();
-    oldest.stop();
-  }
+  popupEl._stopRender = () => { running = false; };
 }
 
-function _freezeLivePopup() {
-  // Freeze the oldest live popup (backward-compat helper)
-  if (livePopups.length === 0) return;
-  const oldest = livePopups.shift();
-  oldest.stop();
-}
-
-function _freezePopupEntry(el) {
-  // Freeze and remove a specific popup's render loop by element reference
-  const idx = livePopups.findIndex(p => p.el === el);
-  if (idx === -1) return;
-  livePopups[idx].stop();
-  livePopups.splice(idx, 1);
-}
-
-function _promoteNextLive() {
-  if (cameraState !== 'active') return;
-  // Fill live slots up to MAX_LIVE from stack (newest first)
-  for (let i = popupStack.length - 1; i >= 0 && livePopups.length < MAX_LIVE; i--) {
-    const entry = popupStack[i];
-    if (
-      document.body.contains(entry.el) &&
-      !livePopups.some(p => p.el === entry.el)
-    ) {
-      _startLiveRender(entry.el, entry.canvas);
+// Drain popups that were queued while camera permission was pending.
+function _activatePendingPopups() {
+  _pendingCameraPopups.forEach(({ popup: p, canvas: c }) => {
+    if (document.body.contains(p) && !p._stopRender) {
+      _attachAndStartRender(p, c);
     }
-  }
+  });
+  _pendingCameraPopups.length = 0;
 }
 
 const VIOLATION_COPY = {
@@ -738,43 +659,32 @@ function spawnViolationPopup(type, data = {}, isSpawn = false, options = {}) {
   document.body.appendChild(popup);
   popupCount++;
 
-  // --- Camera / ASCII setup ---
+  // --- Emblem-tile camera setup ---
   if (!noCam) {
     const canvas = popup.querySelector('.popup-camera-canvas');
-    const ctx    = canvas.getContext('2d');
 
     if (cameraState === 'idle') {
-      // First violation — request camera; show pending state meanwhile
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = '#EE1111';
-      ctx.font = `${_GLITCH_FONT}px monospace`;
-      ctx.textBaseline = 'top';
-      ctx.fillText('INITIALIZING BIOMETRIC VERIFICATION', 4, 44);
-      popupStack.push({ el: popup, canvas });
-
+      // First violation — request camera; queue this popup to render once granted
+      _pendingCameraPopups.push({ popup, canvas });
       _initCamera(
+        () => { _activatePendingPopups(); },
         () => {
-          // Granted — start live render; auto-freezes oldest if at MAX_LIVE limit
-          _startLiveRender(popup, canvas);
-        },
-        () => {
-          // Denied — glitch on original popup, spawn biometric refusal
-          _makeGlitch(canvas, ctx);
+          // Denied — static placeholder on this popup, then spawn biometric refusal
+          const ctx = canvas.getContext('2d');
+          _renderStaticPlaceholder(canvas, ctx);
           if (_onViolationDecrement) _onViolationDecrement();
           spawnViolationPopup('biometric_refusal', {}, false, { noCam: true });
         }
       );
-
+    } else if (cameraState === 'requesting') {
+      // Camera is being requested by an earlier popup — queue for when it grants
+      _pendingCameraPopups.push({ popup, canvas });
     } else if (cameraState === 'active') {
-      // Start live render; auto-freezes oldest if at MAX_LIVE limit
-      popupStack.push({ el: popup, canvas });
-      _startLiveRender(popup, canvas);
-
+      _attachAndStartRender(popup, canvas);
     } else {
-      // 'requesting' (rare race) or 'denied' — static glitch
-      _makeGlitch(canvas, ctx);
-      popupStack.push({ el: popup, canvas });
+      // 'denied' — static placeholder
+      const ctx = canvas.getContext('2d');
+      _renderStaticPlaceholder(canvas, ctx);
     }
   }
 
@@ -786,18 +696,16 @@ function spawnViolationPopup(type, data = {}, isSpawn = false, options = {}) {
     const px = rect.left;
     const py = rect.top;
 
-    // Remove this popup from the live render pool if it was rendering
-    _freezePopupEntry(popup);
+    // Stop this popup's render loop and release its video element
+    if (popup._stopRender) popup._stopRender();
+    if (popup._videoEl)    popup._videoEl.srcObject = null;
 
     popup.remove();
     popupCount = Math.max(0, popupCount - 1);
 
-    // Closing spawns two more (they start their own render loops)
+    // Closing spawns two more — each starts its own independent render loop
     spawnViolationPopup(type, { ...data, parentX: px, parentY: py }, true);
     spawnViolationPopup(type, { ...data, parentX: px + 30, parentY: py + 20 }, true);
-
-    // Fill any open live slots from existing popups
-    _promoteNextLive();
   });
 }
 
