@@ -225,7 +225,6 @@ body#login {
   width: 35px;
   height: 0;
   background: var(--black);
-  animation: login-vert-draw 1800ms ease-in-out 2000ms forwards;
   z-index: 0;
 }
 
@@ -237,7 +236,6 @@ body#login {
   height: 35px;
   width: 0;
   background: var(--black);
-  animation: login-horiz-draw 1000ms ease-in-out 3800ms forwards;
 }
 
 /* Login form — sits ON the horizontal bar; bottom flush with bar bottom so bar = underline. */
@@ -250,7 +248,6 @@ body#login {
   justify-content: flex-end;
   opacity: 0;
   transform: translateY(8px);
-  animation: login-fade-up 800ms ease-out 3800ms forwards;
 }
 
 .login-field-label {
@@ -259,30 +256,30 @@ body#login {
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--black);
-  margin-bottom: 10px;
+  margin: 0 0 10px 0;
+  padding: 0;
   display: block;
+  width: calc(25vw - 18px);
 }
 
 /* Input: no borders — the horizontal bar IS the underline.
    Text pushed toward bottom of box so it sits directly above the bar. */
 .login-input {
-  /* Width: from 30px right of vert line to 30px short of bar's right end.
-     Bar right = calc(50% + 25vw). Field left = calc(50% + 48px).
-     Input width = 25vw - 78px. */
-  width: calc(25vw - 78px);
+  width: calc(25vw - 18px);
   min-width: 240px;
   height: 50px;
   box-sizing: border-box;
   border: none;
   background: transparent;
   font-family: var(--font-licensed);
-  font-size: 24px;
+  font-size: 15px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--black);
-  /* Push text toward bottom so it reads as resting on the bar below */
   padding: 18px 0 0 0;
   outline: none;
+  position: relative;
+  z-index: 10;
 }
 
 .login-input::placeholder {
@@ -334,7 +331,6 @@ body#login {
   color: var(--black);
   text-decoration: none;
   clip-path: inset(0 100% 0 0);
-  animation: login-wipe-in 600ms ease-out 3800ms forwards;
 }
 
 .login-upgrade-link:hover {
@@ -376,6 +372,88 @@ body#login {
 @keyframes login-wipe-in {
   from { clip-path: inset(0 100% 0 0); }
   to   { clip-path: inset(0 0% 0 0); }
+}
+
+/* Animations fire only after intro-complete sets this class */
+body.login-anim-go .login-vert-line  { animation: login-vert-draw  1800ms ease-in-out 2000ms forwards; }
+body.login-anim-go .login-horiz-line { animation: login-horiz-draw 1000ms ease-in-out 3800ms forwards; }
+body.login-anim-go .login-field-group { animation: login-fade-up    800ms ease-out    3800ms forwards; }
+body.login-anim-go .login-upgrade-link { animation: login-wipe-in   600ms ease-out    3800ms forwards; }
+
+/* ================================================================
+   INTRO OVERLAY (login.html — one-time splash)
+   ================================================================ */
+
+#intro-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--white);
+  z-index: 9000;
+  overflow: hidden;
+}
+
+/* Logo stage — starts at 120px top-center, mirrors .login-logo-mark position */
+#logo-stage {
+  position: fixed;
+  width: 120px;
+  height: 120px;
+  top: 25vh;
+  left: calc(50% - 60px);
+  transition:
+    width  600ms ease-out,
+    height 600ms ease-out,
+    top    600ms ease-out,
+    left   600ms ease-out;
+}
+
+#logo-stage.expanded {
+  width: min(700px, 80vmin);
+  height: min(700px, 80vmin);
+  top: calc(50vh - min(350px, 40vmin));
+  left: calc(50% - min(350px, 40vmin));
+}
+
+#intro-fdry,
+#intro-emblem {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+#intro-emblem {
+  opacity: 0;
+}
+
+/* Definition panel — right of logo when expanded */
+#intro-def {
+  position: fixed;
+  left: calc(50% + min(350px, 40vmin) + 32px);
+  top: 50%;
+  transform: translateY(-50%);
+  width: min(220px, calc(100vw - 50% - min(350px, 40vmin) - 48px));
+  opacity: 0;
+}
+
+.idef-head {
+  font-family: monospace;
+  font-size: 11px;
+  font-weight: bold;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--black);
+  margin: 0 0 10px;
+}
+
+.idef-body {
+  font-family: monospace;
+  font-size: 10px;
+  line-height: 1.7;
+  letter-spacing: 0.04em;
+  color: var(--black);
+  margin: 0;
 }
 
 /* ================================================================
@@ -719,16 +797,16 @@ body#license .page-wrap {
 }
 
 /* ================================================================
-   HUD CARD (docked, fixed top-right)
+   HUD CARD (docked, fixed top-left)
    ================================================================ */
 .hud-card {
   position: fixed;
   top: 0;
-  right: 0;
+  left: 0;
   z-index: 600;
   width: 200px;
   background: var(--white);
-  border-left: var(--rule);
+  border-right: var(--rule);
   border-bottom: var(--rule);
   display: none; /* shown by JS when logged in */
 }
@@ -1376,10 +1454,10 @@ body#not-found .site-footer {
   .hud-card {
     position: relative;
     width: 100%;
-    border-left: none;
+    border-right: none;
     border-top: var(--rule);
     top: auto;
-    right: auto;
+    left: auto;
   }
 
   .site-header {
@@ -2392,7 +2470,7 @@ body#license .page-wrap { padding-left: var(--wordmark-w); }
 
 /* Login has no wordmark — cancel the wordmark left-offset, keep the 40px base */
 body#login .login-upgrade-link {
-  left: 40px;
+  left: -8px;
   right: auto;
 }
 

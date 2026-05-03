@@ -1451,11 +1451,6 @@ function buildCharMap(tier, tierData) {
         lockedHoverCount++;
         if (lockedHoverReset) clearTimeout(lockedHoverReset);
         lockedHoverReset = setTimeout(() => { lockedHoverCount = 0; }, 30000);
-
-        if (lockedHoverCount >= 5 && !interestShown) {
-          interestShown = true;
-          showGlyphInterestModal();
-        }
       });
     }
 
@@ -1620,8 +1615,11 @@ function buildLicenseInfo(userId, tier, tierData) {
 
   // Wire the upgrade button into the ticker (it's dynamically created)
   const upgradeBtn = cols.querySelector('.js-upgrade-link');
-  if (upgradeBtn && tickerAdd) {
-    upgradeBtn.addEventListener('click', () => tickerAdd('UPGRADE INTEREST DETECTED', 'normal', true));
+  if (upgradeBtn) {
+    if (tickerAdd) {
+      upgradeBtn.addEventListener('click', () => tickerAdd('UPGRADE INTEREST DETECTED', 'normal', true));
+    }
+    upgradeBtn.addEventListener('mouseenter', () => showGlyphInterestModal(), { once: true });
   }
 }
 
@@ -2099,11 +2097,6 @@ function initCheckout() {
       item.classList.toggle('active',    i === n);
       item.classList.toggle('completed', i < n);
     });
-    // Auto-fill billing zip when landing on payment step
-    if (n === 2 && formData.zip) {
-      const bz = document.getElementById('co-f-billing-zip');
-      if (bz && !bz.value) bz.value = formData.zip;
-    }
     // Populate review when landing on review step
     if (n === 3) _populateReview();
   }
@@ -2172,48 +2165,11 @@ function initCheckout() {
   // ── Step 3: Payment ──────────────────────────────────────────────
   const step3Form = document.getElementById('co-step3-form');
   if (step3Form) {
-    // Auto-fill billing zip from step 1
-    const billingZip = document.getElementById('co-f-billing-zip');
-    const cardNum    = document.getElementById('co-f-card-num');
-    const cardName   = document.getElementById('co-f-card-name');
-    const cardExp    = document.getElementById('co-f-card-exp');
-    const cardCvc    = document.getElementById('co-f-card-cvc');
-    const step3Btn   = document.getElementById('co-step3-continue');
-
-    // Format card number with spaces
-    if (cardNum) {
-      cardNum.addEventListener('input', () => {
-        let v = cardNum.value.replace(/\D/g, '').substring(0, 16);
-        cardNum.value = v.replace(/(.{4})/g, '$1 ').trim();
-      });
-    }
-    // Format expiry MM/YY
-    if (cardExp) {
-      cardExp.addEventListener('input', () => {
-        let v = cardExp.value.replace(/\D/g, '').substring(0, 4);
-        if (v.length > 2) v = v.substring(0, 2) + '/' + v.substring(2);
-        cardExp.value = v;
-      });
-    }
-
-    function checkStep3() {
-      if (!step3Btn) return;
-      const num  = (cardNum?.value.replace(/\s/g, '') || '').length === 16;
-      const name = (cardName?.value.trim() || '') !== '';
-      const exp  = /^\d{2}\/\d{2}$/.test(cardExp?.value || '');
-      const cvc  = /^\d{3}$/.test(cardCvc?.value || '');
-      const zip  = (billingZip?.value.trim() || '') !== '';
-      step3Btn.disabled = !(num && name && exp && cvc && zip);
-    }
-    [cardNum, cardName, cardExp, cardCvc, billingZip].forEach(f => {
-      if (f) f.addEventListener('input', checkStep3);
-    });
+    const step3Btn = document.getElementById('co-step3-continue');
+    if (step3Btn) step3Btn.disabled = false;
 
     step3Form.addEventListener('submit', (e) => {
       e.preventDefault();
-      formData.card      = (cardNum?.value.replace(/\s/g, '') || '');
-      formData.cardLast4 = formData.card.slice(-4);
-      formData.cardName  = cardName?.value.trim() || '';
       setStep(3);
     });
 
@@ -2338,5 +2294,15 @@ document.addEventListener('DOMContentLoaded', () => {
     'enterprise-application': initEnterpriseApplication,
     'not-found': init404,
   };
-  if (routes[page]) routes[page]();
+
+  if (page === 'login') {
+    // Init form logic immediately (form stays hidden behind overlay)
+    initLogin();
+    // CSS animations wait for intro-complete (fired by intro.js)
+    document.addEventListener('intro-complete', () => {
+      document.body.classList.add('login-anim-go');
+    }, { once: true });
+  } else if (routes[page]) {
+    routes[page]();
+  }
 });
