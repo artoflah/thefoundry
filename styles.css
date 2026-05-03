@@ -240,46 +240,56 @@ body#login {
   animation: login-horiz-draw 1000ms ease-in-out 3800ms forwards;
 }
 
-/* Login form — just below the horizontal bar's bottom edge, fades in with horiz (t=3.8s) */
+/* Login form — label + input sit ABOVE the bar; input bottom = bar top (bar is the underline).
+   bottom: calc(30vh + 35px) = positions group bottom at calc(70vh - 35px) = bar top edge. */
 .login-field-group {
   position: absolute;
-  top: calc(70vh + 8px);
-  left: calc(50% + 18px);
+  bottom: calc(30vh + 35px);
+  /* relative so .login-error-msg can be positioned below the bar */
+  left: calc(50% + 48px);      /* 30px right of vert line's right edge */
   display: flex;
   flex-direction: column;
-  gap: var(--space-8);
+  justify-content: flex-end;
   opacity: 0;
   transform: translateY(8px);
   animation: login-fade-up 800ms ease-out 3800ms forwards;
 }
 
 .login-field-label {
-  font-size: 9px;
-  letter-spacing: 0.2em;
+  font-family: monospace;
+  font-size: 13px;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--black);
+  margin-bottom: 10px;
+  display: block;
 }
 
-/* Input: white bg, underline only, no box */
+/* Input: no borders — the horizontal bar IS the underline.
+   Text pushed toward bottom of box so it sits directly above the bar. */
 .login-input {
-  width: 380px;
-  height: 44px;
+  /* Width: from 30px right of vert line to 30px short of bar's right end.
+     Bar right = calc(50% + 25vw). Field left = calc(50% + 48px).
+     Input width = 25vw - 78px. */
+  width: calc(25vw - 78px);
+  min-width: 240px;
+  height: 50px;
+  box-sizing: border-box;
   border: none;
-  border-bottom: 1px solid var(--black);
-  background: var(--white);
+  background: transparent;
   font-family: var(--font-licensed);
-  font-size: 11px;
-  letter-spacing: 0.18em;
+  font-size: 24px;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--black);
-  padding: 0;
+  /* Push text toward bottom so it reads as resting on the bar below */
+  padding: 18px 0 0 0;
   outline: none;
-  transition: border-color 0.15s;
 }
 
 .login-input::placeholder {
-  color: #aaa;
-  letter-spacing: 0.14em;
+  color: #666;
+  letter-spacing: 0.04em;
 }
 
 .login-input:focus {
@@ -287,17 +297,19 @@ body#login {
 }
 
 .login-input.error {
-  border-color: var(--red);
   color: var(--red);
 }
 
 .login-error-msg {
+  position: absolute;
+  top: calc(100% + 44px);   /* below bar (35px) + small gap */
+  left: 0;
   font-size: 9px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--red);
   display: none;
-  margin-top: var(--space-4);
+  white-space: nowrap;
 }
 
 .login-error-msg.visible {
@@ -309,17 +321,18 @@ body#login {
 }
 
 /* Large bottom-left text — wipes in left-to-right when vert completes (t=3.8s).
-   Own row at bottom of viewport, fully separate from input area. */
+   Left-anchored at 40px. Right edge naturally falls near the vert line.
+   Font at 56px fits the full text on 1440px+ screens without left-edge cutoff. */
 .login-upgrade-link {
   position: fixed;
   bottom: var(--space-32);
-  left: var(--space-32);
-  font-size: 88px;
+  left: 40px;
+  font-size: 56px;
   font-weight: 700;
   line-height: 1;
   letter-spacing: -0.02em;
   text-transform: uppercase;
-  white-space: nowrap;          /* prevent wrap — keeps element exactly 1 line tall */
+  white-space: nowrap;
   color: var(--black);
   text-decoration: none;
   clip-path: inset(0 100% 0 0);
@@ -1235,7 +1248,7 @@ body#license .page-wrap {
 
 .popup-camera-area {
   border-bottom: 1px solid var(--red);
-  background: #ffffff;
+  background: #000000;
   line-height: 0; /* collapse whitespace below canvas */
   overflow: hidden;
 }
@@ -2205,40 +2218,6 @@ body#specimen .specimen-wrap {
   align-items: center;
 }
 
-/* Upgrade page: HUD side-by-side with logo */
-body#upgrade .header-left {
-  flex-direction: row;
-  align-items: center;
-}
-
-/* Specimen page: logo on top, HUD stacked below — both left-aligned */
-body#specimen .header-left {
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--space-8);
-}
-
-/* Logged-in page headers expand vertically to fit the inline HUD */
-body#specimen .site-header,
-body#upgrade .site-header {
-  height: auto;
-  min-height: 80px;
-  padding-top: var(--space-8);
-  padding-bottom: var(--space-8);
-  align-items: flex-start;
-}
-
-/* Page-wrap top padding must clear the taller header */
-body#specimen .page-wrap,
-body#upgrade .page-wrap {
-  padding-top: 80px;
-}
-
-/* Ticker sidebar top must match expanded header */
-body#specimen .ticker-sidebar {
-  top: 80px;
-}
-
 /* Inline HUD card — upgrade page: side-by-side with border-left */
 .hud-card--inline {
   position: static !important;
@@ -2254,17 +2233,6 @@ body#specimen .ticker-sidebar {
   background: transparent;
 }
 
-/* Specimen page inline HUD: stacked, border on top instead of left */
-body#specimen .hud-card--inline {
-  border-left: none;
-  border-top: var(--rule);
-  margin-left: 0;
-  padding-left: 0;
-  padding-top: var(--space-8);
-  min-width: 0;
-  width: auto;
-}
-
 .hud-card--inline.active {
   display: block;
 }
@@ -2274,32 +2242,26 @@ body#specimen .hud-card--inline {
   gap: 4px;
 }
 
-/* Responsive: restore compact header when ticker is hidden */
+/* Upgrade page header expands for inline HUD */
+body#upgrade .site-header {
+  height: auto;
+  min-height: 80px;
+  padding-top: var(--space-8);
+  padding-bottom: var(--space-8);
+}
+
+body#upgrade .page-wrap {
+  padding-top: 80px;
+}
+
 @media (max-width: 1100px) {
-  body#specimen .site-header,
   body#upgrade .site-header {
     min-height: 52px;
     height: 52px;
     padding-top: 0;
     padding-bottom: 0;
-    align-items: center;
   }
 
-  body#specimen .header-left {
-    flex-direction: row;
-    align-items: center;
-    gap: 0;
-  }
-
-  body#specimen .hud-card--inline {
-    border-top: none;
-    border-left: var(--rule);
-    margin-left: var(--space-16);
-    padding-left: var(--space-16);
-    padding-top: 0;
-  }
-
-  body#specimen .page-wrap,
   body#upgrade .page-wrap {
     padding-top: 52px;
   }
@@ -2430,10 +2392,10 @@ body#specimen .hud-card--inline {
 body#license .page-wrap { padding-left: var(--wordmark-w); }
 .login-upgrade-link { left: calc(var(--wordmark-w) + var(--space-32)); }
 
-/* Login has no wordmark — right-align upgrade text to vertical line's left edge */
+/* Login has no wordmark — cancel the wordmark left-offset, keep the 40px base */
 body#login .login-upgrade-link {
-  left: auto;
-  right: calc(50% + 17px);
+  left: 40px;
+  right: auto;
 }
 
 /* ================================================================
@@ -2521,7 +2483,7 @@ body#login .login-upgrade-link {
   .page-wrap    { padding-left: 0; }
   body#license .page-wrap { padding-left: 0; }
   .login-upgrade-link { left: var(--space-32); }
-  body#login .login-upgrade-link { left: auto; right: var(--space-32); }
+  body#login .login-upgrade-link { left: var(--space-32); right: auto; font-size: 36px; }
 }
 
 /* ================================================================

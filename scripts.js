@@ -419,13 +419,13 @@ function _initWordTextures() {
     canvas.width  = DIA_TEX_SIZE;
     canvas.height = DIA_TEX_SIZE;
     const ctx = canvas.getContext('2d');
-    // Always solid white background — transparent would leave gaps over the popup white fill
-    ctx.fillStyle = '#ffffff';
+    // Black background — canvas bg is black, text stamps over it
+    ctx.fillStyle = '#000000';
     ctx.fillRect(0, 0, DIA_TEX_SIZE, DIA_TEX_SIZE);
 
     const word = DIA_WORDS[i];
     if (!word) {
-      // index 0 = blank — pure white tile, represents skin / bright areas
+      // index 0 = blank — pure black tile, bright/skin areas vanish into bg
       wordTextures.push(canvas);
       continue;
     }
@@ -487,20 +487,20 @@ function _initCamera(onGranted, onDenied) {
     });
 }
 
-// DIA draw_hor port — per-frame render using pre-cached word textures.
-// Downsamples video to ~95×38, finds consecutive same-brightness runs per row,
-// stamps the matching word texture stretched to each run's output width.
+// DIA accordion camera render — vertical scan, per-column segment merging.
+// Matches tools.dia.tv/accordion camera mode: outer loop = columns (x),
+// inner loop = rows (y). Same-brightness runs in a column merge into one
+// tall stretched word tile — this is the accordion stretch effect.
 function _renderAsciiFrame(canvas, ctx) {
   if (cameraState !== 'active' || !cameraVideo || cameraVideo.readyState < 2) return;
   if (!wordTextures) return;
 
   const inputW = DIA_INPUT_W;
   const inputH = DIA_INPUT_H;
-  const w = canvas.width  / inputW;
-  const h = canvas.height / inputH;
+  const cellW  = canvas.width  / inputW;   // output px per sample column
+  const cellH  = canvas.height / inputH;   // output px per sample row
 
-  // Downsample video to tiny sampling canvas — flip horizontally here for selfie view
-  // so word textures stamp right-side-up onto the output canvas
+  // Downsample video into tiny sampling canvas; mirror for selfie view
   const sCtx = cameraOffscreen.getContext('2d');
   sCtx.save();
   sCtx.scale(-1, 1);
@@ -508,43 +508,46 @@ function _renderAsciiFrame(canvas, ctx) {
   sCtx.restore();
   const { data } = sCtx.getImageData(0, 0, inputW, inputH);
 
-  // Clear output to white
-  ctx.fillStyle = '#ffffff';
+  // Black background — index 0 (bright/skin) is a blank black tile, vanishes here
+  ctx.fillStyle = '#000000';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  for (let y = 0; y < inputH; y++) {
-    let startX     = 0;
+  // Vertical scan: columns outer, rows inner — merges vertical runs per column
+  for (let x = 0; x < inputW; x++) {
+    let startY     = 0;
     let currentIdx = -1;
 
-    for (let x = 0; x < inputW; x++) {
+    for (let y = 0; y < inputH; y++) {
       const p = (y * inputW + x) * 4;
       let avg = (data[p] + data[p + 1] + data[p + 2]) / 3;
 
-      // Gamma correction — brightens midtones so skin maps to blank (index 0)
+      // Gamma correction: brightens midtones so skin reliably maps to index 0
       avg = Math.pow(avg / 255, 0.7) * 255;
 
-      // Contrast clamp (port of DIA cacheInput)
+      // DIA cacheInput contrast clamp
       const avgMin     = Math.max(0, avg - DIA_MIN_LEVEL) / (255 - DIA_MIN_LEVEL) * 255;
       const avgClamped = 255 - Math.max(0, DIA_MAX_LEVEL - avgMin) / DIA_MAX_LEVEL * 255;
 
-      // Map brightness to texture index: bright → 0 (blank/white), dark → 3 (VIOLATION)
+      // bright → 0 (blank), dark → 3 (VIOLATION)
       const newIdx = Math.max(0, Math.min(3,
         Math.floor(_mapValue(avgClamped, 0, 255, 3, 0))
       ));
 
       if (newIdx !== currentIdx) {
-        // Flush completed run
-        if (currentIdx !== -1) {
-          const segW = x - startX;
-          if (segW > 0) ctx.drawImage(wordTextures[currentIdx], startX * w, y * h, segW * w, h);
+        // Flush completed vertical run
+        if (currentIdx !== -1 && currentIdx !== 0) {
+          const segH = y - startY;
+          if (segH > 0) ctx.drawImage(wordTextures[currentIdx], x * cellW, startY * cellH, cellW, segH * cellH);
         }
-        startX     = x;
+        startY     = y;
         currentIdx = newIdx;
       }
 
-      if (x === inputW - 1) {
-        // Flush final segment of this row
-        ctx.drawImage(wordTextures[currentIdx], startX * w, y * h, (x - startX + 1) * w, h);
+      if (y === inputH - 1) {
+        // Flush final segment of this column
+        if (currentIdx !== 0) {
+          ctx.drawImage(wordTextures[currentIdx], x * cellW, startY * cellH, cellW, (y - startY + 1) * cellH);
+        }
       }
     }
   }
@@ -554,7 +557,7 @@ function _renderAsciiFrame(canvas, ctx) {
 function _makeGlitch(canvas, ctx) {
   const cellW = CAM_W / _GLITCH_COLS;
   const cellH = CAM_H / _GLITCH_ROWS;
-  ctx.fillStyle = '#ffffff';
+  ctx.fillStyle = '#000000';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.fillStyle = '#EE1111';
   ctx.font = `${_GLITCH_FONT}px monospace`;
@@ -1060,9 +1063,7 @@ function initLicense() {
 
     acceptBtn.addEventListener('click', () => {
       if (!acceptBtn.classList.contains('enabled')) return;
-      acceptBtn.disabled = true;
-      acceptBtn.textContent = 'PROCESSING...';
-      runCardReveal();
+      window.location.href = 'specimen.html';
     });
   }
 
@@ -2344,8 +2345,8 @@ function initWordmark() {
 
 document.addEventListener('DOMContentLoaded', () => {
   const page = document.body.id;
-  // Wordmark column on all pages EXCEPT login (login has its own layout)
-  if (page !== 'login') initWordmark();
+  // Wordmark column on all pages EXCEPT login, license, and checkout
+  if (page !== 'login' && page !== 'license' && page !== 'checkout') initWordmark();
 
   const routes = {
     login: initLogin,
