@@ -15,7 +15,7 @@
 (function () {
   'use strict';
 
-  var STAGE = 440;
+  var STAGE = 360;
   var MASK_SZ = 900;
   var DPR = Math.min(window.devicePixelRatio || 1, 2);
 
@@ -29,11 +29,11 @@
   var THRESHOLD = 178;
   var DENSITY_START = 7;
   var DENSITY_END = 78;
-  var DENSITY_DURATION = 4550;
+  var DENSITY_DURATION = 6500;
   var T = {
-    resolve: 4700,
-    fadeOut: 5600,
-    done: 6350,
+    resolve: 6800,
+    fadeOut: 7800,
+    done: 8600,
   };
 
   var maskPx = null;
