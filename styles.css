@@ -7,7 +7,7 @@
 :root {
 @font-face {
   font-family: 'Licensed'; /*a name to be used later*/
-  src: url('assets/fonts/Licensed-Regular.otf'); /*URL to font*/
+  src: url('assets/fonts/Licensed-Regular.ttf'); /*URL to font*/
 }
 
   --font-licensed: 'Licensed', 'Helvetica Neue';
