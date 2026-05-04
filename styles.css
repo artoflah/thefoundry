@@ -6,11 +6,11 @@
 /* === VARIABLES ================================================= */
 :root {
 @font-face {
-  font-family: 'Licensed'; /*a name to be used later*/
+  font-family: 'Licensed-Regular'; /*a name to be used later*/
   src: url('assets/fonts/Licensed-Regular.ttf'); /*URL to font*/
 }
 
-  --font-licensed: 'Licensed', 'Helvetica Neue';
+  --font-licensed: 'Licensed-Regular', 'Helvetica Neue';
   --black: #000000;
   --white: #ffffff;
   --red: #EE1111;
