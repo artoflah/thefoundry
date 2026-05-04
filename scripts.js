@@ -1,7 +1,7 @@
 'use strict';
 
 /* ================================================================
-   LICENSED™ — THE LICENSED FOUNDRY™
+   LICENSED™ — THE FOUNDRY™
    scripts.js v1.0.0
    ================================================================ */
 
@@ -82,7 +82,7 @@ const LICENSES = {
   basic: `
     <div class="license-text-section">
       <p class="license-section-heading">1. Introduction and Scope</p>
-      <p class="license-clause"><span class="clause-num">1.1</span>This Licensee Agreement (hereinafter the "Agreement") is a binding legal instrument entered into between The Licensed Foundry™ (the "Foundry") and the individual identified by the membership credentials associated with this session (the "Licensee"). This Agreement governs the Licensee's permitted access to and use of Licensed™ typefaces under the Basic Tier license. The Foundry regrets that higher-tier features are not available to the Licensee at this time.</p>
+      <p class="license-clause"><span class="clause-num">1.1</span>This Licensee Agreement (hereinafter the "Agreement") is a binding legal instrument entered into between The Foundry™ (the "Foundry") and the individual identified by the membership credentials associated with this session (the "Licensee"). This Agreement governs the Licensee's permitted access to and use of Licensed™ typefaces under the Basic Tier license. The Foundry regrets that higher-tier features are not available to the Licensee at this time.</p>
       <p class="license-clause"><span class="clause-num">1.2</span>The Licensee acknowledges that the Basic Tier represents the entry point of the Licensed™ access hierarchy. Access at this tier is provided as a courtesy and does not imply any expectation that the Licensee's typographic output will meet professional or commercial standards. The Foundry takes no responsibility for work produced under the Basic license.</p>
     </div>
     <div class="license-text-section">
@@ -112,7 +112,7 @@ const LICENSES = {
   standard: `
     <div class="license-text-section">
       <p class="license-section-heading">1. Introduction and Scope</p>
-      <p class="license-clause"><span class="clause-num">1.1</span>This Licensee Agreement (the "Agreement") is entered into between The Licensed Foundry™ (the "Foundry") and the individual identified by the membership credentials on file (the "Licensee"). This Agreement governs the Licensee's permitted use of Licensed™ typefaces under the Standard Tier license. The Foundry acknowledges the Licensee's decision to invest in the Standard Tier and notes that this level of access, while expanded relative to the Basic Tier, remains subject to the restrictions, conditions, and monitoring procedures described herein.</p>
+      <p class="license-clause"><span class="clause-num">1.1</span>This Licensee Agreement (the "Agreement") is entered into between The Foundry™ (the "Foundry") and the individual identified by the membership credentials on file (the "Licensee"). This Agreement governs the Licensee's permitted use of Licensed™ typefaces under the Standard Tier license. The Foundry acknowledges the Licensee's decision to invest in the Standard Tier and notes that this level of access, while expanded relative to the Basic Tier, remains subject to the restrictions, conditions, and monitoring procedures described herein.</p>
       <p class="license-clause"><span class="clause-num">1.2</span>The Licensee is advised to read this Agreement in its entirety before proceeding. The Standard Tier introduces additional compliance mechanisms, including quarterly reaffirmation requirements and expanded audit rights, the terms of which are set out in full below. Ignorance of any provision of this Agreement shall not constitute a defense in any violation proceeding.</p>
     </div>
     <div class="license-text-section">
@@ -153,7 +153,7 @@ const LICENSES = {
   professional: `
     <div class="license-text-section">
       <p class="license-section-heading">1. Introduction and Scope</p>
-      <p class="license-clause"><span class="clause-num">1.1</span>This Licensee Agreement (the "Agreement") is a legally binding instrument entered into between The Licensed Foundry™ (the "Foundry") and the individual or entity identified by the membership credentials on file (the "Licensee"). This Agreement governs the Licensee's access to and use of Licensed™ typefaces under the Professional Tier license. The Foundry acknowledges the Licensee's significant financial commitment to this tier and advises that the Professional license carries commensurate responsibilities, restrictions, and oversight mechanisms, all of which are set forth in full herein.</p>
+      <p class="license-clause"><span class="clause-num">1.1</span>This Licensee Agreement (the "Agreement") is a legally binding instrument entered into between The Foundry™ (the "Foundry") and the individual or entity identified by the membership credentials on file (the "Licensee"). This Agreement governs the Licensee's access to and use of Licensed™ typefaces under the Professional Tier license. The Foundry acknowledges the Licensee's significant financial commitment to this tier and advises that the Professional license carries commensurate responsibilities, restrictions, and oversight mechanisms, all of which are set forth in full herein.</p>
       <p class="license-clause"><span class="clause-num">1.2</span>The Professional Tier grants the broadest access available to individual license holders. This Agreement supersedes all prior communications, trial agreements, or informal understandings between the parties. The Licensee affirms that they have read and understood all provisions before accepting.</p>
       <p class="license-clause"><span class="clause-num">1.3</span>The Licensee acknowledges that the Foundry's decision to make the Professional Tier available to them is not to be construed as an endorsement of the Licensee's typographic practice, professional qualifications, or aesthetic judgment. Access remains subject to the restrictions herein and the Foundry's ongoing assessment of compliance history.</p>
     </div>
@@ -208,7 +208,7 @@ const LICENSES = {
   enterprise: `
     <div class="license-text-section">
       <p class="license-section-heading">1. Introduction and Scope</p>
-      <p class="license-clause"><span class="clause-num">1.1</span>This Licensee Agreement (the "Agreement") is a legally binding and irrevocable instrument entered into between The Licensed Foundry™ (the "Foundry") and the individual or entity identified by the Enterprise membership credentials on file (the "Licensee"). This Agreement governs in full the Licensee's access to and use of Licensed™ typefaces under the Enterprise Tier license. The Foundry extends its conditional congratulations to the Licensee on achieving Enterprise status and advises that this distinction carries the most comprehensive set of obligations, restrictions, and compliance requirements available within the Licensed™ access hierarchy.</p>
+      <p class="license-clause"><span class="clause-num">1.1</span>This Licensee Agreement (the "Agreement") is a legally binding and irrevocable instrument entered into between The Foundry™ (the "Foundry") and the individual or entity identified by the Enterprise membership credentials on file (the "Licensee"). This Agreement governs in full the Licensee's access to and use of Licensed™ typefaces under the Enterprise Tier license. The Foundry extends its conditional congratulations to the Licensee on achieving Enterprise status and advises that this distinction carries the most comprehensive set of obligations, restrictions, and compliance requirements available within the Licensed™ access hierarchy.</p>
       <p class="license-clause"><span class="clause-num">1.2</span>The Enterprise Tier is the Foundry's highest-priced license offering. It is not the Foundry's most permissive. The Licensee acknowledges this distinction explicitly and without reservation.</p>
       <p class="license-clause"><span class="clause-num">1.3</span>This Agreement supersedes all prior communications, representations, negotiations, trial access periods, and informal understandings between the parties. It constitutes the sole and complete statement of the terms of the Licensee's access to Licensed™ typefaces. The Foundry makes no warranty, express or implied, regarding the fitness of this license for any particular purpose.</p>
       <p class="license-clause"><span class="clause-num">1.4</span>By accepting this Agreement, the Licensee affirms that they have read every section in its entirety, understand all terms and conditions, and accept them knowingly, voluntarily, and without coercion — including but not limited to financial coercion, social pressure, or the misapprehension that a higher-priced product implies broader use rights.</p>
@@ -295,7 +295,7 @@ const LICENSES = {
 // ================================================================
 
 function getLogo(size = 120) {
-  return `<img src="assets/fdrylogo.svg" width="${size}" height="${size}" alt="The Licensed Foundry™" style="display:block;">`;
+  return `<img src="assets/fdrylogo.svg" width="${size}" height="${size}" alt="The Foundry™" style="display:block;">`;
 }
 
 function getQRPlaceholder(size = 56) {
@@ -615,6 +615,9 @@ function makeDraggable(el) {
   window.addEventListener('mouseup', () => { isDragging = false; });
 }
 
+// Popup width presets — random per popup for scattered size variety
+const POPUP_SIZES = [220, 290, 360, 460, 560];
+
 function spawnViolationPopup(type, data = {}, isSpawn = false, options = {}) {
   const { noCam = false } = options;
   if (popupCount >= MAX_POPUPS) return;
@@ -624,18 +627,22 @@ function spawnViolationPopup(type, data = {}, isSpawn = false, options = {}) {
   const popup = document.createElement('div');
   popup.className = 'violation-popup';
 
-  const maxX = Math.max(0, window.innerWidth - 360);
-  const maxY = Math.max(0, window.innerHeight - 400);
-  const x = isSpawn
-    ? Math.max(0, Math.min(maxX, (parseFloat(data.parentX || window.innerWidth / 2) + (Math.random() * 120 - 40))))
-    : Math.random() * maxX;
-  const y = isSpawn
-    ? Math.max(0, Math.min(maxY, (parseFloat(data.parentY || window.innerHeight / 2) + (Math.random() * 80 - 20))))
-    : Math.random() * maxY;
-  const rot = (Math.random() * 10) - 5;
+  // Random size from preset list
+  const popupW = POPUP_SIZES[Math.floor(Math.random() * POPUP_SIZES.length)];
+  popup.style.width = popupW + 'px';
 
-  popup.style.left      = x + 'px';
-  popup.style.top       = y + 'px';
+  // Fully random placement across viewport — scattered, not clustered
+  const maxX = Math.max(0, window.innerWidth  - popupW);
+  const maxY = Math.max(0, window.innerHeight - 320);
+  const x    = Math.random() * maxX;
+  const y    = Math.random() * maxY;
+  // Wider rotation range for more visual scatter
+  const rot  = (Math.random() * 20) - 10;
+
+  popup.style.left = x + 'px';
+  popup.style.top  = y + 'px';
+  // Store rotation in CSS var so shake keyframe can include it
+  popup.style.setProperty('--rot', rot + 'deg');
   popup.style.transform = `rotate(${rot}deg)`;
   popup.style.zIndex    = 9000 + popupCount;
 
@@ -644,14 +651,15 @@ function spawnViolationPopup(type, data = {}, isSpawn = false, options = {}) {
       <canvas class="popup-camera-canvas" width="${CAM_W}" height="${CAM_H}"></canvas>
     </div>`;
 
+  // macOS traffic-light order: close (red) · minimize (yellow) · maximize (green)
   popup.innerHTML = `
     <div class="popup-titlebar">
-      <span class="popup-title-text">LICENSED™ SYSTEM DIALOG</span>
       <div class="popup-window-btns">
-        <button class="popup-win-btn" aria-label="minimize">–</button>
-        <button class="popup-win-btn" aria-label="maximize">◻</button>
-        <button class="popup-win-btn close-btn" aria-label="close">×</button>
+        <button class="popup-win-btn popup-btn-close" aria-label="close">×</button>
+        <button class="popup-win-btn popup-btn-min"   aria-label="minimize">−</button>
+        <button class="popup-win-btn popup-btn-max"   aria-label="maximize">+</button>
       </div>
+      <span class="popup-title-text">LICENSED™ SYSTEM DIALOG</span>
     </div>
     ${camHTML}
     <div class="popup-body">
@@ -668,12 +676,10 @@ function spawnViolationPopup(type, data = {}, isSpawn = false, options = {}) {
     const canvas = popup.querySelector('.popup-camera-canvas');
 
     if (cameraState === 'idle') {
-      // First violation — request camera; queue this popup to render once granted
       _pendingCameraPopups.push({ popup, canvas });
       _initCamera(
         () => { _activatePendingPopups(); },
         () => {
-          // Denied — static placeholder on this popup, then spawn biometric refusal
           const ctx = canvas.getContext('2d');
           _renderStaticPlaceholder(canvas, ctx);
           if (_onViolationDecrement) _onViolationDecrement();
@@ -681,12 +687,10 @@ function spawnViolationPopup(type, data = {}, isSpawn = false, options = {}) {
         }
       );
     } else if (cameraState === 'requesting') {
-      // Camera is being requested by an earlier popup — queue for when it grants
       _pendingCameraPopups.push({ popup, canvas });
     } else if (cameraState === 'active') {
       _attachAndStartRender(popup, canvas);
     } else {
-      // 'denied' — static placeholder
       const ctx = canvas.getContext('2d');
       _renderStaticPlaceholder(canvas, ctx);
     }
@@ -694,22 +698,42 @@ function spawnViolationPopup(type, data = {}, isSpawn = false, options = {}) {
 
   makeDraggable(popup);
 
-  const closeBtn = popup.querySelector('.close-btn');
-  closeBtn.addEventListener('click', () => {
-    const rect = popup.getBoundingClientRect();
-    const px = rect.left;
-    const py = rect.top;
+  // ── Traffic light button handlers ────────────────────────────────
 
-    // Stop this popup's render loop and release its video element
+  // Minimize: toggle collapse to titlebar only
+  popup.querySelector('.popup-btn-min').addEventListener('click', () => {
+    popup.classList.toggle('minimized');
+  });
+
+  // Maximize: toggle fill-viewport mode
+  popup.querySelector('.popup-btn-max').addEventListener('click', () => {
+    popup.classList.toggle('maximized');
+  });
+
+  // Close: requires 3 presses — shakes on first two, closes on third
+  let closeAttempts = 0;
+  popup.querySelector('.popup-btn-close').addEventListener('click', () => {
+    closeAttempts++;
+
+    if (closeAttempts < 3) {
+      // Shake and reset animation so it re-triggers on each press
+      popup.classList.remove('popup-shaking');
+      void popup.offsetWidth; // force reflow
+      popup.classList.add('popup-shaking');
+      popup.addEventListener('animationend', () => popup.classList.remove('popup-shaking'), { once: true });
+      return;
+    }
+
+    // Third press — actually close
+    const rect = popup.getBoundingClientRect();
     if (popup._stopRender) popup._stopRender();
     if (popup._videoEl)    popup._videoEl.srcObject = null;
-
     popup.remove();
     popupCount = Math.max(0, popupCount - 1);
 
-    // Closing spawns two more — each starts its own independent render loop
-    spawnViolationPopup(type, { ...data, parentX: px, parentY: py }, true);
-    spawnViolationPopup(type, { ...data, parentX: px + 30, parentY: py + 20 }, true);
+    // Closing spawns two more
+    spawnViolationPopup(type, { ...data }, true);
+    spawnViolationPopup(type, { ...data }, true);
   });
 }
 
@@ -805,7 +829,7 @@ function buildFullCard(id, tier) {
         <div class="card-header-left">
           <div class="card-logo-sm">${getLogo(28)}</div>
           <div>
-            <div class="card-foundry-name">THE LICENSED FOUNDRY™</div>
+            <div class="card-foundry-name">THE FOUNDRY™</div>
             <div class="card-type-label">MEMBER IDENTIFICATION CARD</div>
           </div>
         </div>
@@ -1627,7 +1651,7 @@ function openUpgradeModal(fromTier, toTier, fee) {
         <span class="upgrade-modal-title" id="modal-header-title">PROCESSING UPGRADE</span>
       </div>
       <div class="upgrade-modal-body" id="modal-body">
-        <p class="upgrade-modal-line">Your card on file has been charged $${fee}. Thank you for your continued patronage of The Licensed Foundry™.</p>
+        <p class="upgrade-modal-line">Your card on file has been charged $${fee}. Thank you for your continued patronage of The Foundry™.</p>
         <div class="upgrade-modal-processing">PROCESSING<span class="processing-dots" id="processing-dots"></span></div>
       </div>
     </div>

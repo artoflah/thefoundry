@@ -1,5 +1,5 @@
 /* ================================================================
-   THE LICENSED FOUNDRY™ — intro.js v2
+   THE FOUNDRY™ — intro.js v2
    Cell-division buildup intro for login.html.
 
    Plays once per session (sessionStorage 'intro_played').
