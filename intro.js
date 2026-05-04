@@ -27,16 +27,16 @@
   ];
 
   var THRESHOLD = 178;
-  var DENSITY_START = 7;
+  var DENSITY_START = 14;
   var DENSITY_END = 78;
-  var DENSITY_HOLD = 3200;
+  var DENSITY_HOLD = 4300;
   var DENSITY_DURATION = 4550;
-  var REVEAL_STAGGER = 46;
+  var REVEAL_STAGGER = 42;
 
   var T = {
-    resolve: 6400,
-    fadeOut: 7350,
-    done: 8100,
+    resolve: 7600,
+    fadeOut: 8550,
+    done: 9300,
   };
 
   var maskPx = null;
@@ -209,6 +209,7 @@
     var cellW = STAGE / cols;
     var cellH = STAGE / rows;
     var fade = easeOutCubic(clamp((t - 120) / 520, 0, 1));
+    var visibleIndex = 0;
 
     for (var row = 0; row < rows; row++) {
       for (var col = 0; col < cols; col++) {
@@ -221,7 +222,8 @@
         if (b >= THRESHOLD) continue;
 
         var seed = col * 17.17 + row * 31.31;
-        var order = row * cols + col;
+        var order = visibleIndex;
+        visibleIndex++;
         var cellBirth = 120 + order * REVEAL_STAGGER;
         var cellFade = easeOutCubic(clamp((t - cellBirth) / 520, 0, 1));
         if (cellFade <= 0) continue;
