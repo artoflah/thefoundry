@@ -27,13 +27,11 @@
   ];
 
   var THRESHOLD = 178;
-  var DENSITY_LEVELS = [
-    { density: 8,  start: 120,  stagger: 125, alpha: 0.95 },
-    { density: 14, start: 5400, stagger: 0,   alpha: 0.82 },
-    { density: 24, start: 6200, stagger: 0,   alpha: 0.7 },
-    { density: 38, start: 7000, stagger: 0,   alpha: 0.58 },
-    { density: 58, start: 7800, stagger: 0,   alpha: 0.48 },
-  ];
+  var DENSITY_START = 8;
+  var DENSITY_END = 78;
+  var DENSITY_HOLD = 5400;
+  var DENSITY_DURATION = 3100;
+  var FIRST_REVEAL_STAGGER = 125;
   var T = {
     resolve: 9100,
     fadeOut: 10050,
@@ -193,67 +191,55 @@
     ctx.restore();
   }
 
-  function getCurrentDensity(t) {
-    var density = 0;
-    for (var i = 0; i < DENSITY_LEVELS.length; i++) {
-      var level = DENSITY_LEVELS[i];
-      if (t < level.start) break;
-      var next = DENSITY_LEVELS[i + 1];
-      if (!next || t >= next.start) {
-        density = level.density;
-      } else {
-        var k = clamp((t - level.start) / (next.start - level.start), 0, 1);
-        density = level.density + (next.density - level.density) * easeInOutCubic(k);
-      }
-    }
-    return density;
+  function getDensity(t) {
+    if (t < 120) return 0;
+    if (t < DENSITY_HOLD) return DENSITY_START;
+    var k = clamp((t - DENSITY_HOLD) / DENSITY_DURATION, 0, 1);
+    return DENSITY_START + (DENSITY_END - DENSITY_START) * easeInOutCubic(k);
   }
 
   function drawPatternGrid(t) {
     if (!maskPx) return;
 
-    var currentDensity = getCurrentDensity(t);
-    if (currentDensity <= 0) return;
+    var density = getDensity(t);
+    if (density <= 0) return;
 
-    for (var li = 0; li < DENSITY_LEVELS.length; li++) {
-      var level = DENSITY_LEVELS[li];
-      if (t < level.start) break;
+    var cellBase = STAGE / density;
+    var cols = Math.ceil(STAGE / cellBase);
+    var rows = Math.ceil(STAGE / cellBase);
+    var cellW = STAGE / cols;
+    var cellH = STAGE / rows;
+    var visibleIndex = 0;
 
-      var density = level.density;
-      var cellBase = STAGE / density;
-      var cols = Math.ceil(STAGE / cellBase);
-      var rows = Math.ceil(STAGE / cellBase);
-      var cellW = STAGE / cols;
-      var cellH = STAGE / rows;
-      var drawSize = STAGE / Math.max(currentDensity, density);
-      var visibleIndex = 0;
+    for (var row = 0; row < rows; row++) {
+      for (var col = 0; col < cols; col++) {
+        var x = col * cellW;
+        var y = row * cellH;
+        var mx = Math.floor(x / STAGE * MASK_SZ);
+        var my = Math.floor(y / STAGE * MASK_SZ);
+        var b = maskBright(mx, my);
 
-      for (var row = 0; row < rows; row++) {
-        for (var col = 0; col < cols; col++) {
-          var x = col * cellW;
-          var y = row * cellH;
-          var mx = Math.floor(x / STAGE * MASK_SZ);
-          var my = Math.floor(y / STAGE * MASK_SZ);
-          var b = maskBright(mx, my);
+        if (b >= THRESHOLD) continue;
 
-          if (b >= THRESHOLD) continue;
+        var seed = col * 17.17 + row * 31.31;
+        var order = visibleIndex;
+        visibleIndex++;
 
-          var seed = density * 101 + col * 17.17 + row * 31.31;
-          var order = visibleIndex;
-          visibleIndex++;
-          var cellBirth = level.start + order * level.stagger;
-          var cellFade = level.stagger > 0
-            ? easeOutCubic(clamp((t - cellBirth) / 460, 0, 1))
-            : easeOutCubic(clamp((t - level.start) / 520, 0, 1));
-          if (cellFade <= 0) continue;
+        var firstReveal = easeOutCubic(clamp(
+          (t - (120 + order * FIRST_REVEAL_STAGGER)) / 460,
+          0,
+          1
+        ));
+        if (firstReveal <= 0) continue;
 
-          var imgIndex = Math.floor(hash01(seed) * emblems.length);
-          var alpha = level.alpha * cellFade * (0.72 + hash01(seed * 2.7) * 0.28);
-          var cx = x + cellW / 2;
-          var cy = y + cellH / 2;
+        var multiplyFade = t < DENSITY_HOLD
+          ? 1
+          : easeOutCubic(clamp((t - DENSITY_HOLD) / 620, 0, 1));
 
-          drawCell(imgIndex, cx - drawSize / 2, cy - drawSize / 2, drawSize, drawSize, alpha);
-        }
+        var imgIndex = Math.floor(hash01(seed) * emblems.length);
+        var alpha = firstReveal * multiplyFade * (0.72 + hash01(seed * 2.7) * 0.28);
+
+        drawCell(imgIndex, x, y, cellW, cellH, alpha);
       }
     }
   }
