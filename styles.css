@@ -190,25 +190,23 @@ body#login {
   z-index: 10;
 }
 
+/* Centered column layout */
 .login-stage {
-  position: relative;
-  width: 100vw;
-  height: 100vh;
-  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  gap: var(--space-48);
 }
 
-/* Logo — 280px, centered horizontally, 25% from top. No animation. */
+/* Logo — small, centered */
 .login-logo-mark {
-  position: absolute;
-  top: 25vh;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 280px;
-  height: 280px;
-  z-index: 1;
+  width: 80px;
+  height: 80px;
+  flex-shrink: 0;
 }
 
-/* Scale the SVG/img to fill the container */
 .login-logo-mark img,
 .login-logo-mark svg {
   width: 100%;
@@ -217,39 +215,13 @@ body#login {
   display: block;
 }
 
-/* Vertical line — 35px wide, draws down from logo bottom to ~70vh, starts at t=2s */
-.login-vert-line {
-  position: absolute;
-  top: calc(25vh + 280px);
-  left: calc(50% - 17px);
-  width: 35px;
-  height: 0;
-  background: var(--black);
-  animation: none;
-  z-index: 0;
-}
-
-/* Horizontal line — 35px tall, branches right at ~70vh, starts when vert finishes (t=3.8s) */
-.login-horiz-line {
-  position: absolute;
-  top: calc(70vh - 35px);
-  left: calc(50% + 18px);
-  height: 35px;
-  width: 0;
-  background: var(--black);
-  animation: none;
-}
-
-/* Login form — sits ON the horizontal bar; bottom flush with bar bottom so bar = underline. */
+/* Login form group — centered below logo, fades in after intro */
 .login-field-group {
-  position: absolute;
-  bottom: calc(30vh);
-  left: calc(50% + 18px);      /* aligned with horiz-line left edge */
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
+  align-items: center;
+  text-align: center;
   opacity: 0;
-  transform: translateY(8px);
   animation: none;
 }
 
@@ -262,27 +234,24 @@ body#login {
   margin: 0 0 10px 0;
   padding: 0;
   display: block;
-  width: calc(25vw - 18px);
 }
 
-/* Input: no borders — the horizontal bar IS the underline.
-   Text pushed toward bottom of box so it sits directly above the bar. */
 .login-input {
-  width: calc(25vw - 18px);
+  width: 320px;
   min-width: 240px;
   height: 50px;
   box-sizing: border-box;
   border: none;
+  border-bottom: 1px solid var(--black);
   background: transparent;
   font-family: var(--font-licensed);
   font-size: 15px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--black);
-  padding: 18px 0 0 0;
+  padding: 0;
+  text-align: center;
   outline: none;
-  position: relative;
-  z-index: 10;
 }
 
 .login-input::placeholder {
@@ -299,9 +268,7 @@ body#login {
 }
 
 .login-error-msg {
-  position: absolute;
-  top: calc(100% + 44px);   /* below bar (35px) + small gap */
-  left: 0;
+  margin-top: var(--space-12);
   font-size: 9px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -318,29 +285,6 @@ body#login {
   display: none;
 }
 
-/* Large bottom-left text — wipes in left-to-right when vert completes (t=3.8s).
-   Left-anchored at 40px. Right edge naturally falls near the vert line.
-   Font at 56px fits the full text on 1440px+ screens without left-edge cutoff. */
-.login-upgrade-link {
-  position: fixed;
-  bottom: var(--space-32);
-  left: 40px;
-  font-size: 56px;
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: -0.02em;
-  text-transform: uppercase;
-  white-space: nowrap;
-  color: var(--black);
-  text-decoration: none;
-  clip-path: inset(0 100% 0 0);
-  animation: none;
-}
-
-.login-upgrade-link:hover {
-  opacity: 0.5;
-}
-
 /* Bottom-right footer — visible from page load */
 .login-footer {
   position: fixed;
@@ -354,35 +298,15 @@ body#login {
 
 /* ── Keyframes ────────────────────────────────────────────────── */
 
-/* Vertical line: logo bottom (25vh + 280px) → 70vh. Duration 1.8s. */
-@keyframes login-vert-draw {
-  from { height: 0; }
-  to   { height: calc(75vh - 280px); }
-}
-
-/* Horizontal branch: from 50vw+18px to ~75vw */
-@keyframes login-horiz-draw {
-  from { width: 0; }
-  to   { width: calc(25vw - 18px); }
-}
-
-/* Form fades up into position */
 @keyframes login-fade-up {
   from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* Upgrade text wipes in left-to-right */
-@keyframes login-wipe-in {
-  from { clip-path: inset(0 100% 0 0); }
-  to   { clip-path: inset(0 0% 0 0); }
+/* Field group fades in when intro-complete fires */
+body.login-anim-go .login-field-group {
+  animation: login-fade-up 800ms ease-out 0ms forwards;
 }
-
-/* Login animations held until intro-complete fires (intro.js adds this class) */
-body.login-anim-go .login-vert-line   { animation: login-vert-draw  1800ms ease-in-out 2000ms forwards; }
-body.login-anim-go .login-horiz-line  { animation: login-horiz-draw 1000ms ease-in-out 3800ms forwards; }
-body.login-anim-go .login-field-group { animation: login-fade-up     800ms ease-out    3800ms forwards; }
-body.login-anim-go .login-upgrade-link { animation: login-wipe-in    600ms ease-out    3800ms forwards; }
 /* ================================================================
    LICENSE PAGE
    ================================================================ */
@@ -1403,6 +1327,7 @@ body#not-found .site-footer {
 @media (max-width: 600px) {
   .login-input {
     width: 260px;
+    min-width: 0;
   }
 
   .tier-grid {
@@ -2393,13 +2318,6 @@ body#upgrade .page-wrap {
 .site-footer  { padding-left: calc(var(--wordmark-w) + var(--space-32)); }
 .page-wrap    { padding-left: var(--wordmark-w); }
 body#license .page-wrap { padding-left: var(--wordmark-w); }
-.login-upgrade-link { left: calc(var(--wordmark-w) + var(--space-32)); }
-
-/* Login has no wordmark — cancel the wordmark left-offset, keep the 40px base */
-body#login .login-upgrade-link {
-  left: -8px;
-  right: auto;
-}
 
 /* ================================================================
    TESTER-FRAME CORNER CLUSTERS
@@ -2485,8 +2403,6 @@ body#login .login-upgrade-link {
   .site-footer  { padding-left: var(--space-32); }
   .page-wrap    { padding-left: 0; }
   body#license .page-wrap { padding-left: 0; }
-  .login-upgrade-link { left: var(--space-32); }
-  body#login .login-upgrade-link { left: var(--space-32); right: auto; font-size: 36px; }
 }
 
 /* ================================================================

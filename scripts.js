@@ -877,7 +877,7 @@ function runCardReveal() {
 function initLogin() {
   // Render logo
   const logoEl = document.getElementById('login-logo');
-  if (logoEl) logoEl.innerHTML = getLogo(280);
+  if (logoEl) logoEl.innerHTML = getLogo(80);
 
   const input = document.getElementById('login-input');
   const errorMsg = document.getElementById('login-error');
