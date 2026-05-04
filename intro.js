@@ -15,7 +15,7 @@
 (function () {
   'use strict';
 
-  var STAGE = 440;
+  var STAGE = 360;
   var MASK_SZ = 900;
   var DPR = Math.min(window.devicePixelRatio || 1, 2);
 
@@ -30,6 +30,7 @@
   var DENSITY_START = 7;
   var DENSITY_END = 78;
   var DENSITY_DURATION = 4550;
+  var REVEAL_STAGGER = 40;
 
   var T = {
     resolve: 4700,
@@ -218,8 +219,13 @@
         if (b >= THRESHOLD) continue;
 
         var seed = col * 17.17 + row * 31.31;
+        var order = row * cols + col;
+        var cellBirth = 120 + order * REVEAL_STAGGER;
+        var cellFade = easeOutCubic(clamp((t - cellBirth) / 520, 0, 1));
+        if (cellFade <= 0) continue;
+
         var imgIndex = Math.floor(hash01(seed) * emblems.length);
-        var alpha = fade * (0.72 + hash01(seed * 2.7) * 0.28);
+        var alpha = fade * cellFade * (0.72 + hash01(seed * 2.7) * 0.28);
 
         drawCell(imgIndex, x, y, cellW, cellH, alpha);
       }
