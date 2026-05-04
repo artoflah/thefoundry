@@ -2193,9 +2193,9 @@ function initWordmark() {
   wm.innerHTML = `
     <div class="page-wordmark-top">LICENSED™<br>GROTESQUE<br>REGULAR<br>V.1.0.0</div>
     <div class="page-wordmark-center">
-      <span class="page-wordmark-rotated">LICENSED</span>
+      <span class="page-wordmark-rotated">LICENSED™</span>
     </div>
-    <div class="page-wordmark-bottom">© THE<br>FOUNDRY™<br>2026<br>ALL RIGHTS<br>RESERVED</div>
+    <div class="page-wordmark-bottom">© THE<br>FOUNDRY™<br>2026<br>ALL RIGHTS<br>RESERVED.</div>
   `;
   document.body.appendChild(wm);
 }
