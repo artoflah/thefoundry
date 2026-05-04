@@ -486,14 +486,18 @@ function _renderEmblemFrame(ctx, canvas, tinyCtx, tinyCanvas, videoEl) {
 }
 
 // Static placeholder grid for denied-camera state (random emblem distribution).
+const PLACEHOLDER_SIZE   = 7;
+const PLACEHOLDER_COLS   = Math.floor(CAM_W / PLACEHOLDER_SIZE);
+const PLACEHOLDER_ROWS   = Math.floor(CAM_H / PLACEHOLDER_SIZE);
+
 function _renderStaticPlaceholder(canvas, ctx) {
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   if (!emblemTexturesReady) return;
-  for (let y = 0; y < EMBLEM_INPUT_H; y++) {
-    for (let x = 0; x < EMBLEM_INPUT_W; x++) {
+  for (let y = 0; y < PLACEHOLDER_ROWS; y++) {
+    for (let x = 0; x < PLACEHOLDER_COLS; x++) {
       const idx = Math.floor(Math.random() * 4);
-      ctx.drawImage(emblemTextures[idx], x * EMBLEM_SIZE, y * EMBLEM_SIZE, EMBLEM_SIZE, EMBLEM_SIZE);
+      ctx.drawImage(emblemTextures[idx], x * PLACEHOLDER_SIZE, y * PLACEHOLDER_SIZE, PLACEHOLDER_SIZE, PLACEHOLDER_SIZE);
     }
   }
 }
@@ -2204,10 +2208,8 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   if (page === 'login') {
-    // Init form logic immediately (form stays hidden behind overlay)
     initLogin();
-    // CSS animations wait for intro-complete (fired by intro.js)
-    document.addEventListener('intro-complete', () => {
+    document.addEventListener('intro-complete', function () {
       document.body.classList.add('login-anim-go');
     }, { once: true });
   } else if (routes[page]) {
