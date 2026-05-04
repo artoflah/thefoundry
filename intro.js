@@ -29,8 +29,9 @@
   var THRESHOLD = 178;
   var DENSITY_START = 7;
   var DENSITY_END = 78;
+  var DENSITY_HOLD = 1850;
   var DENSITY_DURATION = 4550;
-  var REVEAL_STAGGER = 40;
+  var REVEAL_STAGGER = 46;
 
   var T = {
     resolve: 4700,
@@ -193,7 +194,8 @@
 
   function getDensity(t) {
     if (t < 120) return 0;
-    var k = clamp((t - 120) / DENSITY_DURATION, 0, 1);
+    if (t < DENSITY_HOLD) return DENSITY_START;
+    var k = clamp((t - DENSITY_HOLD) / DENSITY_DURATION, 0, 1);
     return DENSITY_START + (DENSITY_END - DENSITY_START) * easeInOutCubic(k);
   }
 
