@@ -28,16 +28,16 @@
 
   var THRESHOLD = 178;
   var DENSITY_LEVELS = [
-    { density: 7,  start: 120,  stagger: 90, alpha: 0.95 },
-    { density: 13, start: 3500, stagger: 0,  alpha: 0.82 },
-    { density: 22, start: 4300, stagger: 0,  alpha: 0.7 },
-    { density: 36, start: 5100, stagger: 0,  alpha: 0.58 },
-    { density: 58, start: 5900, stagger: 0,  alpha: 0.48 },
+    { density: 8,  start: 120,  stagger: 125, alpha: 0.95 },
+    { density: 14, start: 5400, stagger: 0,   alpha: 0.82 },
+    { density: 24, start: 6200, stagger: 0,   alpha: 0.7 },
+    { density: 38, start: 7000, stagger: 0,   alpha: 0.58 },
+    { density: 58, start: 7800, stagger: 0,   alpha: 0.48 },
   ];
   var T = {
-    resolve: 7200,
-    fadeOut: 8150,
-    done: 8900,
+    resolve: 9100,
+    fadeOut: 10050,
+    done: 10800,
   };
 
   var maskPx = null;
