@@ -2346,6 +2346,7 @@ body#upgrade .page-wrap {
   white-space: nowrap;
   line-height: 1;
   display: block;
+  padding-top: 15px;
 }
 
 /* Content offset for wordmark column */
