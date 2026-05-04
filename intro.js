@@ -1,10 +1,11 @@
 /* ================================================================
-   THE FOUNDRY™ — intro.js v3
-   Halftone buildup intro for login.html.
+   THE FOUNDRY(TM) — intro.js v4
+   Canvas pattern-mask intro for login.html.
 
-   4 independent grid densities sample fdrylogo.svg mask.
-   Each phase scales emblems up at their own position (no drift).
-   All phases accumulate simultaneously — coarse → dense fill.
+   Emulates the Tooooools.app "patterns" effect by sampling fdrylogo.svg
+   as a mask, then re-rendering the same regular pattern grid while
+   animating grid density upward. As density rises, cells get smaller
+   and more emblems appear.
 
    Plays once per session (sessionStorage 'intro_played').
    ?intro=true force-plays. Any keydown/click skips immediately.
@@ -14,56 +15,39 @@
 (function () {
   'use strict';
 
-  // ── Config ───────────────────────────────────────────────────────
+  var STAGE = 440;
+  var MASK_SZ = 900;
+  var DPR = Math.min(window.devicePixelRatio || 1, 2);
 
-  var STAGE   = 420;   // px — square stage, centered in viewport
-  var MASK_SZ = 800;   // px — offscreen canvas for shape sampling
-  var CAP     = 1500;  // hard cap on total emblems across all phases
-
-  // Per-phase: emblem display size + mask grid stride & start offset
-  // Each phase independently samples the logo mask at its own density
-  var PH = [
-    { sz: 50, stride: 100, start: 50 },  // phase 0 — coarse, large
-    { sz: 24, stride:  50, start: 25 },  // phase 1 — medium
-    { sz: 12, stride:  25, start: 12 },  // phase 2 — fine
-    { sz:  6, stride:  12, start:  6 },  // phase 3 — very fine, tiny
-  ];
-
-  // Emblem SVG sources
   var SRCS = [
-    'assets/emblem-04.svg',  // red    — FOUNDRY
-    'assets/emblem-12.svg',  // blue   — DOMINION
-    'assets/emblem-13.svg',  // yellow — REGISTRY
-    'assets/emblem-14.svg',  // purple — YIELD
+    'assets/emblem-04.svg',
+    'assets/emblem-12.svg',
+    'assets/emblem-13.svg',
+    'assets/emblem-14.svg',
   ];
 
-  // Interval between each phase-0 emblem appearing (ms) — sequential one-by-one
-  var SEQ_INTERVAL = 70;
+  var THRESHOLD = 178;
+  var DENSITY_START = 7;
+  var DENSITY_END = 78;
+  var DENSITY_DURATION = 4550;
 
-  // Timeline milliseconds from sequence start
   var T = {
-    ph1:      200,   // first emblem appears (phase 0, sequential)
-    ph2:     2100,   // phase 1 burst begins
-    ph3:     2900,   // phase 2 burst begins
-    ph4:     3600,   // phase 3 burst begins
-    resolve: 4400,   // all emblems out, plain FDRY logo fades in
-    fadeOut: 5100,   // plain logo fades out
-    done:    5900,   // overlay removed, intro-complete fires
+    resolve: 4700,
+    fadeOut: 5600,
+    done: 6350,
   };
 
-  // ── State ────────────────────────────────────────────────────────
-
-  var maskPx  = null;
-  var cells   = [[], [], [], []];  // cells[p] = [{x, y}]
-  var els     = [[], [], [], []];  // els[p]   = [<img>]
-  var layers  = [];
-  var plainEl = null;
+  var maskPx = null;
+  var emblems = [];
   var overlay = null;
   var stageEl = null;
-  var timers  = [];
-  var done    = false;
-
-  // ── Utilities ────────────────────────────────────────────────────
+  var canvas = null;
+  var ctx = null;
+  var plainEl = null;
+  var raf = 0;
+  var timers = [];
+  var startedAt = 0;
+  var done = false;
 
   function shouldPlay() {
     if (new URLSearchParams(window.location.search).get('intro') === 'true') return true;
@@ -75,10 +59,6 @@
     document.dispatchEvent(new CustomEvent('intro-complete'));
   }
 
-  function rndSrc() {
-    return SRCS[Math.floor(Math.random() * SRCS.length)];
-  }
-
   function sched(fn, ms) {
     timers.push(setTimeout(fn, ms));
   }
@@ -87,293 +67,210 @@
     if (done) return;
     done = true;
     timers.forEach(clearTimeout);
+    cancelAnimationFrame(raf);
     document.removeEventListener('keydown', abort, true);
-    document.removeEventListener('click',   abort, true);
+    document.removeEventListener('click', abort, true);
     if (overlay) overlay.remove();
     fireComplete();
   }
 
-  // ── Mask sampling ────────────────────────────────────────────────
+  function easeOutCubic(t) {
+    return 1 - Math.pow(1 - t, 3);
+  }
+
+  function easeInOutCubic(t) {
+    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  }
+
+  function clamp(n, lo, hi) {
+    return Math.max(lo, Math.min(hi, n));
+  }
+
+  function hash01(n) {
+    var x = Math.sin(n * 12.9898) * 43758.5453;
+    return x - Math.floor(x);
+  }
 
   function maskBright(mx, my) {
-    var x = Math.max(0, Math.min(MASK_SZ - 1, Math.round(mx)));
-    var y = Math.max(0, Math.min(MASK_SZ - 1, Math.round(my)));
+    var x = clamp(Math.round(mx), 0, MASK_SZ - 1);
+    var y = clamp(Math.round(my), 0, MASK_SZ - 1);
     var i = (y * MASK_SZ + x) * 4;
     return (maskPx[i] + maskPx[i + 1] + maskPx[i + 2]) / 3;
   }
 
-  function buildMask(cb) {
-    var canvas    = document.createElement('canvas');
-    canvas.width  = MASK_SZ;
-    canvas.height = MASK_SZ;
-    var ctx = canvas.getContext('2d');
-    var img = new Image();
-
-    img.onload = function () {
-      ctx.fillStyle = '#fff';
-      ctx.fillRect(0, 0, MASK_SZ, MASK_SZ);
-      ctx.drawImage(img, 0, 0, MASK_SZ, MASK_SZ);
-      try {
-        maskPx = ctx.getImageData(0, 0, MASK_SZ, MASK_SZ).data;
-      } catch (e) {
-        maskPx = null;
-      }
-      cb();
-    };
-    img.onerror = function () { maskPx = null; cb(); };
-    img.src = 'assets/fdrylogo.svg';
+  function loadImage(src) {
+    return new Promise(function (resolve) {
+      var img = new Image();
+      img.onload = function () { resolve(img); };
+      img.onerror = function () { resolve(null); };
+      img.src = src;
+    });
   }
 
-  // Fallback phase-0 positions if mask fails (circular badge outline, STAGE=420)
-  function fallbackP0() {
-    var pts = [
-      [150,63],[216,63],[273,63],
-      [93,117],[153,117],[213,117],[273,117],[330,117],
-      [63,177],[123,177],[183,177],[243,177],[303,177],[357,177],
-      [93,237],[153,237],[213,237],[273,237],[330,237],
-      [147,297],[210,297],[273,297],
-      [189,345],[240,345],
-    ];
-    return pts.map(function (p) { return { x: p[0], y: p[1] }; });
-  }
+  function buildMask() {
+    return new Promise(function (resolve) {
+      var c = document.createElement('canvas');
+      c.width = MASK_SZ;
+      c.height = MASK_SZ;
+      var cctx = c.getContext('2d');
+      var img = new Image();
 
-  // ── Cell generation ──────────────────────────────────────────────
-  // Each phase independently samples the logo mask at its own grid density.
-  // Emblems appear at their own position — no parent/child relationship.
-
-  function generateCells() {
-    var total = 0;
-
-    for (var p = 0; p < 4; p++) {
-      cells[p] = [];
-      if (total >= CAP) break;
-
-      var ph  = PH[p];
-      var s   = ph.start;
-      var str = ph.stride;
-
-      if (maskPx) {
-        for (var gy = s; gy < MASK_SZ; gy += str) {
-          for (var gx = s; gx < MASK_SZ; gx += str) {
-            if (total >= CAP) break;
-            if (maskBright(gx, gy) < 128) {
-              cells[p].push({
-                x: gx / MASK_SZ * STAGE,
-                y: gy / MASK_SZ * STAGE,
-              });
-              total++;
-            }
-          }
-          if (total >= CAP) break;
+      img.onload = function () {
+        cctx.fillStyle = '#fff';
+        cctx.fillRect(0, 0, MASK_SZ, MASK_SZ);
+        cctx.drawImage(img, 0, 0, MASK_SZ, MASK_SZ);
+        try {
+          maskPx = cctx.getImageData(0, 0, MASK_SZ, MASK_SZ).data;
+        } catch (e) {
+          maskPx = null;
         }
-      }
+        resolve();
+      };
 
-      if (p === 0 && cells[0].length < 6) {
-        cells[0] = fallbackP0();
-        total    = cells[0].length;
-      }
-    }
+      img.onerror = function () {
+        maskPx = null;
+        resolve();
+      };
+
+      img.src = 'assets/fdrylogo.svg';
+    });
   }
-
-  // ── CSS injection ────────────────────────────────────────────────
 
   function injectStyles() {
     var half = STAGE / 2;
-    var el   = document.createElement('style');
+    var el = document.createElement('style');
     el.textContent =
       '#intro-overlay{position:fixed;inset:0;background:#fff;z-index:9000;overflow:hidden;}' +
-      '#fdry-stage{' +
-        'position:fixed;' +
-        'width:'  + STAGE + 'px;' +
-        'height:' + STAGE + 'px;' +
-        'top:calc(50vh - '  + half + 'px);' +
-        'left:calc(50% - '  + half + 'px);' +
-        'transform-origin:center center;}' +
-      '.ipl{position:absolute;inset:0;pointer-events:none;}' +
-      '.iem{position:absolute;top:0;left:0;' +
-        'will-change:transform,opacity;' +
-        'user-select:none;pointer-events:none;display:block;}' +
-      '#fdry-plain{position:absolute;inset:0;width:100%;height:100%;' +
-        'opacity:0;will-change:opacity;pointer-events:none;}';
+      '#fdry-stage{position:fixed;width:' + STAGE + 'px;height:' + STAGE + 'px;' +
+        'top:calc(50vh - ' + half + 'px);left:calc(50% - ' + half + 'px);}' +
+      '#fdry-pattern{position:absolute;inset:0;width:100%;height:100%;opacity:1;' +
+        'transition:opacity 700ms ease;}' +
+      '#fdry-plain{position:absolute;inset:0;width:100%;height:100%;opacity:0;' +
+        'will-change:opacity;pointer-events:none;transition:opacity 700ms ease;}';
     document.head.appendChild(el);
   }
 
-  // ── DOM construction ─────────────────────────────────────────────
-
   function buildDOM() {
-    overlay    = document.createElement('div');
+    overlay = document.createElement('div');
     overlay.id = 'intro-overlay';
 
-    stageEl    = document.createElement('div');
+    stageEl = document.createElement('div');
     stageEl.id = 'fdry-stage';
 
-    for (var p = 0; p < 4; p++) {
-      var layer = document.createElement('div');
-      layer.className = 'ipl';
-      layers.push(layer);
-      stageEl.appendChild(layer);
+    canvas = document.createElement('canvas');
+    canvas.id = 'fdry-pattern';
+    canvas.width = Math.round(STAGE * DPR);
+    canvas.height = Math.round(STAGE * DPR);
+    ctx = canvas.getContext('2d');
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
 
-      var sz    = PH[p].sz;
-      var phase = cells[p];
-      els[p]    = [];
-
-      for (var ci = 0; ci < phase.length; ci++) {
-        var cell = phase[ci];
-        var img  = document.createElement('img');
-        img.src  = rndSrc();
-        img.className = 'iem';
-        img.setAttribute('aria-hidden', 'true');
-        img.style.width  = sz + 'px';
-        img.style.height = sz + 'px';
-
-        // Start at own position, scale 0 — transition only animates scale, not position
-        var ix = cell.x - sz / 2;
-        var iy = cell.y - sz / 2;
-        img.style.transform = 'translate(' + ix + 'px,' + iy + 'px) scale(0)';
-        img.style.opacity   = '0';
-
-        layer.appendChild(img);
-        els[p].push(img);
-      }
-    }
-
-    plainEl     = document.createElement('img');
-    plainEl.id  = 'fdry-plain';
+    plainEl = document.createElement('img');
+    plainEl.id = 'fdry-plain';
     plainEl.src = 'assets/fdrylogo.svg';
     plainEl.setAttribute('aria-hidden', 'true');
-    stageEl.appendChild(plainEl);
 
+    stageEl.appendChild(canvas);
+    stageEl.appendChild(plainEl);
     overlay.appendChild(stageEl);
     document.body.appendChild(overlay);
   }
 
-  // ── Per-phase animation helpers ───────────────────────────────────
+  function drawCell(imgIndex, x, y, w, h, alpha) {
+    var img = emblems[imgIndex % emblems.length];
+    ctx.save();
+    ctx.globalAlpha = alpha;
 
-  // Phase 0: emblems pop in one by one at fixed interval (scale only, no drift)
-  function showPhaseSequential(p, dur, interval) {
-    if (done) return;
-    var sz    = PH[p].sz;
-    var phase = cells[p];
-    var elp   = els[p];
-    var opDur = Math.round(dur * 0.6);
+    if (img) {
+      ctx.drawImage(img, x, y, w, h);
+    } else {
+      ctx.fillStyle = ['#b10a18', '#4e7c93', '#fbb03b', '#1b1464'][imgIndex % 4];
+      ctx.fillRect(x, y, w, h);
+    }
 
-    for (var i = 0; i < phase.length; i++) {
-      var el    = elp[i];
-      var cell  = phase[i];
-      var delay = i * interval;
-      var fx    = cell.x - sz / 2;
-      var fy    = cell.y - sz / 2;
+    ctx.restore();
+  }
 
-      el.style.transitionProperty       = 'transform, opacity';
-      el.style.transitionDuration       = dur + 'ms, ' + opDur + 'ms';
-      el.style.transitionTimingFunction = 'cubic-bezier(0.34,1.56,0.64,1), ease';
-      el.style.transitionDelay          = delay + 'ms, ' + delay + 'ms';
-      // Position is already correct — only scale animates 0 → 1
-      el.style.transform = 'translate(' + fx + 'px,' + fy + 'px) scale(1)';
-      el.style.opacity   = '1';
+  function getDensity(t) {
+    if (t < 120) return 0;
+    var k = clamp((t - 120) / DENSITY_DURATION, 0, 1);
+    return DENSITY_START + (DENSITY_END - DENSITY_START) * easeInOutCubic(k);
+  }
+
+  function drawPatternGrid(t) {
+    var density = getDensity(t);
+    if (density <= 0 || !maskPx) return;
+
+    var cellBase = STAGE / density;
+    var cols = Math.ceil(STAGE / cellBase);
+    var rows = Math.ceil(STAGE / cellBase);
+    var cellW = STAGE / cols;
+    var cellH = STAGE / rows;
+    var fade = easeOutCubic(clamp((t - 120) / 520, 0, 1));
+
+    for (var row = 0; row < rows; row++) {
+      for (var col = 0; col < cols; col++) {
+        var x = col * cellW;
+        var y = row * cellH;
+        var mx = Math.floor(x / STAGE * MASK_SZ);
+        var my = Math.floor(y / STAGE * MASK_SZ);
+        var b = maskBright(mx, my);
+
+        if (b >= THRESHOLD) continue;
+
+        var seed = col * 17.17 + row * 31.31;
+        var imgIndex = Math.floor(hash01(seed) * emblems.length);
+        var alpha = fade * (0.72 + hash01(seed * 2.7) * 0.28);
+
+        drawCell(imgIndex, x, y, cellW, cellH, alpha);
+      }
     }
   }
 
-  // Phases 1–3: all emblems burst in with random stagger (scale only, no drift)
-  function showPhase(p, dur, maxStagger) {
+  function render(now) {
     if (done) return;
-    var sz    = PH[p].sz;
-    var phase = cells[p];
-    var elp   = els[p];
-    var opDur = Math.round(dur * 0.6);
+    var t = now - startedAt;
 
-    for (var i = 0; i < phase.length; i++) {
-      var el    = elp[i];
-      var cell  = phase[i];
-      var delay = Math.random() * maxStagger;
-      var fx    = cell.x - sz / 2;
-      var fy    = cell.y - sz / 2;
+    ctx.clearRect(0, 0, STAGE, STAGE);
+    drawPatternGrid(t);
 
-      el.style.transitionProperty       = 'transform, opacity';
-      el.style.transitionDuration       = dur + 'ms, ' + opDur + 'ms';
-      el.style.transitionTimingFunction = 'cubic-bezier(0.34,1.56,0.64,1), ease';
-      el.style.transitionDelay          = delay + 'ms, ' + delay + 'ms';
-      // Position is already correct — only scale animates 0 → 1
-      el.style.transform = 'translate(' + fx + 'px,' + fy + 'px) scale(1)';
-      el.style.opacity   = '1';
-    }
+    raf = requestAnimationFrame(render);
   }
-
-  function hidePhase(p, dur) {
-    if (done) return;
-    var elp = els[p];
-    for (var i = 0; i < elp.length; i++) {
-      var el = elp[i];
-      el.style.transitionProperty       = 'opacity';
-      el.style.transitionDuration       = dur + 'ms';
-      el.style.transitionTimingFunction = 'ease';
-      el.style.transitionDelay          = '0ms';
-      el.style.opacity = '0';
-    }
-  }
-
-  // ── Main sequence ─────────────────────────────────────────────────
 
   function runSequence() {
     document.addEventListener('keydown', abort, true);
-    document.addEventListener('click',   abort, true);
+    document.addEventListener('click', abort, true);
 
-    // Phase 0 — large emblems appear one by one (t = 200ms)
-    sched(function () {
-      showPhaseSequential(0, 350, SEQ_INTERVAL);
-    }, T.ph1);
+    startedAt = performance.now();
+    raf = requestAnimationFrame(render);
 
-    // Phase 1 — medium emblems fill in, phase 0 stays (t = 2100ms)
-    sched(function () {
-      showPhase(1, 650, 280);
-    }, T.ph2);
-
-    // Phase 2 — fine emblems accumulate (t = 2900ms)
-    sched(function () {
-      showPhase(2, 600, 250);
-    }, T.ph3);
-
-    // Phase 3 — tiny emblems pack in densely (t = 3600ms)
-    sched(function () {
-      showPhase(3, 500, 200);
-    }, T.ph4);
-
-    // Resolve — all emblems out, plain FDRY logo fades in (t = 4400ms)
     sched(function () {
       if (done) return;
-      [0, 1, 2, 3].forEach(function (p) { hidePhase(p, 450); });
-      plainEl.style.transition = 'opacity 450ms ease';
-      plainEl.style.opacity    = '1';
+      plainEl.style.opacity = '0.92';
     }, T.resolve);
 
-    // Plain logo fades out (t = 5100ms)
     sched(function () {
       if (done) return;
-      plainEl.style.transition = 'opacity 580ms ease';
-      plainEl.style.opacity    = '0';
+      canvas.style.opacity = '0';
+      plainEl.style.opacity = '0';
     }, T.fadeOut);
 
-    // Done — remove overlay, fire intro-complete (t = 5900ms)
     sched(function () {
       if (done) return;
       done = true;
+      cancelAnimationFrame(raf);
       document.removeEventListener('keydown', abort, true);
-      document.removeEventListener('click',   abort, true);
+      document.removeEventListener('click', abort, true);
       overlay.remove();
       fireComplete();
     }, T.done);
   }
 
-  // ── Entry ────────────────────────────────────────────────────────
-
   function run() {
-    buildMask(function () {
+    Promise.all([buildMask(), Promise.all(SRCS.map(loadImage))]).then(function (results) {
       if (done) return;
-      generateCells();
+      emblems = results[1].filter(Boolean);
       injectStyles();
       buildDOM();
-      // Double-RAF ensures browser commits initial scale(0) state before
-      // transitions fire — prevents "jumps to end" problem
       requestAnimationFrame(function () {
         requestAnimationFrame(function () {
           if (!done) runSequence();
@@ -389,5 +286,4 @@
       fireComplete();
     }
   });
-
 }());
