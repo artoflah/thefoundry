@@ -10,7 +10,7 @@
   src: url('assets/fonts/Licensed-Regular.ttf'); /*URL to font*/
 }
 
-  --font-licensed: 'Licensed-Regular', 'Helvetica Neue';
+  --font-licensed: 'Licensed-Regular';
   --black: #000000;
   --white: #ffffff;
   --red: #EE1111;
