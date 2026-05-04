@@ -15,7 +15,7 @@
 (function () {
   'use strict';
 
-  var STAGE = 360;
+  var STAGE = 440;
   var MASK_SZ = 900;
   var DPR = Math.min(window.devicePixelRatio || 1, 2);
 
@@ -27,15 +27,13 @@
   ];
 
   var THRESHOLD = 178;
-  var DENSITY_START = 8;
+  var DENSITY_START = 7;
   var DENSITY_END = 78;
-  var DENSITY_HOLD = 5400;
-  var DENSITY_DURATION = 3100;
-  var FIRST_REVEAL_STAGGER = 125;
+  var DENSITY_DURATION = 4550;
   var T = {
-    resolve: 9100,
-    fadeOut: 10050,
-    done: 10800,
+    resolve: 4700,
+    fadeOut: 5600,
+    done: 6350,
   };
 
   var maskPx = null;
@@ -193,8 +191,7 @@
 
   function getDensity(t) {
     if (t < 120) return 0;
-    if (t < DENSITY_HOLD) return DENSITY_START;
-    var k = clamp((t - DENSITY_HOLD) / DENSITY_DURATION, 0, 1);
+    var k = clamp((t - 120) / DENSITY_DURATION, 0, 1);
     return DENSITY_START + (DENSITY_END - DENSITY_START) * easeInOutCubic(k);
   }
 
@@ -209,7 +206,7 @@
     var rows = Math.ceil(STAGE / cellBase);
     var cellW = STAGE / cols;
     var cellH = STAGE / rows;
-    var visibleIndex = 0;
+    var fade = easeOutCubic(clamp((t - 120) / 520, 0, 1));
 
     for (var row = 0; row < rows; row++) {
       for (var col = 0; col < cols; col++) {
@@ -222,22 +219,8 @@
         if (b >= THRESHOLD) continue;
 
         var seed = col * 17.17 + row * 31.31;
-        var order = visibleIndex;
-        visibleIndex++;
-
-        var firstReveal = easeOutCubic(clamp(
-          (t - (120 + order * FIRST_REVEAL_STAGGER)) / 460,
-          0,
-          1
-        ));
-        if (firstReveal <= 0) continue;
-
-        var multiplyFade = t < DENSITY_HOLD
-          ? 1
-          : easeOutCubic(clamp((t - DENSITY_HOLD) / 620, 0, 1));
-
         var imgIndex = Math.floor(hash01(seed) * emblems.length);
-        var alpha = firstReveal * multiplyFade * (0.72 + hash01(seed * 2.7) * 0.28);
+        var alpha = fade * (0.72 + hash01(seed * 2.7) * 0.28);
 
         drawCell(imgIndex, x, y, cellW, cellH, alpha);
       }
