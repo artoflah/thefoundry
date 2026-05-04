@@ -1,16 +1,19 @@
 /* ================================================================
-   LICENSED™ — THE FOUNDRY™
+   FOUNDRY™ — THE FOUNDRY™
    styles.css v1.0.0
    ================================================================ */
 
-/* === VARIABLES ================================================= */
-:root {
+/* === FONTS ===================================================== */
 @font-face {
-  font-family: 'Licensed-Regular'; /*a name to be used later*/
-  src: url('assets/Licensed-Regular.ttf'); /*URL to font*/
+  font-family: 'Licensed';
+  src: url('assets/Licensed-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
 }
 
-  --font-licensed: 'Licensed-Regular';
+/* === VARIABLES ================================================= */
+:root {
+  --font-licensed: 'Licensed';
   --black: #000000;
   --white: #ffffff;
   --red: #EE1111;

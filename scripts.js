@@ -1,7 +1,7 @@
 'use strict';
 
 /* ================================================================
-   LICENSED™ — THE FOUNDRY™
+   FOUNDRY™ — THE FOUNDRY™
    scripts.js v1.0.0
    ================================================================ */
 
@@ -659,7 +659,7 @@ function spawnViolationPopup(type, data = {}, isSpawn = false, options = {}) {
         <button class="popup-win-btn popup-btn-min"   aria-label="minimize">−</button>
         <button class="popup-win-btn popup-btn-max"   aria-label="maximize">+</button>
       </div>
-      <span class="popup-title-text">LICENSED™ SYSTEM DIALOG</span>
+      <span class="popup-title-text">FOUNDRY™ SYSTEM DIALOG</span>
     </div>
     ${camHTML}
     <div class="popup-body">
@@ -2207,7 +2207,7 @@ function initWordmark() {
     <div class="page-wordmark-center">
       <span class="page-wordmark-rotated">LICENSED</span>
     </div>
-    <div class="page-wordmark-bottom">© THE LICENSED<br>FOUNDRY™<br>2026<br>ALL RIGHTS<br>RESERVED</div>
+    <div class="page-wordmark-bottom">© THE<br>FOUNDRY™<br>2026<br>ALL RIGHTS<br>RESERVED</div>
   `;
   document.body.appendChild(wm);
 }
