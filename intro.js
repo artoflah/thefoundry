@@ -27,16 +27,17 @@
   ];
 
   var THRESHOLD = 178;
-  var DENSITY_START = 14;
-  var DENSITY_END = 78;
-  var DENSITY_HOLD = 4300;
-  var DENSITY_DURATION = 4550;
-  var REVEAL_STAGGER = 42;
-
+  var DENSITY_LEVELS = [
+    { density: 7,  start: 120,  stagger: 90, alpha: 0.95 },
+    { density: 13, start: 3500, stagger: 0,  alpha: 0.82 },
+    { density: 22, start: 4300, stagger: 0,  alpha: 0.7 },
+    { density: 36, start: 5100, stagger: 0,  alpha: 0.58 },
+    { density: 58, start: 5900, stagger: 0,  alpha: 0.48 },
+  ];
   var T = {
-    resolve: 7600,
-    fadeOut: 8550,
-    done: 9300,
+    resolve: 7200,
+    fadeOut: 8150,
+    done: 8900,
   };
 
   var maskPx = null;
@@ -192,46 +193,67 @@
     ctx.restore();
   }
 
-  function getDensity(t) {
-    if (t < 120) return 0;
-    if (t < DENSITY_HOLD) return DENSITY_START;
-    var k = clamp((t - DENSITY_HOLD) / DENSITY_DURATION, 0, 1);
-    return DENSITY_START + (DENSITY_END - DENSITY_START) * easeInOutCubic(k);
+  function getCurrentDensity(t) {
+    var density = 0;
+    for (var i = 0; i < DENSITY_LEVELS.length; i++) {
+      var level = DENSITY_LEVELS[i];
+      if (t < level.start) break;
+      var next = DENSITY_LEVELS[i + 1];
+      if (!next || t >= next.start) {
+        density = level.density;
+      } else {
+        var k = clamp((t - level.start) / (next.start - level.start), 0, 1);
+        density = level.density + (next.density - level.density) * easeInOutCubic(k);
+      }
+    }
+    return density;
   }
 
   function drawPatternGrid(t) {
-    var density = getDensity(t);
-    if (density <= 0 || !maskPx) return;
+    if (!maskPx) return;
 
-    var cellBase = STAGE / density;
-    var cols = Math.ceil(STAGE / cellBase);
-    var rows = Math.ceil(STAGE / cellBase);
-    var cellW = STAGE / cols;
-    var cellH = STAGE / rows;
-    var fade = easeOutCubic(clamp((t - 120) / 520, 0, 1));
-    var visibleIndex = 0;
+    var currentDensity = getCurrentDensity(t);
+    if (currentDensity <= 0) return;
 
-    for (var row = 0; row < rows; row++) {
-      for (var col = 0; col < cols; col++) {
-        var x = col * cellW;
-        var y = row * cellH;
-        var mx = Math.floor(x / STAGE * MASK_SZ);
-        var my = Math.floor(y / STAGE * MASK_SZ);
-        var b = maskBright(mx, my);
+    for (var li = 0; li < DENSITY_LEVELS.length; li++) {
+      var level = DENSITY_LEVELS[li];
+      if (t < level.start) break;
 
-        if (b >= THRESHOLD) continue;
+      var density = level.density;
+      var cellBase = STAGE / density;
+      var cols = Math.ceil(STAGE / cellBase);
+      var rows = Math.ceil(STAGE / cellBase);
+      var cellW = STAGE / cols;
+      var cellH = STAGE / rows;
+      var drawSize = STAGE / Math.max(currentDensity, density);
+      var visibleIndex = 0;
 
-        var seed = col * 17.17 + row * 31.31;
-        var order = visibleIndex;
-        visibleIndex++;
-        var cellBirth = 120 + order * REVEAL_STAGGER;
-        var cellFade = easeOutCubic(clamp((t - cellBirth) / 520, 0, 1));
-        if (cellFade <= 0) continue;
+      for (var row = 0; row < rows; row++) {
+        for (var col = 0; col < cols; col++) {
+          var x = col * cellW;
+          var y = row * cellH;
+          var mx = Math.floor(x / STAGE * MASK_SZ);
+          var my = Math.floor(y / STAGE * MASK_SZ);
+          var b = maskBright(mx, my);
 
-        var imgIndex = Math.floor(hash01(seed) * emblems.length);
-        var alpha = fade * cellFade * (0.72 + hash01(seed * 2.7) * 0.28);
+          if (b >= THRESHOLD) continue;
 
-        drawCell(imgIndex, x, y, cellW, cellH, alpha);
+          var seed = density * 101 + col * 17.17 + row * 31.31;
+          var order = visibleIndex;
+          visibleIndex++;
+          var cellBirth = level.start + order * level.stagger;
+          var cellFade = level.stagger > 0
+            ? easeOutCubic(clamp((t - cellBirth) / 460, 0, 1))
+            : easeOutCubic(clamp((t - level.start) / 520, 0, 1));
+          if (cellFade <= 0) continue;
+
+          var imgIndex = Math.floor(hash01(seed) * emblems.length);
+          var alpha = level.alpha * cellFade * (0.72 + hash01(seed * 2.7) * 0.28);
+          var cx = x + cellW / 2;
+          var cy = y + cellH / 2;
+
+          drawCell(imgIndex, cx - drawSize / 2, cy - drawSize / 2, drawSize, drawSize, alpha);
+        }
       }
     }
   }
