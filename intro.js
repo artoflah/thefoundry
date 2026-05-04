@@ -29,14 +29,14 @@
   var THRESHOLD = 178;
   var DENSITY_START = 7;
   var DENSITY_END = 78;
-  var DENSITY_HOLD = 1850;
+  var DENSITY_HOLD = 3200;
   var DENSITY_DURATION = 4550;
   var REVEAL_STAGGER = 46;
 
   var T = {
-    resolve: 4700,
-    fadeOut: 5600,
-    done: 6350,
+    resolve: 6400,
+    fadeOut: 7350,
+    done: 8100,
   };
 
   var maskPx = null;
