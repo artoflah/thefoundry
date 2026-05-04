@@ -11,21 +11,9 @@
 
 const VALID_IDS = {
   'LCN-2026-0001-USUCK': 'basic',
-  'LCN-2026-0002-BROKE': 'basic',
-  'LCN-2026-0003-CHEAP': 'basic',
-  'LCN-2026-0004-POOR':  'basic',
   'LCN-2026-0005-MID':   'standard',
-  'LCN-2026-0006-MEH':   'standard',
-  'LCN-2026-0007-FINE':  'standard',
-  'LCN-2026-0008-OKAY':  'standard',
   'LCN-2026-0009-TRYING':  'professional',
-  'LCN-2026-0010-SWEATY':  'professional',
-  'LCN-2026-0011-CLOSE':   'professional',
-  'LCN-2026-0012-ALMOST':  'professional',
   'LCN-2026-0013-SUCKER': 'enterprise',
-  'LCN-2026-0014-MARK':   'enterprise',
-  'LCN-2026-0015-FOOL':   'enterprise',
-  'LCN-2026-0016-HAHA':   'enterprise',
 };
 
 // ================================================================
@@ -45,7 +33,7 @@ const TIERS = {
   standard: {
     name: 'STANDARD',
     price: '$89/mo',
-    charLimit: 280,
+    charLimit: 90,
     violationsAllowed: 3,
     allowedRegex: /^[a-zA-Z.,;:!?'"\-()1-5 ]*$/,
     restrictedDescription: 'uppercase and lowercase, standard punctuation, numerals 1–5 only',
@@ -54,7 +42,7 @@ const TIERS = {
   professional: {
     name: 'PROFESSIONAL',
     price: '$340/mo',
-    charLimit: 1000,
+    charLimit: 100,
     violationsAllowed: 2,
     allowedRegex: /^[a-zA-Z.,;:!?'"\-()0-9 ]*$/,
     restrictedDescription: 'full alphabet, numerals 0–9, standard punctuation. no special characters. no copy or export.',
