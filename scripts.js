@@ -906,6 +906,11 @@ function initLogin() {
   localStorage.removeItem('user_id');
   localStorage.removeItem('user_tier');
 
+  const rememberedId = localStorage.getItem('last_member_id');
+  if (rememberedId && !input.value) {
+    input.value = rememberedId;
+  }
+
   form.addEventListener('submit', (e) => {
     e.preventDefault();
     const val = input.value.trim().toUpperCase();
@@ -914,6 +919,7 @@ function initLogin() {
       const tier = VALID_IDS[val];
       localStorage.setItem('user_id', val);
       localStorage.setItem('user_tier', tier);
+      localStorage.setItem('last_member_id', val);
       // Reset violations for fresh session
       localStorage.setItem(`violations_remaining_${tier}`, TIERS[tier].violationsAllowed);
       sessionStorage.removeItem('session_chars');
@@ -1928,6 +1934,10 @@ function initEnterpriseApplication() {
 
 function init404() {
   // Clear all stored access
+  const lastKnownId = localStorage.getItem('user_id');
+  if (lastKnownId) {
+    localStorage.setItem('last_member_id', lastKnownId);
+  }
   localStorage.removeItem('user_id');
   localStorage.removeItem('user_tier');
   localStorage.removeItem('usage_log');
@@ -2179,11 +2189,11 @@ function initWordmark() {
   wm.className = 'page-wordmark';
   wm.setAttribute('aria-hidden', 'true');
   wm.innerHTML = `
-    <div class="page-wordmark-top">FDRY™<br>SPECIMEN<br>REGISTRY<br>V.1.0.0</div>
+    <div class="page-wordmark-top">LICENSED™<br>SPECIMEN<br>REGISTRY<br>V.1.0.0</div>
     <div class="page-wordmark-center">
-      <span class="page-wordmark-rotated">FDRY</span>
+      <span class="page-wordmark-rotated">LICENSED</span>
     </div>
-    <div class="page-wordmark-bottom">© THE<br>FOUNDRY™<br>2026<br>ALL RIGHTS<br>RESERVED.</div>
+    <div class="page-wordmark-bottom">TYPE SYSTEM<br>PRIVATE USE<br>MONITORED</div>
   `;
   document.body.appendChild(wm);
 }
@@ -2195,7 +2205,7 @@ function initWordmark() {
 document.addEventListener('DOMContentLoaded', () => {
   const page = document.body.id;
   // Wordmark column on all pages EXCEPT login, license, and checkout
-  if (page !== 'login' && page !== 'license' && page !== 'checkout') initWordmark();
+  if (page !== 'login' && page !== 'license' && page !== 'checkout' && page !== 'not-found') initWordmark();
 
   const routes = {
     login: initLogin,

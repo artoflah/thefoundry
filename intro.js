@@ -17,6 +17,13 @@
     { src: 'assets/emblem-14.svg', cls: 'intro-mark--d' },
   ];
 
+  var CENTER_BADGES = [
+    'assets/logov-15.svg',
+    'assets/logov-16.svg',
+    'assets/logov-17.svg',
+    'assets/logov-18.svg',
+  ];
+
   var PHASES = [
     { letter: 'F', marks: [{ i: 0, pos: 'top-center', show: true }] },
     { letter: 'D', marks: [{ i: 0, pos: 'top-center', show: true }, { i: 1, pos: 'bottom-center', show: true }] },
@@ -45,33 +52,31 @@
     timers.forEach(clearTimeout);
     document.removeEventListener('keydown', finish, true);
     document.removeEventListener('click', finish, true);
-    if (overlay) overlay.remove();
+    if (overlay) overlay.classList.add('phase-hold');
     fireComplete();
   }
 
   function injectStyles() {
     var style = document.createElement('style');
     style.textContent =
-      '#intro-overlay{position:fixed;inset:0;z-index:9000;background:#fff;color:#000;overflow:hidden;' +
-        'font-family:monospace;letter-spacing:.16em;text-transform:uppercase;opacity:1;transition:opacity 420ms ease;}' +
+      '#intro-overlay{position:fixed;inset:0;z-index:9000;background:transparent;color:#000;overflow:hidden;' +
+        'font-family:monospace;letter-spacing:.16em;text-transform:uppercase;opacity:1;}' +
       '#intro-overlay::before{content:"";position:absolute;left:0;right:0;top:0;border-top:1px solid rgba(0,0,0,.28);}' +
       '#intro-overlay::after{content:"";position:absolute;left:0;right:0;bottom:0;border-bottom:1px solid rgba(0,0,0,.28);}' +
       '.intro-stage{position:absolute;inset:0;}' +
       '.intro-center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:16px;}' +
-      '.intro-badge{position:relative;width:76px;height:76px;border:6px solid #000;border-radius:50%;display:flex;align-items:center;justify-content:center;opacity:0;transform:scale(.84);transition:opacity 500ms ease,transform 760ms cubic-bezier(.22,1,.36,1);}' +
+      '.intro-badge{position:relative;width:76px;height:76px;border:6px solid #000;border-radius:50%;display:flex;align-items:center;justify-content:center;opacity:0;transform:scale(.84);transition:opacity 500ms ease,transform 760ms cubic-bezier(.22,1,.36,1);overflow:hidden;}' +
       '.intro-badge.is-on{opacity:1;transform:scale(1);}' +
-      '.intro-badge::before,.intro-badge::after{content:"";position:absolute;width:4px;height:4px;border-radius:50%;background:#000;}' +
-      '.intro-badge::before{top:8px;left:50%;transform:translateX(-50%);box-shadow:-14px 16px 0 #000,14px 16px 0 #000;opacity:.92;}' +
-      '.intro-badge::after{bottom:8px;left:50%;transform:translateX(-50%);box-shadow:-14px -16px 0 #000,14px -16px 0 #000;opacity:.92;}' +
-      '.intro-letter{font-family:var(--font-licensed);font-size:34px;line-height:1;letter-spacing:0;font-variation-settings:"wght" 60,"wdth" 80;transform:translateY(-1px);}' +
+      '.intro-badge-icon{width:100%;height:100%;display:block;object-fit:contain;transform:scale(.72);}' +
       '.intro-subtitle{font-size:9px;line-height:1.8;color:#777;opacity:0;transform:translateY(6px);transition:opacity 400ms ease,transform 400ms ease;}' +
       '.intro-subtitle.is-on{opacity:1;transform:translateY(0);}' +
       '.intro-mark{position:absolute;width:44px;height:44px;opacity:0;transform:translate(-50%,-50%) scale(.35);transition:opacity 320ms ease,transform 780ms cubic-bezier(.22,1,.36,1),left 780ms cubic-bezier(.22,1,.36,1),top 780ms cubic-bezier(.22,1,.36,1),right 780ms cubic-bezier(.22,1,.36,1),bottom 780ms cubic-bezier(.22,1,.36,1);will-change:transform,opacity,left,top,right,bottom;}' +
       '.intro-mark.is-on{opacity:1;transform:translate(-50%,-50%) scale(1);}' +
       '.intro-mark img{width:100%;height:100%;display:block;object-fit:contain;}' +
       '.intro-mark--a,.intro-mark--b,.intro-mark--c,.intro-mark--d{left:50%;top:50%;}' +
-      '#intro-overlay.phase-out{opacity:0;}' +
-      '@media (max-width:600px){.intro-mark{width:36px;height:36px}.intro-badge{width:64px;height:64px;border-width:5px}.intro-letter{font-size:30px}.intro-subtitle{max-width:220px;text-align:center}}';
+      '#intro-overlay.phase-hold .intro-mark,' +
+      '#intro-overlay.phase-hold .intro-badge{transition:none;}' +
+      '@media (max-width:600px){.intro-mark{width:36px;height:36px}.intro-badge{width:64px;height:64px;border-width:5px}.intro-badge-icon{transform:scale(.7)}.intro-subtitle{max-width:220px;text-align:center}}';
     document.head.appendChild(style);
   }
 
@@ -84,7 +89,7 @@
     });
   }
 
-  function buildDOM(images) {
+  function buildDOM(images, centerImages) {
     overlay = document.createElement('div');
     overlay.id = 'intro-overlay';
 
@@ -101,7 +106,9 @@
     var center = document.createElement('div');
     center.className = 'intro-center';
     center.innerHTML =
-      '<div class="intro-badge" id="intro-badge"><span class="intro-letter" id="intro-letter">F</span></div>' +
+      '<div class="intro-badge" id="intro-badge">' +
+        '<img class="intro-badge-icon" id="intro-badge-icon" src="assets/logov-15.svg" alt="">' +
+      '</div>' +
       '<div class="intro-subtitle" id="intro-subtitle">Member access registry / Licensed grotesque</div>';
 
     stage.appendChild(center);
@@ -133,10 +140,10 @@
     mark.classList.toggle('is-on', !!visible);
   }
 
-  function setPhase(index) {
+  function setPhase(index, centerImages) {
     var phase = PHASES[index];
     var badge = overlay.querySelector('#intro-badge');
-    var letter = overlay.querySelector('#intro-letter');
+    var icon = overlay.querySelector('#intro-badge-icon');
     var subtitle = overlay.querySelector('#intro-subtitle');
     var marks = overlay.querySelectorAll('.intro-mark');
 
@@ -144,7 +151,9 @@
 
     if (badge) badge.classList.add('is-on');
     if (subtitle) subtitle.classList.toggle('is-on', index >= 4);
-    if (letter) letter.textContent = phase.letter;
+    if (icon && centerImages && centerImages[index]) {
+      icon.src = centerImages[index].src;
+    }
 
     Array.prototype.forEach.call(marks, function (mark, i) {
       var entry = phase.marks.filter(function (m) { return m.i === i; })[0];
@@ -155,19 +164,23 @@
 
   function run() {
     injectStyles();
-    Promise.all(EMBLEMS.map(function (item) { return loadImage(item.src); })).then(function (images) {
+    Promise.all(
+      EMBLEMS.map(function (item) { return loadImage(item.src); })
+        .concat(CENTER_BADGES.map(function (src) { return loadImage(src); }))
+    ).then(function (images) {
       if (done) return;
-      buildDOM(images);
+      var edgeImages = images.slice(0, EMBLEMS.length);
+      var centerImages = images.slice(EMBLEMS.length);
+      buildDOM(edgeImages, centerImages);
       document.addEventListener('keydown', finish, true);
       document.addEventListener('click', finish, true);
 
-      schedule(function () { setPhase(0); }, 160);
-      schedule(function () { setPhase(1); }, 760);
-      schedule(function () { setPhase(2); }, 1360);
-      schedule(function () { setPhase(3); }, 1960);
-      schedule(function () { setPhase(4); }, 2600);
-      schedule(function () { overlay.classList.add('phase-out'); }, 3220);
-      schedule(finish, 3740);
+      schedule(function () { setPhase(0, centerImages); }, 160);
+      schedule(function () { setPhase(1, centerImages); }, 760);
+      schedule(function () { setPhase(2, centerImages); }, 1360);
+      schedule(function () { setPhase(3, centerImages); }, 1960);
+      schedule(function () { setPhase(4, centerImages); }, 2600);
+      schedule(finish, 3220);
     });
   }
 

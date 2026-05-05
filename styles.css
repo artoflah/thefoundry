@@ -342,6 +342,30 @@ body#login {
 body.login-anim-go .login-field-group {
   animation: login-fade-up 800ms ease-out 0ms forwards;
 }
+
+body.login-anim-go .login-stage {
+  justify-content: flex-start;
+  gap: var(--space-24);
+  padding-top: 290px;
+}
+
+body.login-anim-go .login-copyright-block {
+  opacity: 0;
+}
+
+body.login-anim-go .login-footer {
+  opacity: 0;
+}
+
+body.login-anim-go .login-stage .login-field-group {
+  margin-top: 0;
+}
+
+@media (max-width: 600px) {
+  body.login-anim-go .login-stage {
+    padding-top: 240px;
+  }
+}
 /* ================================================================
    LICENSE PAGE
    ================================================================ */
@@ -1245,7 +1269,7 @@ body#license .page-wrap {
 }
 
 body.violation-alert-active {
-  background: var(--red);
+  background: #d80000;
 }
 
 body.violation-alert-active::after {
@@ -1257,14 +1281,14 @@ body.violation-alert-active::after {
   background:
     repeating-linear-gradient(
       0deg,
-      rgba(238,17,17,0.16) 0,
-      rgba(238,17,17,0.16) 1px,
-      rgba(238,17,17,0.26) 1px,
-      rgba(238,17,17,0.26) 18px
+      rgba(255,255,255,0.06) 0,
+      rgba(255,255,255,0.06) 1px,
+      transparent 1px,
+      transparent 18px
     ),
-    rgba(238,17,17,0.3);
-  mix-blend-mode: multiply;
-  opacity: 0.86;
+    rgba(0,0,0,0.04);
+  mix-blend-mode: normal;
+  opacity: 0.7;
 }
 
 /* Foundry-native system notices */
@@ -1505,8 +1529,8 @@ body#not-found .site-footer {
 
 /* Content area leaves room for fixed ticker sidebar */
 body#specimen .specimen-wrap {
-  padding-left: var(--space-24);
-  padding-right: calc(280px + var(--space-24));
+  padding-left: var(--space-16);
+  padding-right: calc(280px + var(--space-16));
 }
 
 /* ── Surveillance Ticker Sidebar ───────────────────────────── */
@@ -1631,17 +1655,15 @@ body#specimen .specimen-wrap {
 
 .sp-section-label {
   font-size: 9px;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: #777;
-  margin-bottom: var(--space-16);
+  margin-bottom: var(--space-20);
   font-family: monospace;
   display: inline-flex;
   align-items: center;
   min-height: 20px;
-  padding: 0 var(--space-8);
-  border-left: var(--rule);
-  border-right: var(--rule);
+  padding: 0 6px;
 }
 
 .sp-section-heading {
@@ -1656,26 +1678,35 @@ body#specimen .specimen-wrap {
 /* ── § 01 Character Map ─────────────────────────────────────── */
 #section-charmap {
   min-height: calc(100vh - 52px);
-  padding-top: var(--space-24);
-  padding-bottom: var(--space-24);
+  padding-top: var(--space-16);
+  padding-bottom: var(--space-16);
 }
 
 .sp-section-inner--charmap {
   max-width: none;
-  height: calc(100vh - 100px);
+  padding-left: var(--space-16);
+  padding-right: var(--space-24);
+  height: auto;
+  min-height: calc(100vh - 84px);
   display: flex;
   flex-direction: column;
+  gap: var(--space-16);
 }
 
 .sp-charmap-head {
-  display: flex;
-  align-items: flex-start;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
   justify-content: space-between;
-  gap: var(--space-24);
+  gap: var(--space-16);
   border-top: var(--rule);
-  padding-top: var(--space-20);
-  margin-bottom: var(--space-20);
+  padding-top: var(--space-16);
+  margin-bottom: 0;
   flex-shrink: 0;
+}
+
+.sp-charmap-head > div {
+  min-width: 0;
 }
 
 .sp-charmap-count,
@@ -1688,15 +1719,16 @@ body#specimen .specimen-wrap {
 }
 
 .sp-charmap-count {
-  margin-top: 2px;
+  margin-top: 0;
   white-space: nowrap;
+  align-self: end;
 }
 
 .sp-charmap-workbench {
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-columns: minmax(300px, 0.78fr) minmax(520px, 1.22fr);
+  grid-template-columns: minmax(320px, 0.72fr) minmax(540px, 1.28fr);
   gap: 0;
   border: var(--rule);
   background: var(--white);
@@ -1830,6 +1862,19 @@ body#specimen .specimen-wrap {
   background: var(--black);
 }
 
+#section-charmap .sp-section-label {
+  display: block;
+  padding: 0;
+  min-height: 0;
+  margin-bottom: 6px;
+}
+
+#section-charmap .sp-section-heading {
+  margin-bottom: 0;
+  line-height: 0.92;
+  max-width: 760px;
+}
+
 .sp-glyph-cell {
   min-width: 0;
   display: flex;
@@ -1951,7 +1996,7 @@ body#specimen .specimen-wrap {
   right: 0;
   left: auto;
   z-index: 700;
-  width: 220px;
+  width: 248px;
   border: var(--rule);
   background: var(--white);
   display: none;
@@ -2035,7 +2080,6 @@ body#specimen .specimen-wrap {
 }
 
 .about-modal-logo {
-  border: var(--rule);
   aspect-ratio: 1;
   display: flex;
   align-items: center;
@@ -2764,7 +2808,7 @@ button,
 }
 
 .sp-section-label {
-  margin-bottom: var(--space-12);
+  margin-bottom: var(--space-20);
 }
 
 .sp-section-heading {
@@ -2798,7 +2842,7 @@ button,
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: var(--space-16) 0 var(--space-12);
+  padding: var(--space-12) 0;
   overflow: hidden;
   pointer-events: none;
 }
@@ -2807,16 +2851,15 @@ button,
 .page-wordmark::after {
   content: '';
   width: 100%;
-  border-top: 1px solid rgba(255, 255, 255, 0.5);
   flex-shrink: 0;
 }
 
 .page-wordmark::before {
-  margin-bottom: var(--space-16);
+  margin-bottom: var(--space-12);
 }
 
 .page-wordmark::after {
-  margin-top: var(--space-16);
+  margin-top: var(--space-12);
 }
 
 .page-wordmark-top,
@@ -2825,7 +2868,7 @@ button,
   font-size: 9px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  line-height: 1.45;
+  line-height: 1.25;
   text-align: center;
   color: var(--white);
   flex-shrink: 0;
@@ -2833,7 +2876,7 @@ button,
 }
 
 .page-wordmark-bottom {
-  color: rgba(255, 255, 255, 0.72);
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .page-wordmark-center {
@@ -2845,7 +2888,7 @@ button,
 }
 .page-wordmark-rotated {
   font-family: var(--font-licensed);
-  font-size: 72px;
+  font-size: 68px;
   font-weight: 400;
   color: var(--white);
   text-transform: uppercase;
