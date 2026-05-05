@@ -1493,7 +1493,7 @@ body#not-found .site-footer {
 
 /* Content area leaves room for fixed ticker sidebar */
 body#specimen .specimen-wrap {
-  padding-left: var(--space-16);
+  padding-left: calc(var(--wordmark-w) + var(--space-24));
   padding-right: calc(280px + var(--space-16));
 }
 
