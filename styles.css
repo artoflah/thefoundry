@@ -232,14 +232,13 @@ body#login {
   display: block;
 }
 
-/* Login form group — centered below logo, fades in after intro */
+/* Login form group — centered below logo */
 .login-field-group {
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  opacity: 0;
-  animation: none;
+  opacity: 1;
 }
 
 .login-field-label {
