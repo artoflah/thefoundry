@@ -10,26 +10,49 @@
   var timers = [];
   var done = false;
 
-  var EMBLEMS = [
-    { src: 'assets/emblem-04.svg', cls: 'intro-mark--a' },
-    { src: 'assets/emblem-12.svg', cls: 'intro-mark--b' },
-    { src: 'assets/emblem-13.svg', cls: 'intro-mark--c' },
-    { src: 'assets/emblem-14.svg', cls: 'intro-mark--d' },
-  ];
-
   var CENTER_BADGES = [
+    'assets/logov-14.svg',
     'assets/logov-15.svg',
     'assets/logov-16.svg',
     'assets/logov-17.svg',
     'assets/logov-18.svg',
   ];
 
+  var EDGE_EMBLEMS = {
+    a: 'assets/emblem-04.svg',
+    b: 'assets/emblem-12.svg',
+  };
+
   var PHASES = [
-    { letter: 'F', marks: [{ i: 0, pos: 'top-center', show: true }] },
-    { letter: 'D', marks: [{ i: 0, pos: 'top-center', show: true }, { i: 1, pos: 'bottom-center', show: true }] },
-    { letter: 'R', marks: [{ i: 0, pos: 'top-left', show: true }, { i: 1, pos: 'bottom-right', show: true }] },
-    { letter: 'Y', marks: [{ i: 2, pos: 'left-center', show: true }, { i: 3, pos: 'right-center', show: true }] },
-    { letter: 'FDRY', marks: [{ i: 0, pos: 'top-right', show: true }, { i: 1, pos: 'bottom-left', show: true }, { i: 2, pos: 'left-center', show: true }, { i: 3, pos: 'right-center', show: true }] },
+    {
+      badge: 0,
+      marks: [],
+    },
+    {
+      badge: 1,
+      marks: [
+        { slot: 'top', src: EDGE_EMBLEMS.a, pos: 'top-center', mode: 'fade' },
+        { slot: 'bottom', src: EDGE_EMBLEMS.a, pos: 'bottom-center', mode: 'fade' },
+      ],
+    },
+    {
+      badge: 2,
+      marks: [
+        { slot: 'top-left', src: EDGE_EMBLEMS.b, pos: 'top-left', mode: 'slide' },
+        { slot: 'bottom-right', src: EDGE_EMBLEMS.b, pos: 'bottom-right', mode: 'slide' },
+      ],
+    },
+    {
+      badge: 3,
+      marks: [
+        { slot: 'left-center', src: EDGE_EMBLEMS.a, pos: 'left-center', mode: 'fade' },
+        { slot: 'right-center', src: EDGE_EMBLEMS.a, pos: 'right-center', mode: 'fade' },
+      ],
+    },
+    {
+      badge: 4,
+      marks: [],
+    },
   ];
 
   function shouldPlay() {
@@ -59,24 +82,21 @@
   function injectStyles() {
     var style = document.createElement('style');
     style.textContent =
-      '#intro-overlay{position:fixed;inset:0;z-index:9000;background:transparent;color:#000;overflow:hidden;' +
-        'font-family:monospace;letter-spacing:.16em;text-transform:uppercase;opacity:1;}' +
-      '#intro-overlay::before{content:"";position:absolute;left:0;right:0;top:0;border-top:1px solid rgba(0,0,0,.28);}' +
-      '#intro-overlay::after{content:"";position:absolute;left:0;right:0;bottom:0;border-bottom:1px solid rgba(0,0,0,.28);}' +
+      '#intro-overlay{position:fixed;inset:0;z-index:9000;background:#fff;color:#000;overflow:hidden;opacity:1;}' +
       '.intro-stage{position:absolute;inset:0;}' +
-      '.intro-center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:16px;}' +
-      '.intro-badge{position:relative;width:76px;height:76px;border:6px solid #000;border-radius:50%;display:flex;align-items:center;justify-content:center;opacity:0;transform:scale(.84);transition:opacity 500ms ease,transform 760ms cubic-bezier(.22,1,.36,1);overflow:hidden;}' +
+      '.intro-center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center;}' +
+      '.intro-badge{position:relative;width:78px;height:78px;border:5px solid #000;border-radius:50%;display:flex;align-items:center;justify-content:center;opacity:0;transform:scale(.84);transition:opacity 420ms ease,transform 680ms cubic-bezier(.22,1,.36,1);overflow:hidden;}' +
       '.intro-badge.is-on{opacity:1;transform:scale(1);}' +
-      '.intro-badge-icon{width:100%;height:100%;display:block;object-fit:contain;transform:scale(.72);}' +
-      '.intro-subtitle{font-size:9px;line-height:1.8;color:#777;opacity:0;transform:translateY(6px);transition:opacity 400ms ease,transform 400ms ease;}' +
-      '.intro-subtitle.is-on{opacity:1;transform:translateY(0);}' +
-      '.intro-mark{position:absolute;width:44px;height:44px;opacity:0;transform:translate(-50%,-50%) scale(.35);transition:opacity 320ms ease,transform 780ms cubic-bezier(.22,1,.36,1),left 780ms cubic-bezier(.22,1,.36,1),top 780ms cubic-bezier(.22,1,.36,1),right 780ms cubic-bezier(.22,1,.36,1),bottom 780ms cubic-bezier(.22,1,.36,1);will-change:transform,opacity,left,top,right,bottom;}' +
-      '.intro-mark.is-on{opacity:1;transform:translate(-50%,-50%) scale(1);}' +
+      '.intro-badge-icon{width:100%;height:100%;display:block;object-fit:contain;transform:scale(.7);}' +
+      '.intro-mark{position:absolute;width:34px;height:34px;opacity:0;transform:translate(-50%,-50%) scale(.4);transition:opacity 360ms ease,transform 760ms cubic-bezier(.22,1,.36,1),left 760ms cubic-bezier(.22,1,.36,1),top 760ms cubic-bezier(.22,1,.36,1),right 760ms cubic-bezier(.22,1,.36,1),bottom 760ms cubic-bezier(.22,1,.36,1);will-change:transform,opacity,left,top,right,bottom;}' +
       '.intro-mark img{width:100%;height:100%;display:block;object-fit:contain;}' +
-      '.intro-mark--a,.intro-mark--b,.intro-mark--c,.intro-mark--d{left:50%;top:50%;}' +
-      '#intro-overlay.phase-hold .intro-mark,' +
-      '#intro-overlay.phase-hold .intro-badge{transition:none;}' +
-      '@media (max-width:600px){.intro-mark{width:36px;height:36px}.intro-badge{width:64px;height:64px;border-width:5px}.intro-badge-icon{transform:scale(.7)}.intro-subtitle{max-width:220px;text-align:center}}';
+      '.intro-mark.is-on{opacity:1;transform:translate(-50%,-50%) scale(1);}' +
+      '.intro-mark.is-slide.is-on{transform:translate(-50%,-50%) scale(1);}' +
+      '.intro-mark--top,.intro-mark--bottom{left:50%;top:50%;}' +
+      '.intro-mark--top{margin-top:-2px;}' +
+      '.intro-mark--bottom{margin-top:2px;}' +
+      '#intro-overlay.phase-hold .intro-mark,#intro-overlay.phase-hold .intro-badge{transition:none;}' +
+      '@media (max-width:600px){.intro-badge{width:64px;height:64px;border-width:4px}.intro-mark{width:28px;height:28px}}';
     document.head.appendChild(style);
   }
 
@@ -89,17 +109,21 @@
     });
   }
 
-  function buildDOM(images, centerImages) {
+  function buildDOM(centerImages) {
     overlay = document.createElement('div');
     overlay.id = 'intro-overlay';
 
     var stage = document.createElement('div');
     stage.className = 'intro-stage';
 
-    EMBLEMS.forEach(function (item, index) {
+    PHASES[1].marks.concat(PHASES[2].marks, PHASES[3].marks).forEach(function (markDef) {
       var mark = document.createElement('div');
-      mark.className = 'intro-mark ' + item.cls;
-      if (images[index]) mark.appendChild(images[index]);
+      mark.className = 'intro-mark intro-mark--' + markDef.slot;
+      if (markDef.mode === 'slide') mark.classList.add('is-slide');
+      var img = document.createElement('img');
+      img.alt = '';
+      img.src = markDef.src;
+      mark.appendChild(img);
       stage.appendChild(mark);
     });
 
@@ -107,9 +131,8 @@
     center.className = 'intro-center';
     center.innerHTML =
       '<div class="intro-badge" id="intro-badge">' +
-        '<img class="intro-badge-icon" id="intro-badge-icon" src="assets/logov-15.svg" alt="">' +
-      '</div>' +
-      '<div class="intro-subtitle" id="intro-subtitle">Member access registry / Licensed grotesque</div>';
+        '<img class="intro-badge-icon" id="intro-badge-icon" src="' + centerImages[0].src + '" alt="">' +
+      '</div>';
 
     stage.appendChild(center);
     overlay.appendChild(stage);
@@ -122,65 +145,66 @@
     var h = window.innerHeight;
     var map = {
       'top-center': [w * 0.5, pad],
-      'top-right': [w - pad, pad],
-      'right-center': [w - pad, h * 0.5],
-      'bottom-right': [w - pad, h - pad],
-      'bottom-center': [w * 0.5, h - pad],
-      'bottom-left': [pad, h - pad],
-      'left-center': [pad, h * 0.5],
       'top-left': [pad, pad],
+      'bottom-center': [w * 0.5, h - pad],
+      'bottom-right': [w - pad, h - pad],
+      'left-center': [pad, h * 0.5],
+      'right-center': [w - pad, h * 0.5],
     };
     return map[name] || [w * 0.5, h * 0.5];
   }
 
-  function setMark(mark, posName, visible) {
+  function setMark(mark, posName, visible, phaseMode) {
     var point = getPoint(posName);
     mark.style.left = point[0] + 'px';
     mark.style.top = point[1] + 'px';
     mark.classList.toggle('is-on', !!visible);
+    mark.classList.toggle('is-slide', phaseMode === 'slide');
   }
 
   function setPhase(index, centerImages) {
     var phase = PHASES[index];
     var badge = overlay.querySelector('#intro-badge');
     var icon = overlay.querySelector('#intro-badge-icon');
-    var subtitle = overlay.querySelector('#intro-subtitle');
     var marks = overlay.querySelectorAll('.intro-mark');
 
     if (!phase) return;
 
     if (badge) badge.classList.add('is-on');
-    if (subtitle) subtitle.classList.toggle('is-on', index >= 4);
-    if (icon && centerImages && centerImages[index]) {
-      icon.src = centerImages[index].src;
-    }
+    if (icon && centerImages[index]) icon.src = centerImages[index].src;
 
-    Array.prototype.forEach.call(marks, function (mark, i) {
-      var entry = phase.marks.filter(function (m) { return m.i === i; })[0];
-      if (entry) setMark(mark, entry.pos, entry.show);
-      else mark.classList.remove('is-on');
+    Array.prototype.forEach.call(marks, function (mark) {
+      mark.classList.remove('is-on');
+    });
+
+    phase.marks.forEach(function (entry) {
+      var idx = -1;
+      if (entry.slot === 'top') idx = 0;
+      else if (entry.slot === 'bottom') idx = 1;
+      else if (entry.slot === 'top-left') idx = 2;
+      else if (entry.slot === 'bottom-right') idx = 3;
+      else if (entry.slot === 'left-center') idx = 4;
+      else if (entry.slot === 'right-center') idx = 5;
+
+      var mark = marks[idx];
+      if (mark) setMark(mark, entry.pos, entry.show, entry.mode);
     });
   }
 
   function run() {
     injectStyles();
-    Promise.all(
-      EMBLEMS.map(function (item) { return loadImage(item.src); })
-        .concat(CENTER_BADGES.map(function (src) { return loadImage(src); }))
-    ).then(function (images) {
+    Promise.all(CENTER_BADGES.map(function (src) { return loadImage(src); })).then(function (centerImages) {
       if (done) return;
-      var edgeImages = images.slice(0, EMBLEMS.length);
-      var centerImages = images.slice(EMBLEMS.length);
-      buildDOM(edgeImages, centerImages);
+      buildDOM(centerImages);
       document.addEventListener('keydown', finish, true);
       document.addEventListener('click', finish, true);
 
       schedule(function () { setPhase(0, centerImages); }, 160);
       schedule(function () { setPhase(1, centerImages); }, 760);
-      schedule(function () { setPhase(2, centerImages); }, 1360);
+      schedule(function () { setPhase(2, centerImages); }, 1380);
       schedule(function () { setPhase(3, centerImages); }, 1960);
-      schedule(function () { setPhase(4, centerImages); }, 2600);
-      schedule(finish, 3220);
+      schedule(function () { setPhase(4, centerImages); }, 2580);
+      schedule(finish, 3300);
     });
   }
 

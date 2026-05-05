@@ -1762,10 +1762,9 @@ body#specimen .specimen-wrap {
   flex: 1;
   min-height: 260px;
   border-bottom: var(--rule);
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  padding: var(--space-24) var(--space-16) var(--space-40);
+  display: grid;
+  place-items: center;
+  padding: var(--space-24) var(--space-16);
   overflow: hidden;
   background:
     linear-gradient(to right, rgba(0, 0, 0, 0.05) 1px, transparent 1px),
@@ -1775,12 +1774,17 @@ body#specimen .specimen-wrap {
 }
 
 .sp-glyph-detail-char {
+  position: absolute;
+  inset: 0;
   font-family: var(--font-licensed);
   font-variation-settings: 'wght' 60, 'wdth' 80;
   font-size: min(34vh, 280px);
-  line-height: 0.72;
+  line-height: 1;
   color: var(--black);
-  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: translateY(4%);
   z-index: 1;
 }
 
@@ -1797,7 +1801,8 @@ body#specimen .specimen-wrap {
 }
 
 .sp-glyph-guide--baseline {
-  bottom: var(--space-32);
+  top: 75.5%;
+  bottom: auto;
   border-top: 1px solid var(--red);
 }
 
