@@ -15,7 +15,10 @@
         <span class="header-logo-mark" id="header-logo"></span>
       </a>
     </div>
-    
+    <nav class="specimen-nav" aria-label="Specimen navigation">
+      <button type="button" class="specimen-nav-btn" id="about-open">About</button>
+      <a href="upgrade.html" class="specimen-nav-link js-upgrade-link">Upgrade</a>
+    </nav>
   </header>
 
   <!-- Surveillance ticker sidebar -->
@@ -33,10 +36,34 @@
 
     <!-- § 01 — CHARACTER MAP -->
     <section class="sp-section" id="section-charmap">
-      <div class="sp-section-inner">
-        <p class="sp-section-label">§ 01 — Character Map</p>
-        <h2 class="sp-section-heading" id="charmap-heading">Available Glyphs — License</h2>
-        <div class="sp-charmap-grid" id="charmap-grid"></div>
+      <div class="sp-section-inner sp-section-inner--charmap">
+        <div class="sp-charmap-head">
+          <div>
+            <p class="sp-section-label">§ 01 — Character Map</p>
+            <h2 class="sp-section-heading" id="charmap-heading">Available Glyphs — License</h2>
+          </div>
+          <p class="sp-charmap-count" id="charmap-count">—</p>
+        </div>
+        <div class="sp-charmap-workbench">
+          <aside class="sp-glyph-detail" aria-live="polite">
+            <div class="sp-glyph-detail-label">Glyph Detail</div>
+            <div class="sp-glyph-display-wrap">
+              <span class="sp-glyph-guide sp-glyph-guide--cap"></span>
+              <span class="sp-glyph-guide sp-glyph-guide--baseline"></span>
+              <span class="sp-glyph-detail-char" id="glyph-detail-char">a</span>
+            </div>
+            <dl class="sp-glyph-meta">
+              <div><dt>Unicode</dt><dd id="glyph-detail-unicode">U+0061</dd></div>
+              <div><dt>HTML</dt><dd id="glyph-detail-html">&amp;#x61;</dd></div>
+              <div><dt>Glyph</dt><dd id="glyph-detail-name">a</dd></div>
+              <div><dt>Access</dt><dd id="glyph-detail-access">—</dd></div>
+            </dl>
+          </aside>
+          <div class="sp-charmap-sheet">
+            <p class="sp-charmap-sheet-label">All Glyphs</p>
+            <div class="sp-charmap-grid" id="charmap-grid"></div>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -84,10 +111,22 @@
       </div>
     </section>
 
-    <!-- § 03 — LICENSE INFORMATION -->
+    <!-- § 03 — USAGE LOG -->
+    <section class="sp-section" id="section-log">
+      <div class="sp-section-inner">
+        <p class="sp-section-label">§ 03 — Usage Log</p>
+        <h2 class="sp-section-heading">Violation History</h2>
+        <p class="sp-log-meta" id="log-meta">—</p>
+        <div class="sp-log-entries" id="log-entries">
+          <p class="sp-log-empty" id="log-empty">No violations recorded this session.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- § 04 — LICENSE INFORMATION -->
     <section class="sp-section" id="section-license">
       <div class="sp-section-inner">
-        <p class="sp-section-label">§ 03 — License Information</p>
+        <p class="sp-section-label">§ 04 — License Information</p>
         <h2 class="sp-section-heading">Active License</h2>
         <div class="sp-license-cols" id="license-cols"></div>
       </div>
@@ -114,6 +153,56 @@
       <div class="sp-interest-modal-btns">
         <a href="upgrade.html" class="sp-interest-upgrade-btn js-upgrade-link">Upgrade Now</a>
         <button class="sp-interest-dismiss-btn" id="sp-interest-dismiss">Dismiss</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- About modal -->
+  <div class="about-modal" id="about-modal" aria-modal="true" role="dialog" aria-labelledby="about-modal-title" hidden>
+    <div class="about-modal-panel">
+      <div class="about-modal-header">
+        <span id="about-modal-title">About The Mark</span>
+        <button type="button" class="about-modal-close" id="about-close" aria-label="Close about modal">×</button>
+      </div>
+      <div class="about-modal-body">
+        <div class="about-modal-logo">
+          <img src="assets/fdrylogo.svg" alt="FDRY logo">
+        </div>
+        <div class="about-modal-copy">
+          <p class="about-modal-intro">
+            FDRY is constructed from four institutional terms. Each letter has its own emblem, and the full logo acts as a registry of those emblems under one mark.
+          </p>
+          <div class="sp-emblem-list" aria-label="FDRY emblem definitions">
+            <article class="sp-emblem-item">
+              <img src="assets/emblem-04.svg" alt="Foundry emblem">
+              <div>
+                <h3>F — FOUNDRY</h3>
+                <p>A workshop or factory for casting metal; an institution for the production of typeface.</p>
+              </div>
+            </article>
+            <article class="sp-emblem-item">
+              <img src="assets/emblem-12.svg" alt="Dominion emblem">
+              <div>
+                <h3>D — DOMINION</h3>
+                <p>The power or right of governing and controlling; sovereignty.</p>
+              </div>
+            </article>
+            <article class="sp-emblem-item">
+              <img src="assets/emblem-13.svg" alt="Registry emblem">
+              <div>
+                <h3>R — REGISTRY</h3>
+                <p>An official list or record; a place where records are kept.</p>
+              </div>
+            </article>
+            <article class="sp-emblem-item">
+              <img src="assets/emblem-14.svg" alt="Yield emblem">
+              <div>
+                <h3>Y — YIELD</h3>
+                <p>To surrender or relinquish, especially in deference to another.</p>
+              </div>
+            </article>
+          </div>
+        </div>
       </div>
     </div>
   </div>

@@ -28,7 +28,7 @@ const TIERS = {
     violationsAllowed: 1,
     allowedRegex: /^[a-z. ]*$/,
     restrictedDescription: 'lowercase letters and periods only',
-    defaultSpecimen: 'the foundry presents a considered approach to contemporary typographic practice. each letterform is measured.',
+    defaultSpecimen: 'foundry casts the form. dominion controls the use. registry records the mark. yield confirms the agreement.',
   },
   standard: {
     name: 'STANDARD',
@@ -37,7 +37,7 @@ const TIERS = {
     violationsAllowed: 3,
     allowedRegex: /^[a-zA-Z.,;:!?'"\-()1-5 ]*$/,
     restrictedDescription: 'uppercase and lowercase, standard punctuation, numerals 1–5 only',
-    defaultSpecimen: 'the foundry presents a considered approach to contemporary typographic practice. each letterform is measured, each glyph accounted for. this specimen has been prepared under the terms of your standard license, version 1.0.0.',
+    defaultSpecimen: 'Foundry casts the form. Dominion controls the use. Registry records the mark. Yield confirms the agreement.',
   },
   professional: {
     name: 'PROFESSIONAL',
@@ -46,7 +46,7 @@ const TIERS = {
     violationsAllowed: 2,
     allowedRegex: /^[a-zA-Z.,;:!?'"\-()0-9 ]*$/,
     restrictedDescription: 'full alphabet, numerals 0–9, standard punctuation. no special characters. no copy or export.',
-    defaultSpecimen: 'The Foundry presents a considered approach to contemporary typographic practice. Each letterform is measured. Each glyph accounted for. This specimen has been prepared under the terms of your Professional License, version 1.0.0. Usage is monitored.',
+    defaultSpecimen: 'Foundry casts the form. Dominion controls the use. Registry records the mark. Yield confirms the agreement.',
     blockCopy: true,
   },
   enterprise: {
@@ -57,7 +57,7 @@ const TIERS = {
     violationsAllowed: 0,
     allowedRegex: /.*/,
     restrictedDescription: 'full glyph access. non-commercial use only. session limits apply.',
-    defaultSpecimen: 'The Foundry presents a considered approach to contemporary typographic practice. Each letterform is measured. Each glyph is accounted for. This specimen has been prepared under the terms of your Enterprise License, version 1.0.0. Usage is monitored. Commercial application is prohibited.',
+    defaultSpecimen: 'Foundry casts the form. Dominion controls the use. Registry records the mark. Yield confirms the agreement.',
   },
 };
 
@@ -353,6 +353,10 @@ function setSessionCharsInStorage(n) {
 
 let popupCount = 0;
 const MAX_POPUPS = 12;
+
+function syncViolationScreenState() {
+  document.body.classList.toggle('violation-alert-active', !!document.querySelector('.violation-popup'));
+}
 
 // ================================================================
 // CAMERA / EMBLEM-TILE SYSTEM
@@ -658,6 +662,7 @@ function spawnViolationPopup(type, data = {}, isSpawn = false, options = {}) {
 
   document.body.appendChild(popup);
   popupCount++;
+  syncViolationScreenState();
 
   // --- Emblem-tile camera setup ---
   if (!noCam) {
@@ -718,6 +723,7 @@ function spawnViolationPopup(type, data = {}, isSpawn = false, options = {}) {
     if (popup._videoEl)    popup._videoEl.srcObject = null;
     popup.remove();
     popupCount = Math.max(0, popupCount - 1);
+    syncViolationScreenState();
 
     // Closing spawns two more
     spawnViolationPopup(type, { ...data }, true);
@@ -1120,11 +1126,42 @@ function initSpecimen() {
     sessionChars,
   });
 
-  // Build long-scroll specimen sections (§01 charmap, §02 tester, §03 license)
+  // Build long-scroll specimen sections (§01 charmap, §02 tester, §03 log, §04 license)
   const _spUserId = getIDFromStorage() || '—';
   initTicker(_spUserId, tier);
+  initAboutModal();
   buildCharMap(tier, tierData);
+  buildUsageLog(_spUserId, tierData.name);
   buildLicenseInfo(_spUserId, tier, tierData);
+}
+
+function initAboutModal() {
+  const modal = document.getElementById('about-modal');
+  const openBtn = document.getElementById('about-open');
+  const closeBtn = document.getElementById('about-close');
+  if (!modal || !openBtn || !closeBtn) return;
+
+  function openModal() {
+    modal.hidden = false;
+    document.body.classList.add('about-modal-open');
+    if (tickerAdd) tickerAdd('ABOUT THE MARK VIEWED', 'normal', true);
+    closeBtn.focus();
+  }
+
+  function closeModal() {
+    modal.hidden = true;
+    document.body.classList.remove('about-modal-open');
+    openBtn.focus();
+  }
+
+  openBtn.addEventListener('click', openModal);
+  closeBtn.addEventListener('click', closeModal);
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeModal();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !modal.hidden) closeModal();
+  });
 }
 
 // ================================================================
@@ -1278,6 +1315,7 @@ function initTicker(userId, tier) {
   const SECTION_NAMES = {
     'section-charmap':   'CHARACTER MAP',
     'section-tester':    'TYPE TESTER',
+    'section-log':       'USAGE LOG',
     'section-license':   'LICENSE INFORMATION',
     'section-redacted':  '████████',
   };
@@ -1311,6 +1349,12 @@ function buildCharMap(tier, tierData) {
 
   const grid = document.getElementById('charmap-grid');
   if (!grid) return;
+  const countEl = document.getElementById('charmap-count');
+  const detailChar = document.getElementById('glyph-detail-char');
+  const detailUnicode = document.getElementById('glyph-detail-unicode');
+  const detailHtml = document.getElementById('glyph-detail-html');
+  const detailName = document.getElementById('glyph-detail-name');
+  const detailAccess = document.getElementById('glyph-detail-access');
 
   function minTier(char) {
     if ('abcdefghijklmnopqrstuvwxyz.'.includes(char))       return 'basic';
@@ -1321,13 +1365,30 @@ function buildCharMap(tier, tierData) {
     return 'enterprise'; // & @ # $ %
   }
 
-  // All glyphs in display order per spec
-  const glyphs = [
-    ...'abcdefghijklmnopqrstuvwxyz',
-    ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
-    ...'0123456789',
-    '.', ',', ';', ':', '!', '?', "'", '"', '-', '(', ')', '&', '@', '#', '$', '%',
-  ];
+  function charsFromRange(start, end) {
+    const chars = [];
+    for (let code = start; code <= end; code++) {
+      chars.push(String.fromCharCode(code));
+    }
+    return chars;
+  }
+
+  function uniqueChars(chars) {
+    return Array.from(new Set(chars));
+  }
+
+  // Full visible glyph inventory shown in specimen-sheet order.
+  const glyphs = uniqueChars([
+    ...'!"#$%&\'()*+,.-./',
+    ...'0123456789:;<=>?',
+    ...'@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]_`',
+    ...'abcdefghijklmnopqrstuvwxyz{|}~',
+    ...charsFromRange(0x00A1, 0x00FF),
+    ...charsFromRange(0x0100, 0x017F),
+    '–', '—', '‘', '’', '“', '”', '‚', '„', '‹', '›', '…', '•',
+  ]);
+
+  if (countEl) countEl.textContent = `Shown: ${glyphs.length} glyphs`;
 
   // Throttle + successive locked hover tracking
   const hoverTimestamps = new Map();
@@ -1336,13 +1397,33 @@ function buildCharMap(tier, tierData) {
   let lockedHoverReset  = null;
   let interestShown     = false;
 
+  function glyphCode(char) {
+    return char.codePointAt(0).toString(16).toUpperCase().padStart(4, '0');
+  }
+
+  function updateGlyphDetail(char, minRequiredTier, available) {
+    const code = glyphCode(char);
+    if (detailChar) detailChar.textContent = char;
+    if (detailUnicode) detailUnicode.textContent = `U+${code}`;
+    if (detailHtml) detailHtml.textContent = `&#x${code};`;
+    if (detailName) detailName.textContent = char;
+    if (detailAccess) {
+      detailAccess.textContent = available
+        ? `${tierData.name} LICENSE`
+        : `${TIER_ABBR[minRequiredTier]}+ REQUIRED`;
+      detailAccess.classList.toggle('restricted', !available);
+    }
+  }
+
   for (const char of glyphs) {
     const mt      = minTier(char);
     const mtIdx   = TIER_ORDER.indexOf(mt);
     const avail   = tierIdx >= mtIdx;
 
-    const cell = document.createElement('div');
+    const cell = document.createElement('button');
+    cell.type = 'button';
     cell.className = `sp-glyph-cell ${avail ? 'available' : 'locked'}`;
+    cell.setAttribute('aria-label', `Glyph ${char}, ${avail ? 'available' : `${TIER_ABBR[mt]} required`}`);
 
     const glyph = document.createElement('span');
     glyph.className = 'sp-glyph-char';
@@ -1350,19 +1431,12 @@ function buildCharMap(tier, tierData) {
     cell.appendChild(glyph);
 
     if (avail) {
-      // Available: caption shows "✓ INCLUDED IN [TIER] LICENSE" on hover
-      const caption = document.createElement('span');
-      caption.className = 'sp-glyph-caption sp-glyph-caption--avail';
-      caption.textContent = `\u2713 ${tierData.name}`;
-      cell.appendChild(caption);
+      cell.addEventListener('mouseenter', () => updateGlyphDetail(char, mt, avail));
+      cell.addEventListener('focus', () => updateGlyphDetail(char, mt, avail));
+      cell.addEventListener('click', () => updateGlyphDetail(char, mt, avail));
     } else {
-      // Locked: caption shows upgrade requirement, turns white on hover
-      const caption = document.createElement('span');
-      caption.className = 'sp-glyph-caption';
-      caption.textContent = `\uD83D\uDD12 ${TIER_ABBR[mt]}+`;
-      cell.appendChild(caption);
-
       cell.addEventListener('mouseenter', () => {
+        updateGlyphDetail(char, mt, avail);
         const now  = Date.now();
         const last = hoverTimestamps.get(char) || 0;
         if (now - last < HOVER_THROTTLE) return;
@@ -1376,10 +1450,15 @@ function buildCharMap(tier, tierData) {
         if (lockedHoverReset) clearTimeout(lockedHoverReset);
         lockedHoverReset = setTimeout(() => { lockedHoverCount = 0; }, 30000);
       });
+      cell.addEventListener('focus', () => updateGlyphDetail(char, mt, avail));
+      cell.addEventListener('click', () => updateGlyphDetail(char, mt, avail));
     }
 
     grid.appendChild(cell);
   }
+
+  const initialChar = glyphs.includes('a') ? 'a' : glyphs[0];
+  updateGlyphDetail(initialChar, minTier(initialChar), tierIdx >= TIER_ORDER.indexOf(minTier(initialChar)));
 }
 
 function showGlyphInterestModal() {
@@ -1495,9 +1574,6 @@ function buildLicenseInfo(userId, tier, tierData) {
   if (!cols) return;
 
   const MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
-  const now = new Date();
-  const today = `${String(now.getDate()).padStart(2,'0')} ${MONTHS[now.getMonth()]} ${now.getFullYear()}`;
-
   const hoursAgo = Math.floor(Math.random() * 7) + 1;
   const lastAudit = `${hoursAgo} HOUR${hoursAgo !== 1 ? 'S' : ''} AGO`;
 
@@ -1516,7 +1592,6 @@ function buildLicenseInfo(userId, tier, tierData) {
     ['Licensee',             userId],
     ['Tier',                 tierData.name],
     ['Status',               '<span class="sp-status-indicator"><span class="sp-status-dot"></span>ACTIVE</span>'],
-    ['Issued',               today],
     ['Expires',              'NEVER'],
     ['Version',              '1.0.0'],
     ['Last Audit',           lastAudit],
@@ -1553,9 +1628,6 @@ function buildLicenseInfo(userId, tier, tierData) {
 
 function initUpgrade() {
   const tier = getTierFromStorage();
-
-  // Build HUD if logged in
-  if (tier) buildHUD();
 
   // Populate tier cards
   const grid = document.getElementById('tier-grid');
@@ -1666,7 +1738,7 @@ function openUpgradeModal(fromTier, toTier, fee) {
     headerTitle.textContent = 'PAYMENT CONFIRMED';
     body.innerHTML = `
       <p class="upgrade-modal-line">Your license has been upgraded to ${toName}. This decision is final. Downgrades are not permitted under your current agreement.</p>
-      <p class="upgrade-modal-fine-print">By proceeding, you waive the right to dispuge.</p>
+      <p class="upgrade-modal-fine-print">By proceeding, you waive the right to dispute.</p>
       <button class="upgrade-modal-accept-btn" id="modal-return">RETURN TO SPECIMEN</button>
     `;
 
@@ -1729,7 +1801,7 @@ function initEnterpriseApplication() {
     },
     {
       type: 'text',
-      question: 'vilege. Initial below to acknowledge.',
+      question: 'Privilege. Initial below to acknowledge.',
       placeholder: '[ initial here ]',
     },
   ];
@@ -1800,21 +1872,42 @@ function initEnterpriseApplication() {
     const isLast = stepIdx === questions.length - 1;
     const isFirst = stepIdx === 0;
     const nextDisabled = q.type === 'checkbox' ? 'disabled' : '';
+    const progressItems = questions.map((_, i) => `
+      <span class="enterprise-app-progress-node${i === stepIdx ? ' active' : ''}${i < stepIdx ? ' completed' : ''}">
+        ${String(i + 1).padStart(2, '0')}
+      </span>
+    `).join('');
 
     main.innerHTML = `
-      <p class="enterprise-app-progress">ENTERPRISE APPLICATION — QUESTION ${stepNum} OF ${questions.length}</p>
-      <div class="enterprise-app-question-wrap">
-        <h2 class="enterprise-app-question">${q.question}</h2>
-        <div class="enterprise-app-input-wrap">
-          ${renderInput(q)}
+      <div class="enterprise-app-shell">
+        <aside class="enterprise-app-rail" aria-label="Application progress">
+          <p class="enterprise-app-progress">ENTERPRISE APPLICATION</p>
+          <div class="enterprise-app-progress-nodes">${progressItems}</div>
+          <div class="enterprise-app-rail-meta">
+            <span>QUESTION ${String(stepNum).padStart(2, '0')} / ${String(questions.length).padStart(2, '0')}</span>
+            <span>STATUS: PENDING REVIEW</span>
+            <span>FEE: $890 NON-REFUNDABLE</span>
+          </div>
+        </aside>
+        <div class="enterprise-app-panel">
+          <div class="enterprise-app-panel-header">
+            <span>ENTERPRISE ACCESS PETITION</span>
+            <span>FORM E-890</span>
+          </div>
+          <div class="enterprise-app-question-wrap">
+            <h2 class="enterprise-app-question">${q.question}</h2>
+            <div class="enterprise-app-input-wrap">
+              ${renderInput(q)}
+            </div>
+          </div>
+          <nav class="enterprise-app-nav">
+            ${isFirst ? '<span></span>' : '<button class="enterprise-app-prev" id="btn-prev">PREVIOUS</button>'}
+            <button class="enterprise-app-next" id="btn-next" ${nextDisabled}>
+              ${isLast ? 'SUBMIT APPLICATION' : 'NEXT'}
+            </button>
+          </nav>
         </div>
       </div>
-      <nav class="enterprise-app-nav">
-        ${isFirst ? '<span></span>' : '<button class="enterprise-app-prev" id="btn-prev">PREVIOUS</button>'}
-        <button class="enterprise-app-next" id="btn-next" ${nextDisabled}>
-          ${isLast ? 'SUBMIT APPLICATION' : 'NEXT'}
-        </button>
-      </nav>
     `;
 
     // Wire input behaviors
@@ -2108,7 +2201,7 @@ function initCheckout() {
       <div class="co-review-row"><span class="co-review-label">LICENSEE</span><span class="co-review-value">${formData.name} (${formData.email})</span></div>
       <div class="co-review-row"><span class="co-review-label">BILLING</span><span class="co-review-value">${formData.city}, ${formData.state} ${formData.zip}, ${formData.country}</span></div>
       <div class="co-review-row"><span class="co-review-label">TIER</span><span class="co-review-value">${tierData.name} — ${rawPrice}</span></div>
-      <div class="co-review-row"><span class="co-review-label">PAYMENT</span><span class="co-review-value">•••• •••• •••• ${formData.cardLast4 || '——'}</span></div>
+      <div class="co-review-row"><span class="co-review-label">PAYMENT</span><span class="co-review-value">FOUNDRY INTERNAL BILLING SYSTEM</span></div>
     `;
   }
 

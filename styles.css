@@ -34,6 +34,13 @@
   --space-64: 64px;
   --space-80: 80px;
   --space-120: 120px;
+
+  --type-licensed-caption: 9px;
+  --type-licensed-body: 13px;
+  --type-licensed-display: 32px;
+  --type-mono-caption: 9px;
+  --type-mono-ui: 11px;
+  --type-mono-body: 13px;
 }
 
 /* === RESET ===================================================== */
@@ -244,6 +251,23 @@ body#login {
   margin: 0 0 10px 0;
   padding: 0;
   display: block;
+}
+
+.login-request-link {
+  font-family: monospace;
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--black);
+  margin-top: var(--space-16);
+  display: inline-block;
+  opacity: 0.48;
+}
+
+.login-request-link:hover {
+  opacity: 1;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .login-input {
@@ -1247,6 +1271,130 @@ body#license .page-wrap {
   animation: popup-shake 0.35s ease;
 }
 
+body.violation-alert-active {
+  background: var(--red);
+}
+
+body.violation-alert-active::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 8500;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(238,17,17,0.18) 0,
+      rgba(238,17,17,0.18) 1px,
+      rgba(238,17,17,0.34) 1px,
+      rgba(238,17,17,0.34) 18px
+    ),
+    rgba(238,17,17,0.28);
+  mix-blend-mode: multiply;
+  animation: violation-screen-pulse 900ms steps(2, end) infinite;
+}
+
+@keyframes violation-screen-pulse {
+  0%, 100% { opacity: 0.72; }
+  50%      { opacity: 0.95; }
+}
+
+/* Foundry-native system notices */
+.violation-popup {
+  background: var(--white);
+  color: var(--black);
+  border: var(--rule);
+  border-radius: 0;
+  box-shadow: 12px 12px 0 var(--black);
+  overflow: visible;
+}
+
+.violation-popup::before {
+  content: 'LICENSE VIOLATION';
+  position: absolute;
+  top: -22px;
+  left: -1px;
+  height: 22px;
+  min-width: 150px;
+  border: var(--rule);
+  border-bottom: none;
+  background: var(--white);
+  color: var(--black);
+  display: flex;
+  align-items: center;
+  padding: 0 var(--space-8);
+  font-size: var(--type-licensed-caption);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.popup-titlebar {
+  background: var(--white);
+  color: var(--black);
+  padding: 8px 10px;
+  border-bottom: var(--rule);
+  gap: var(--space-8);
+}
+
+.popup-window-btns {
+  gap: 4px;
+}
+
+.popup-win-btn {
+  width: 14px;
+  height: 14px;
+  border: var(--rule);
+  border-radius: 0;
+  background: var(--white);
+  color: transparent;
+}
+
+.popup-win-btn:hover {
+  background: var(--black);
+  color: var(--white);
+}
+
+.popup-btn-close,
+.popup-btn-min,
+.popup-btn-max {
+  background: var(--white);
+}
+
+.popup-title-text {
+  color: var(--black);
+  font-size: var(--type-licensed-caption);
+  letter-spacing: 0.18em;
+  text-align: left;
+}
+
+.popup-camera-area {
+  background: var(--white);
+  border-bottom: var(--rule);
+  padding: var(--space-8);
+}
+
+.popup-camera-canvas {
+  border: var(--rule);
+}
+
+.popup-body {
+  padding: var(--space-16);
+}
+
+.popup-violation-title {
+  color: var(--red);
+  font-size: var(--type-licensed-caption);
+  letter-spacing: 0.18em;
+  border-bottom: var(--rule);
+  padding-bottom: var(--space-8);
+  margin-bottom: var(--space-12);
+}
+
+.popup-violation-text {
+  color: var(--black);
+  line-height: 1.55;
+}
+
 /* ================================================================
    404 PAGE
    ================================================================ */
@@ -1546,26 +1694,178 @@ body#specimen .specimen-wrap {
 }
 
 /* ── § 01 Character Map ─────────────────────────────────────── */
+#section-charmap {
+  min-height: calc(100vh - 52px);
+  padding-top: var(--space-24);
+  padding-bottom: var(--space-24);
+}
+
+.sp-section-inner--charmap {
+  max-width: none;
+  height: calc(100vh - 100px);
+  display: flex;
+  flex-direction: column;
+}
+
+.sp-charmap-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-24);
+  border-top: var(--rule);
+  padding-top: var(--space-20);
+  margin-bottom: var(--space-20);
+  flex-shrink: 0;
+}
+
+.sp-charmap-count,
+.sp-charmap-sheet-label,
+.sp-glyph-detail-label {
+  font-family: monospace;
+  font-size: var(--type-mono-ui);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sp-charmap-count {
+  margin-top: 2px;
+  white-space: nowrap;
+}
+
+.sp-charmap-workbench {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(280px, 0.9fr) minmax(420px, 1.1fr);
+  gap: var(--space-32);
+}
+
+.sp-glyph-detail,
+.sp-charmap-sheet {
+  min-height: 0;
+}
+
+.sp-glyph-detail {
+  display: flex;
+  flex-direction: column;
+}
+
+.sp-glyph-detail-label {
+  margin-bottom: var(--space-12);
+}
+
+.sp-glyph-display-wrap {
+  position: relative;
+  flex: 1;
+  min-height: 260px;
+  border-top: var(--rule);
+  border-bottom: var(--rule);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: var(--space-24) var(--space-16) var(--space-32);
+  overflow: hidden;
+}
+
+.sp-glyph-detail-char {
+  font-family: var(--font-licensed);
+  font-size: min(34vh, 280px);
+  line-height: 0.72;
+  color: var(--black);
+  position: relative;
+  z-index: 1;
+}
+
+.sp-glyph-guide {
+  position: absolute;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+}
+
+.sp-glyph-guide--cap {
+  top: 24%;
+  border-top: 1px dashed #aaa;
+}
+
+.sp-glyph-guide--baseline {
+  bottom: var(--space-32);
+  border-top: 1px solid var(--red);
+}
+
+.sp-glyph-meta {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0;
+  border-bottom: var(--rule);
+}
+
+.sp-glyph-meta div {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  gap: var(--space-12);
+  padding: var(--space-8) 0;
+}
+
+.sp-glyph-meta dt,
+.sp-glyph-meta dd {
+  font-family: monospace;
+  font-size: var(--type-mono-ui);
+  letter-spacing: 0.04em;
+  line-height: 1.4;
+}
+
+.sp-glyph-meta dt {
+  color: #777;
+}
+
+.sp-glyph-meta dd {
+  margin: 0;
+  color: var(--black);
+}
+
+.sp-glyph-meta dd.restricted {
+  color: var(--red);
+}
+
+.sp-charmap-sheet {
+  display: flex;
+  flex-direction: column;
+}
+
+.sp-charmap-sheet-label {
+  margin-bottom: var(--space-12);
+}
+
 .sp-charmap-grid {
   display: grid;
-  /* 10 cols × 80px + 9 gaps × 4px = 836px — matches 900px inner minus 64px padding */
-  grid-template-columns: repeat(10, 80px);
-  gap: 4px;
+  grid-template-columns: repeat(auto-fill, minmax(32px, 1fr));
+  grid-auto-rows: 1fr;
+  gap: 0;
+  border-top: var(--rule);
+  border-left: var(--rule);
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .sp-glyph-cell {
-  width: 80px;
-  height: 80px;
+  min-width: 0;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  border: 1px solid #ebebeb;
+  border-right: var(--rule);
+  border-bottom: var(--rule);
+  border-top: none;
+  border-left: none;
   cursor: default;
   transition: background 0.1s, border-color 0.1s;
-  gap: 3px;
   user-select: none;
-  position: relative;  /* for ::after corner badge */
+  position: relative;
+  background: #f5f5f5;
+  overflow: hidden;
+  padding: 0;
+  min-height: 0;
 }
 
 /* ── Available cell hover: black bg, white glyph, green checkmark ── */
@@ -1577,25 +1877,16 @@ body#specimen .specimen-wrap {
   color: var(--white);
 }
 .sp-glyph-cell.available::after {
-  content: '✓';
+  content: '';
   position: absolute;
-  top: 5px;
-  right: 6px;
-  font-size: 8px;
-  color: #0A7E3D;
-  opacity: 0;
-  transition: opacity 0.1s;
-  line-height: 1;
+  inset: 0;
+  border: 1px solid transparent;
+  pointer-events: none;
 }
-.sp-glyph-cell.available:hover::after {
-  opacity: 1;
-}
-.sp-glyph-caption--avail {
-  display: none;
-  color: #0A7E3D;
-}
-.sp-glyph-cell.available:hover .sp-glyph-caption--avail {
-  display: block;
+
+.sp-glyph-cell.available:hover::after,
+.sp-glyph-cell.available:focus-visible::after {
+  border-color: var(--black);
 }
 
 /* ── Locked cell hover: red bg, white glyph, white caption ── */
@@ -1612,9 +1903,10 @@ body#specimen .specimen-wrap {
 
 .sp-glyph-char {
   font-family: var(--font-licensed);
-  font-size: 34px;
+  font-size: clamp(14px, 1.6vw, 24px);
   line-height: 1;
   display: block;
+  transform: translateY(-1px);
 }
 
 .sp-glyph-cell.available .sp-glyph-char { color: var(--black); }
@@ -1622,12 +1914,188 @@ body#specimen .specimen-wrap {
 
 .sp-glyph-caption {
   font-size: 7px;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--red);
   font-family: monospace;
   text-align: center;
   line-height: 1.2;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: clip;
+  padding: 0 2px;
+}
+
+/* ── § 02 About The Mark ────────────────────────────────────── */
+.specimen-nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-20);
+}
+
+.specimen-nav-btn,
+.specimen-nav-link {
+  font-family: var(--font-licensed);
+  font-size: var(--type-licensed-caption);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--black);
+  text-decoration: none;
+}
+
+.specimen-nav-btn:hover,
+.specimen-nav-link:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.about-modal[hidden] {
+  display: none;
+}
+
+.about-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 8200;
+  background: rgba(255,255,255,0.88);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: calc(52px + var(--space-32)) var(--space-32) var(--space-32);
+}
+
+.about-modal-panel {
+  width: min(900px, calc(100vw - var(--space-64)));
+  max-height: calc(100vh - 104px);
+  background: var(--white);
+  border: var(--rule);
+  box-shadow: 12px 12px 0 var(--black);
+  display: flex;
+  flex-direction: column;
+}
+
+.about-modal-header {
+  height: 44px;
+  border-bottom: var(--rule);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-16);
+  font-size: var(--type-licensed-caption);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.about-modal-close {
+  width: 28px;
+  height: 28px;
+  border: var(--rule);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--type-licensed-body);
+  line-height: 1;
+}
+
+.about-modal-close:hover {
+  background: var(--black);
+  color: var(--white);
+}
+
+.about-modal-body {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: var(--space-32);
+  overflow: auto;
+  padding: var(--space-24);
+}
+
+.about-modal-logo {
+  border: var(--rule);
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-32);
+}
+
+.about-modal-logo img {
+  width: 100%;
+  height: auto;
+}
+
+.about-modal-intro {
+  font-size: var(--type-licensed-body);
+  letter-spacing: 0.03em;
+  line-height: 1.7;
+  margin-bottom: var(--space-20);
+}
+
+.sp-about-layout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: var(--space-40);
+  align-items: start;
+}
+
+.sp-about-logo {
+  border: var(--rule);
+  padding: var(--space-32);
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: sticky;
+  top: 84px;
+}
+
+.sp-about-logo img {
+  width: 100%;
+  height: auto;
+}
+
+.sp-about-copy > p {
+  font-size: var(--type-licensed-body);
+  letter-spacing: 0.03em;
+  line-height: 1.7;
+  max-width: 620px;
+  margin-bottom: var(--space-24);
+}
+
+.sp-emblem-list {
+  border-top: var(--rule);
+}
+
+.sp-emblem-item {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  gap: var(--space-20);
+  align-items: center;
+  padding: var(--space-16) 0;
+  border-bottom: var(--rule);
+}
+
+.sp-emblem-item img {
+  width: 72px;
+  height: 72px;
+  border: 1px solid #e8e8e8;
+  padding: var(--space-8);
+}
+
+.sp-emblem-item h3 {
+  font-size: var(--type-licensed-caption);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-weight: 400;
+  margin-bottom: var(--space-8);
+}
+
+.sp-emblem-item p {
+  font-size: var(--type-licensed-body);
+  letter-spacing: 0.03em;
+  line-height: 1.55;
+  color: #555;
 }
 
 /* ── § 02 Type Tester — reuses .specimen-* classes ──────────── */
@@ -1817,8 +2285,20 @@ body#specimen .specimen-wrap {
 @media (max-width: 1100px) {
   .ticker-sidebar { display: none; }
   body#specimen .specimen-wrap { padding-right: 0; }
-  .sp-charmap-grid { grid-template-columns: repeat(8, 1fr); }
-  .sp-glyph-cell { width: auto; height: 72px; }
+  .sp-section-inner--charmap { height: auto; min-height: calc(100vh - 100px); }
+  .sp-charmap-workbench { grid-template-columns: 1fr; }
+  .sp-glyph-display-wrap { min-height: 220px; }
+  .sp-charmap-grid {
+    grid-template-columns: repeat(auto-fill, minmax(28px, 1fr));
+    min-height: 430px;
+  }
+  .sp-about-layout { grid-template-columns: 1fr; }
+  .sp-about-logo {
+    position: static;
+    width: 180px;
+  }
+  .about-modal-body { grid-template-columns: 1fr; }
+  .about-modal-logo { width: 180px; }
   .sp-license-cols { grid-template-columns: 1fr; gap: var(--space-40); }
 }
 
@@ -2232,71 +2712,158 @@ body#upgrade .page-wrap {
 }
 
 /* ================================================================
-   TYPOGRAPHY — GLOBAL SCALE INCREASE
+   TYPOGRAPHY — TIGHT SCALE
    ================================================================ */
 
-/* Section labels: § 01 — Character Map, etc. */
+/* Licensed: 9 / 13 / 32 */
+.label-caps,
+.label-sm,
+.label-md,
+.header-logo-name,
+.license-header-title,
+.login-field-label,
+.login-error-msg,
+.login-footer,
+.license-heading,
+.license-scroll-hint,
+.license-section-heading,
+.license-accept-btn,
+.license-decline-link,
+.card-foundry-name,
+.card-type-label,
+.card-date-line,
+.hud-stat-label,
+.specimen-pre-label,
+.specimen-char-info,
+.specimen-char-count,
+.specimen-tier-info,
+.specimen-upgrade-link,
+.upgrade-page-label,
+.tier-name,
+.tier-current-badge,
+.tier-select-btn,
+.upgrade-modal-title,
+.upgrade-modal-fine-print,
+.upgrade-modal-processing,
+.sp-interest-upgrade-btn,
+.sp-interest-dismiss-btn,
+.enterprise-app-progress,
+.enterprise-app-wordcount,
+.enterprise-app-prev,
+.enterprise-app-next,
+.specimen-nav-btn,
+.specimen-nav-link,
+.about-modal-header,
+.co-topbar-logo,
+.co-topbar-cart,
+.co-field-label,
+.co-form-caption,
+.co-back-link,
+.co-tier-col-label,
+.co-step-disclaimer,
+.co-secure-badge,
+.co-review-label,
+.co-agree-label,
+.co-summary-heading,
+.co-summary-legal,
+.co-summary-help,
+.site-footer .footer-copy {
+  font-size: var(--type-licensed-caption);
+}
+
+body,
+input,
+textarea,
+select,
+button,
+.header-right,
+.login-input,
+.license-intro,
+.license-clause,
+.tier-features li,
+.upgrade-modal-line,
+.popup-violation-text,
+.error-body,
+.error-return-link,
+.sp-license-desc,
+.sp-interest-modal-body,
+.about-modal-intro,
+.enterprise-app-textarea,
+.enterprise-app-radio-label,
+.enterprise-app-checkbox-label,
+.enterprise-app-success-line,
+.enterprise-app-success-list li,
+.co-step-subtitle,
+.co-field-input,
+.co-tier-list,
+.co-review-value,
+.co-summary-line,
+.co-success-id-note {
+  font-size: var(--type-licensed-body);
+}
+
+.license-tier-name,
+.specimen-display,
+.upgrade-heading,
+.tier-price,
+.error-code,
+.enterprise-app-question,
+.enterprise-app-range-value,
+.co-page-heading,
+.co-tier-confirm-name,
+.co-processing-title,
+.co-success-title,
+.co-success-id,
+.sp-section-heading,
+.sp-glyph-char,
+.page-wordmark-rotated {
+  font-size: var(--type-licensed-display);
+}
+
+/* Monospace: 9 / 11 / 13 */
+.ticker-time,
+.sp-glyph-caption,
+.page-wordmark-top,
+.page-wordmark-bottom,
+.co-summary-heading {
+  font-size: var(--type-mono-caption);
+}
+
+.ticker-label,
+.ticker-text,
+.tester-meta,
+.sp-section-label,
+.sp-redacted-box-text,
+.sp-redacted-caption {
+  font-size: var(--type-mono-ui);
+}
+
+.sp-log-meta,
+.sp-log-empty,
+.sp-log-entry-header,
+.sp-log-entry-line,
+.sp-license-table td {
+  font-size: var(--type-mono-body);
+}
+
 .sp-section-label {
-  font-size: 14px;
-  margin-bottom: var(--space-16);
+  margin-bottom: var(--space-12);
 }
 
-/* Subheadings under section labels */
 .sp-section-heading {
-  font-size: 28px;
   letter-spacing: 0.06em;
-  margin-bottom: var(--space-48);
+  margin-bottom: var(--space-32);
 }
 
-/* Usage log metadata */
-.sp-log-meta { font-size: 13px; }
-.sp-log-empty { font-size: 13px; }
-.sp-log-entry-header { font-size: 13px; }
-.sp-log-entry-line { font-size: 13px; }
-
-/* License table + desc */
-.sp-license-table td { font-size: 13px; padding: 9px 0; }
-.sp-license-upgrade-btn { font-size: 13px; }
-
-/* License body text — larger for readability */
-.sp-license-desc {
-  font-size: 16px;
-  letter-spacing: 0.04em;
+.sp-license-table td {
+  padding: 8px 0;
 }
 
-/* Legal clause body text */
-.license-clause { font-size: 16px; }
-.license-intro  { font-size: 16px; }
-
-/* Specimen bar / bottom bar */
-.specimen-pre-label  { font-size: 13px; }
-.specimen-char-info  { font-size: 13px; }
-.specimen-char-count { font-size: 13px; }
-.specimen-tier-info  { font-size: 13px; }
-.specimen-upgrade-link { font-size: 13px; }
-
-/* Upgrade page label */
-.upgrade-page-label { font-size: 13px; }
-
-/* Header right */
-.header-right { font-size: 13px; }
-
-/* Footer copy */
-.site-footer .footer-copy { font-size: 13px; }
-
-/* HUD stats */
-.hud-stat-label { font-size: 11px; }
-.hud-stat-value { font-size: 13px; }
-.hud-id-line    { font-size: 11px; letter-spacing: 0.1em; }
-
-/* Surveillance ticker */
-.ticker-label { font-size: 11px; }
-.ticker-text  { font-size: 11px; }
-.ticker-time  { font-size: 10px; }
-
-/* Interest modal */
-.sp-interest-modal-title { font-size: 14px; }
-.sp-interest-modal-body  { font-size: 13px; }
+.sp-license-desc,
+.license-clause,
+.license-intro {
+  letter-spacing: 0.03em;
+}
 
 /* ================================================================
    WORDMARK COLUMN
@@ -2927,4 +3494,638 @@ select.co-field-input {
   .co-steps-col { border-right: none; }
   .co-summary-col { position: static; border-top: var(--rule); }
   .co-page-heading { font-size: 32px; }
+}
+
+/* ================================================================
+   DENSITY PASS
+   ================================================================ */
+
+.sp-section {
+  padding-top: var(--space-48);
+  padding-bottom: var(--space-64);
+}
+
+.sp-section:first-child {
+  padding-top: var(--space-48);
+}
+
+#section-tester {
+  padding-top: var(--space-64);
+  padding-bottom: var(--space-80);
+}
+
+.sp-section-inner,
+.upgrade-main,
+.enterprise-app-main {
+  padding-left: var(--space-24);
+  padding-right: var(--space-24);
+}
+
+.tester-frame {
+  padding-top: var(--space-64);
+  padding-bottom: var(--space-64);
+}
+
+.specimen-char-bar {
+  margin-top: var(--space-24);
+}
+
+.tier-card {
+  padding: var(--space-24) var(--space-20);
+}
+
+.tier-price,
+.upgrade-heading,
+.enterprise-app-question,
+.co-page-heading {
+  margin-bottom: var(--space-32);
+}
+
+.license-page-inner {
+  padding-bottom: var(--space-48);
+}
+
+.license-heading {
+  margin-top: var(--space-40);
+}
+
+.license-terms-box {
+  height: 390px;
+  padding: var(--space-24);
+}
+
+.co-page-header,
+.co-steps-col,
+.co-summary-col {
+  padding: var(--space-32);
+}
+
+/* ================================================================
+   SPECIMEN — ACTIVE LICENSE PANEL
+   ================================================================ */
+
+.sp-license-cols {
+  grid-template-columns: minmax(280px, 0.85fr) minmax(320px, 1.15fr);
+  gap: 0;
+  border: var(--rule);
+}
+
+.sp-license-left,
+.sp-license-right {
+  min-width: 0;
+}
+
+.sp-license-left {
+  border-right: var(--rule);
+}
+
+.sp-license-left::before,
+.sp-license-right::before {
+  display: flex;
+  align-items: center;
+  height: 36px;
+  border-bottom: var(--rule);
+  padding: 0 var(--space-16);
+  font-size: var(--type-licensed-caption);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.sp-license-left::before {
+  content: 'License Record';
+}
+
+.sp-license-right::before {
+  content: 'Terms Summary';
+}
+
+.sp-license-table td {
+  padding: var(--space-12) var(--space-16);
+  border-bottom: var(--rule);
+}
+
+.sp-license-table tr:last-child td {
+  border-bottom: none;
+}
+
+.sp-license-key {
+  width: 42%;
+  color: #777;
+}
+
+.sp-license-val {
+  text-align: right;
+}
+
+.sp-license-right {
+  display: flex;
+  flex-direction: column;
+}
+
+.sp-license-desc {
+  flex: 1;
+  margin: 0;
+  padding: var(--space-20);
+}
+
+.sp-license-upgrade-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: var(--rule);
+  padding: var(--space-16) var(--space-20);
+  text-decoration: none;
+}
+
+.sp-license-upgrade-btn:hover {
+  background: var(--black);
+  color: var(--white);
+  text-decoration: none;
+}
+
+@media (max-width: 900px) {
+  .sp-license-cols {
+    grid-template-columns: 1fr;
+  }
+
+  .sp-license-left {
+    border-right: none;
+    border-bottom: var(--rule);
+  }
+}
+
+/* ================================================================
+   LICENSE PAGE — DOCUMENT INTERFACE
+   ================================================================ */
+
+body#license {
+  background: #f7f7f7;
+}
+
+body#license .page-wrap {
+  padding-top: 52px;
+}
+
+.license-page-inner {
+  max-width: 1040px;
+  min-height: calc(100vh - 52px);
+  padding-top: var(--space-32);
+  padding-left: var(--space-32);
+  padding-right: var(--space-32);
+  padding-bottom: var(--space-32);
+}
+
+.license-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: var(--space-32);
+  align-items: end;
+  border-top: var(--rule);
+  border-bottom: var(--rule);
+  padding: var(--space-20) 0;
+  margin-bottom: var(--space-20);
+}
+
+.license-heading {
+  margin: 0 0 var(--space-8);
+}
+
+.license-tier-name {
+  margin: 0;
+  letter-spacing: 0.04em;
+}
+
+.license-meta {
+  display: grid;
+  gap: 0;
+  border-top: var(--rule);
+}
+
+.license-meta div {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  border-bottom: var(--rule);
+  padding: var(--space-8) 0;
+}
+
+.license-meta dt,
+.license-meta dd {
+  font-family: monospace;
+  font-size: var(--type-mono-ui);
+  letter-spacing: 0.08em;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+.license-meta dt {
+  color: #777;
+}
+
+.license-meta dd {
+  margin: 0;
+}
+
+.license-brief {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: var(--space-32);
+  align-items: start;
+  margin-bottom: var(--space-16);
+}
+
+.license-intro {
+  max-width: none;
+  margin: 0;
+}
+
+.license-scroll-hint {
+  margin: 0;
+  text-align: right;
+  color: var(--red);
+}
+
+.license-document-shell {
+  border: var(--rule);
+  background: var(--white);
+}
+
+.license-document-label {
+  height: 36px;
+  border-bottom: var(--rule);
+  display: flex;
+  align-items: center;
+  padding: 0 var(--space-16);
+  font-size: var(--type-licensed-caption);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.license-terms-box {
+  height: min(50vh, 500px);
+  border: none;
+  margin: 0;
+  padding: var(--space-24);
+  background: var(--white);
+}
+
+.license-text-section {
+  margin-bottom: var(--space-24);
+}
+
+.license-section-heading {
+  margin-bottom: var(--space-12);
+}
+
+.license-clause {
+  line-height: 1.55;
+  margin-bottom: var(--space-12);
+}
+
+.license-accept-area {
+  background: var(--white);
+  border: var(--rule);
+  border-top: none;
+  padding: var(--space-16);
+}
+
+.license-accept-btn {
+  min-width: 220px;
+}
+
+.license-decline-link {
+  opacity: 0.55;
+}
+
+@media (max-width: 900px) {
+  .license-hero,
+  .license-brief {
+    grid-template-columns: 1fr;
+  }
+
+  .license-scroll-hint {
+    text-align: left;
+  }
+
+  .license-meta {
+    max-width: none;
+  }
+}
+
+/* ================================================================
+   ENTERPRISE APPLICATION — DENSE FILING VIEW
+   ================================================================ */
+
+body#enterprise-application .page-wrap {
+  min-height: 100vh;
+}
+
+.enterprise-app-main {
+  max-width: none;
+  min-height: calc(100vh - 52px);
+  padding: 0;
+  margin: 0;
+}
+
+.enterprise-app-shell {
+  min-height: calc(100vh - 52px);
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  border-top: var(--rule);
+}
+
+.enterprise-app-rail {
+  border-right: var(--rule);
+  padding: var(--space-24);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+}
+
+.enterprise-app-progress {
+  margin: 0;
+  color: var(--black);
+}
+
+.enterprise-app-progress-nodes {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-top: var(--rule);
+  border-left: var(--rule);
+}
+
+.enterprise-app-progress-node {
+  aspect-ratio: 1;
+  border-right: var(--rule);
+  border-bottom: var(--rule);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: monospace;
+  font-size: var(--type-mono-ui);
+  color: #aaa;
+}
+
+.enterprise-app-progress-node.active {
+  background: var(--black);
+  color: var(--white);
+}
+
+.enterprise-app-progress-node.completed {
+  color: var(--black);
+}
+
+.enterprise-app-rail-meta {
+  margin-top: auto;
+  display: grid;
+  gap: var(--space-8);
+  font-family: monospace;
+  font-size: var(--type-mono-caption);
+  letter-spacing: 0.08em;
+  line-height: 1.6;
+  text-transform: uppercase;
+}
+
+.enterprise-app-panel {
+  min-height: calc(100vh - 52px);
+  display: flex;
+  flex-direction: column;
+}
+
+.enterprise-app-panel-header {
+  height: 44px;
+  border-bottom: var(--rule);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-24);
+  font-size: var(--type-licensed-caption);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.enterprise-app-question-wrap {
+  flex: 1;
+  padding: var(--space-32) var(--space-40);
+  display: grid;
+  grid-template-columns: minmax(260px, 0.8fr) minmax(320px, 1.2fr);
+  gap: var(--space-40);
+  align-items: start;
+}
+
+.enterprise-app-question {
+  max-width: none;
+  margin: 0;
+  line-height: 1.18;
+}
+
+.enterprise-app-input-wrap {
+  border-left: var(--rule);
+  padding-left: var(--space-32);
+  min-height: 280px;
+}
+
+.enterprise-app-textarea {
+  min-height: 220px;
+  resize: none;
+}
+
+.enterprise-app-range-wrap {
+  max-width: none;
+}
+
+.enterprise-app-radio-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  border-top: var(--rule);
+  border-left: var(--rule);
+}
+
+.enterprise-app-radio-label {
+  border-right: var(--rule);
+  border-bottom: var(--rule);
+  padding: var(--space-16);
+}
+
+.enterprise-app-file-label {
+  width: 100%;
+  min-height: 120px;
+}
+
+.enterprise-app-checkbox-label {
+  max-width: none;
+  border: var(--rule);
+  padding: var(--space-20);
+}
+
+.enterprise-app-text-input {
+  width: 100%;
+}
+
+.enterprise-app-nav {
+  margin: 0;
+  padding: var(--space-20) var(--space-24);
+  border-top: var(--rule);
+}
+
+.enterprise-app-prev,
+.enterprise-app-next {
+  min-width: 180px;
+}
+
+@media (max-width: 900px) {
+  .enterprise-app-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .enterprise-app-rail {
+    border-right: none;
+    border-bottom: var(--rule);
+  }
+
+  .enterprise-app-question-wrap {
+    grid-template-columns: 1fr;
+    padding: var(--space-24);
+  }
+
+  .enterprise-app-input-wrap {
+    border-left: none;
+    padding-left: 0;
+  }
+}
+
+/* Final type lock: keep both fonts to three sizes after page-specific rules. */
+.label-caps,
+.label-sm,
+.label-md,
+.header-logo-name,
+.license-header-title,
+.login-field-label,
+.login-error-msg,
+.login-footer,
+.license-heading,
+.license-scroll-hint,
+.license-section-heading,
+.license-accept-btn,
+.license-decline-link,
+.card-foundry-name,
+.card-type-label,
+.card-date-line,
+.hud-stat-label,
+.specimen-pre-label,
+.specimen-char-info,
+.specimen-char-count,
+.specimen-tier-info,
+.specimen-upgrade-link,
+.upgrade-page-label,
+.tier-name,
+.tier-current-badge,
+.tier-select-btn,
+.upgrade-modal-title,
+.upgrade-modal-fine-print,
+.upgrade-modal-processing,
+.popup-title-text,
+.popup-violation-title,
+.sp-interest-upgrade-btn,
+.sp-interest-dismiss-btn,
+.enterprise-app-progress,
+.enterprise-app-wordcount,
+.enterprise-app-prev,
+.enterprise-app-next,
+.specimen-nav-btn,
+.specimen-nav-link,
+.about-modal-header,
+.co-topbar-logo,
+.co-topbar-cart,
+.co-field-label,
+.co-form-caption,
+.co-back-link,
+.co-tier-col-label,
+.co-step-disclaimer,
+.co-secure-badge,
+.co-review-label,
+.co-agree-label,
+.co-summary-legal,
+.co-summary-help,
+.enterprise-app-panel-header,
+.sp-emblem-item h3,
+.site-footer .footer-copy {
+  font-size: var(--type-licensed-caption);
+}
+
+body,
+input,
+textarea,
+select,
+button,
+.header-right,
+.login-input,
+.license-intro,
+.license-clause,
+.tier-features li,
+.upgrade-modal-line,
+.popup-violation-text,
+.error-body,
+.error-return-link,
+.sp-license-desc,
+.sp-interest-modal-body,
+.about-modal-intro,
+.enterprise-app-textarea,
+.enterprise-app-radio-label,
+.enterprise-app-checkbox-label,
+.enterprise-app-success-line,
+.enterprise-app-success-list li,
+.co-step-subtitle,
+.co-field-input,
+.co-tier-list,
+.co-review-value,
+.co-summary-line,
+.co-success-id-note,
+.sp-about-copy > p,
+.sp-emblem-item p {
+  font-size: var(--type-licensed-body);
+}
+
+.license-tier-name,
+.specimen-display,
+.upgrade-heading,
+.tier-price,
+.error-code,
+.enterprise-app-question,
+.enterprise-app-range-value,
+.co-page-heading,
+.co-tier-confirm-name,
+.co-processing-title,
+.co-success-title,
+.co-success-id,
+.sp-section-heading,
+.sp-glyph-char,
+.page-wordmark-rotated {
+  font-size: var(--type-licensed-display);
+}
+
+.ticker-time,
+.sp-glyph-caption,
+.page-wordmark-top,
+.page-wordmark-bottom,
+.co-summary-heading {
+  font-size: var(--type-mono-caption);
+}
+
+.ticker-label,
+.ticker-text,
+.tester-meta,
+.sp-section-label,
+.sp-redacted-box-text,
+.sp-redacted-caption,
+.enterprise-app-progress-node {
+  font-size: var(--type-mono-ui);
+}
+
+.sp-log-meta,
+.sp-log-empty,
+.sp-log-entry-header,
+.sp-log-entry-line,
+.sp-license-table td {
+  font-size: var(--type-mono-body);
 }

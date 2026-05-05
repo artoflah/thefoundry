@@ -24,22 +24,33 @@
   <div class="page-wrap">
     <div class="license-page-inner">
 
-      <p class="license-heading">Licensee Agreement</p>
-      <h1 class="license-tier-name js-tier-name">—</h1>
-      <p class="license-tier-name" style="font-size: 14px; letter-spacing: 0.2em; margin-bottom: 16px; opacity: 0.5;">TIER</p>
+      <section class="license-hero">
+        <div>
+          <p class="license-heading">Licensee Agreement</p>
+          <h1 class="license-tier-name js-tier-name">—</h1>
+        </div>
+        <dl class="license-meta">
+          <div><dt>Tier</dt><dd class="js-tier-name">—</dd></div>
+          <div><dt>Version</dt><dd>1.0.0</dd></div>
+          <div><dt>Status</dt><dd>Pending Acceptance</dd></div>
+        </dl>
+      </section>
 
-      <p class="license-intro">
-        This agreement governs the Licensee's use of Licensed™ typefaces under the
-        <span class="js-tier-name">—</span> license. Please read the full terms
-        before proceeding. You must scroll to the bottom of the agreement to accept.
-      </p>
-
-      <!-- Scroll hint -->
-      <p class="license-scroll-hint">Scroll to read full agreement — acceptance enabled at bottom.</p>
+      <div class="license-brief">
+        <p class="license-intro">
+          This agreement governs the Licensee's use of Licensed™ typefaces under the
+          <span class="js-tier-name">—</span> license. Please read the full terms
+          before proceeding.
+        </p>
+        <p class="license-scroll-hint">Scroll to the end of the agreement to enable acceptance.</p>
+      </div>
 
       <!-- Terms scrollbox -->
-      <div class="license-terms-box" id="license-terms-box" role="document" aria-label="License agreement text">
-        <!-- Injected by scripts.js -->
+      <div class="license-document-shell">
+        <div class="license-document-label">Official Agreement Text</div>
+        <div class="license-terms-box" id="license-terms-box" role="document" aria-label="License agreement text">
+          <!-- Injected by scripts.js -->
+        </div>
       </div>
 
       <!-- Accept / Decline -->
