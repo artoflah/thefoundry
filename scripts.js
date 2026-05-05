@@ -2219,9 +2219,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (page === 'login') {
     initLogin();
-    document.addEventListener('intro-complete', function () {
-      document.body.classList.add('login-anim-go');
-    }, { once: true });
   } else if (routes[page]) {
     routes[page]();
   }

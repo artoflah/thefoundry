@@ -331,41 +331,6 @@ body#login {
   text-align: right;
 }
 
-/* ── Keyframes ────────────────────────────────────────────────── */
-
-@keyframes login-fade-up {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-/* Field group fades in when intro-complete fires */
-body.login-anim-go .login-field-group {
-  animation: login-fade-up 800ms ease-out 0ms forwards;
-}
-
-body.login-anim-go .login-stage {
-  justify-content: flex-start;
-  gap: var(--space-24);
-  padding-top: 290px;
-}
-
-body.login-anim-go .login-copyright-block {
-  opacity: 0;
-}
-
-body.login-anim-go .login-footer {
-  opacity: 0;
-}
-
-body.login-anim-go .login-stage .login-field-group {
-  margin-top: 0;
-}
-
-@media (max-width: 600px) {
-  body.login-anim-go .login-stage {
-    padding-top: 240px;
-  }
-}
 /* ================================================================
    LICENSE PAGE
    ================================================================ */
