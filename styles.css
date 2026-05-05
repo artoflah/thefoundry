@@ -19,7 +19,7 @@
   --white: #ffffff;
   --red: #EE1111;
   --rule: 1px solid #000000;
-  --wordmark-w: 96px;
+  --wordmark-w: 88px;
 
   --space-2: 2px;
   --space-4: 4px;
@@ -688,7 +688,7 @@ body#license .page-wrap {
 .hud-card {
   position: fixed;
   top: 52px;
-  left: 96px;
+  left: var(--wordmark-w);
   z-index: 600;
   width: 200px;
   background: var(--white);
@@ -699,6 +699,32 @@ body#license .page-wrap {
 
 .hud-card.active {
   display: block;
+}
+
+body#specimen .hud-card {
+  width: 224px;
+  border-right: var(--rule);
+  border-bottom: var(--rule);
+  box-shadow: none;
+}
+
+body#specimen .hud-body {
+  padding: 10px var(--space-12);
+  gap: 7px;
+}
+
+body#specimen .hud-id-line {
+  color: var(--black);
+}
+
+body#specimen .hud-stat {
+  display: grid;
+  grid-template-columns: 76px 1fr;
+  gap: var(--space-8);
+}
+
+body#specimen .hud-stat-value {
+  text-align: right;
 }
 
 .hud-card-header {
@@ -802,12 +828,13 @@ body#license .page-wrap {
 
 .specimen-display {
   font-family: var(--font-licensed);
+  font-variation-settings: 'wght' 60, 'wdth' 80;
   font-size: 64px;
-  line-height: 1.1;
-  letter-spacing: -0.01em;
+  line-height: 1.02;
+  letter-spacing: 0;
   font-weight: 400;
   color: var(--black);
-  min-height: 200px;
+  min-height: 120px;
   outline: none;
   cursor: text;
   word-break: break-word;
@@ -821,8 +848,8 @@ body#license .page-wrap {
 }
 
 .specimen-char-bar {
-  margin-top: var(--space-40);
-  padding-top: var(--space-20);
+  margin-top: var(--space-20);
+  padding-top: var(--space-12);
   border-top: var(--rule);
   display: flex;
   align-items: center;
@@ -1170,11 +1197,9 @@ body#license .page-wrap {
   cursor: grabbing;
 }
 
-/* Traffic lights — left side, macOS order: close · min · max */
 .popup-window-btns {
   display: flex;
   align-items: center;
-  gap: 6px;
   flex-shrink: 0;
 }
 
@@ -1195,8 +1220,6 @@ body#license .page-wrap {
 }
 
 .popup-btn-close { background: #FF5F57; }
-.popup-btn-min   { background: #FFBD2E; }
-.popup-btn-max   { background: #28C840; }
 
 .popup-win-btn:hover { color: rgba(0,0,0,0.5); }
 
@@ -1244,33 +1267,6 @@ body#license .page-wrap {
   color: #888;
 }
 
-/* Minimize — collapse to titlebar only */
-.violation-popup.minimized .popup-camera-area,
-.violation-popup.minimized .popup-body {
-  display: none;
-}
-
-/* Maximize — fill most of viewport, strip rotation */
-.violation-popup.maximized {
-  width: 72vw !important;
-  top: 8vh !important;
-  left: 14vw !important;
-  transform: none !important;
-}
-
-/* Shake on failed close attempt (uses --rot var so rotation is preserved) */
-@keyframes popup-shake {
-  0%,100% { transform: rotate(var(--rot, 0deg)) translateX(0);    }
-  20%     { transform: rotate(var(--rot, 0deg)) translateX(-9px);  }
-  40%     { transform: rotate(var(--rot, 0deg)) translateX(8px);   }
-  60%     { transform: rotate(var(--rot, 0deg)) translateX(-5px);  }
-  80%     { transform: rotate(var(--rot, 0deg)) translateX(3px);   }
-}
-
-.violation-popup.popup-shaking {
-  animation: popup-shake 0.35s ease;
-}
-
 body.violation-alert-active {
   background: var(--red);
 }
@@ -1284,19 +1280,14 @@ body.violation-alert-active::after {
   background:
     repeating-linear-gradient(
       0deg,
-      rgba(238,17,17,0.18) 0,
-      rgba(238,17,17,0.18) 1px,
-      rgba(238,17,17,0.34) 1px,
-      rgba(238,17,17,0.34) 18px
+      rgba(238,17,17,0.16) 0,
+      rgba(238,17,17,0.16) 1px,
+      rgba(238,17,17,0.26) 1px,
+      rgba(238,17,17,0.26) 18px
     ),
-    rgba(238,17,17,0.28);
+    rgba(238,17,17,0.3);
   mix-blend-mode: multiply;
-  animation: violation-screen-pulse 900ms steps(2, end) infinite;
-}
-
-@keyframes violation-screen-pulse {
-  0%, 100% { opacity: 0.72; }
-  50%      { opacity: 0.95; }
+  opacity: 0.86;
 }
 
 /* Foundry-native system notices */
@@ -1336,10 +1327,6 @@ body.violation-alert-active::after {
   gap: var(--space-8);
 }
 
-.popup-window-btns {
-  gap: 4px;
-}
-
 .popup-win-btn {
   width: 14px;
   height: 14px;
@@ -1354,9 +1341,7 @@ body.violation-alert-active::after {
   color: var(--white);
 }
 
-.popup-btn-close,
-.popup-btn-min,
-.popup-btn-max {
+.popup-btn-close {
   background: var(--white);
 }
 
@@ -1714,6 +1699,7 @@ body#specimen .specimen-wrap {
   gap: var(--space-24);
   border-top: var(--rule);
   padding-top: var(--space-20);
+  padding-left: 244px;
   margin-bottom: var(--space-20);
   flex-shrink: 0;
 }
@@ -1736,8 +1722,10 @@ body#specimen .specimen-wrap {
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-columns: minmax(280px, 0.9fr) minmax(420px, 1.1fr);
-  gap: var(--space-32);
+  grid-template-columns: minmax(300px, 0.78fr) minmax(520px, 1.22fr);
+  gap: 0;
+  border: var(--rule);
+  background: var(--white);
 }
 
 .sp-glyph-detail,
@@ -1748,27 +1736,41 @@ body#specimen .specimen-wrap {
 .sp-glyph-detail {
   display: flex;
   flex-direction: column;
+  border-right: var(--rule);
 }
 
-.sp-glyph-detail-label {
-  margin-bottom: var(--space-12);
+.sp-glyph-detail-label,
+.sp-charmap-sheet-label {
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: var(--rule);
+  padding: 0 var(--space-12);
+  background: var(--black);
+  color: var(--white);
 }
 
 .sp-glyph-display-wrap {
   position: relative;
   flex: 1;
   min-height: 260px;
-  border-top: var(--rule);
   border-bottom: var(--rule);
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  padding: var(--space-24) var(--space-16) var(--space-32);
+  padding: var(--space-24) var(--space-16) var(--space-40);
   overflow: hidden;
+  background:
+    linear-gradient(to right, rgba(0, 0, 0, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.05) 1px, transparent 1px),
+    var(--white);
+  background-size: 36px 36px;
 }
 
 .sp-glyph-detail-char {
   font-family: var(--font-licensed);
+  font-variation-settings: 'wght' 60, 'wdth' 80;
   font-size: min(34vh, 280px);
   line-height: 0.72;
   color: var(--black);
@@ -1785,7 +1787,7 @@ body#specimen .specimen-wrap {
 
 .sp-glyph-guide--cap {
   top: 24%;
-  border-top: 1px dashed #aaa;
+  border-top: 1px dashed #777;
 }
 
 .sp-glyph-guide--baseline {
@@ -1797,14 +1799,24 @@ body#specimen .specimen-wrap {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 0;
-  border-bottom: var(--rule);
+  background: var(--white);
 }
 
 .sp-glyph-meta div {
   display: grid;
   grid-template-columns: 72px 1fr;
   gap: var(--space-12);
-  padding: var(--space-8) 0;
+  padding: 10px var(--space-12);
+  border-right: var(--rule);
+  border-bottom: var(--rule);
+}
+
+.sp-glyph-meta div:nth-child(2n) {
+  border-right: none;
+}
+
+.sp-glyph-meta div:nth-last-child(-n + 2) {
+  border-bottom: none;
 }
 
 .sp-glyph-meta dt,
@@ -1833,20 +1845,15 @@ body#specimen .specimen-wrap {
   flex-direction: column;
 }
 
-.sp-charmap-sheet-label {
-  margin-bottom: var(--space-12);
-}
-
 .sp-charmap-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(32px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(30px, 1fr));
   grid-auto-rows: 1fr;
   gap: 0;
-  border-top: var(--rule);
-  border-left: var(--rule);
   flex: 1;
   min-height: 0;
-  overflow: hidden;
+  overflow: clip;
+  background: var(--black);
 }
 
 .sp-glyph-cell {
@@ -1854,24 +1861,25 @@ body#specimen .specimen-wrap {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-right: var(--rule);
-  border-bottom: var(--rule);
+  border-right: 1px solid rgba(0, 0, 0, 0.34);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.34);
   border-top: none;
   border-left: none;
   cursor: default;
-  transition: background 0.1s, border-color 0.1s;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
   user-select: none;
   position: relative;
-  background: #f5f5f5;
+  background: var(--white);
   overflow: hidden;
   padding: 0;
   min-height: 0;
 }
 
-/* ── Available cell hover: black bg, white glyph, green checkmark ── */
+/* ── Available cell hover: black field, white glyph ── */
 .sp-glyph-cell.available:hover {
   background: var(--black);
   border-color: var(--black);
+  z-index: 2;
 }
 .sp-glyph-cell.available:hover .sp-glyph-char {
   color: var(--white);
@@ -1889,21 +1897,45 @@ body#specimen .specimen-wrap {
   border-color: var(--black);
 }
 
-/* ── Locked cell hover: red bg, white glyph, white caption ── */
+.sp-glyph-cell.is-active {
+  background: var(--black);
+  border-color: var(--black);
+  z-index: 2;
+}
+
+.sp-glyph-cell.is-active .sp-glyph-char {
+  color: var(--white);
+}
+
+.sp-glyph-cell.locked.is-active {
+  background: var(--red);
+  border-color: var(--red);
+}
+
+/* ── Locked cell hover: red field, white glyph ── */
+.sp-glyph-cell.locked {
+  background: #f3f3f3;
+}
+
 .sp-glyph-cell.locked:hover {
   background: var(--red);
   border-color: var(--red);
+  z-index: 2;
 }
 .sp-glyph-cell.locked:hover .sp-glyph-char {
   color: var(--white);
 }
-.sp-glyph-cell.locked:hover .sp-glyph-caption {
-  color: var(--white);
+
+.sp-glyph-cell:focus-visible {
+  outline: 2px solid var(--red);
+  outline-offset: -2px;
+  z-index: 3;
 }
 
 .sp-glyph-char {
   font-family: var(--font-licensed);
-  font-size: clamp(14px, 1.6vw, 24px);
+  font-variation-settings: 'wght' 60, 'wdth' 80;
+  font-size: clamp(13px, 1.05vw, 21px);
   line-height: 1;
   display: block;
   transform: translateY(-1px);
@@ -1911,21 +1943,6 @@ body#specimen .specimen-wrap {
 
 .sp-glyph-cell.available .sp-glyph-char { color: var(--black); }
 .sp-glyph-cell.locked    .sp-glyph-char { color: #d0d0d0; }
-
-.sp-glyph-caption {
-  font-size: 7px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--red);
-  font-family: monospace;
-  text-align: center;
-  line-height: 1.2;
-  max-width: 100%;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: clip;
-  padding: 0 2px;
-}
 
 /* ── § 02 About The Mark ────────────────────────────────────── */
 .specimen-nav {
@@ -2098,61 +2115,7 @@ body#specimen .specimen-wrap {
   color: #555;
 }
 
-/* ── § 02 Type Tester — reuses .specimen-* classes ──────────── */
-/* The .specimen-pre-label, .specimen-display, .specimen-char-bar
-   classes are declared in the earlier Specimen Page section above.
-   No additional rules needed here. */
-
-/* ── § 03 Usage Log ─────────────────────────────────────────── */
-.sp-log-meta {
-  font-size: 9px;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  color: #888;
-  margin-bottom: var(--space-32);
-  font-family: monospace;
-}
-
-.sp-log-empty {
-  font-size: 9px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: #ccc;
-  font-family: monospace;
-}
-
-.sp-log-entries {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
-
-.sp-log-entry {
-  padding: 12px 0;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.sp-log-entry:first-of-type { border-top: 1px solid #f0f0f0; }
-
-.sp-log-entry-header {
-  font-size: 9px;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  font-family: monospace;
-  margin-bottom: 5px;
-}
-
-.sp-log-entry-line {
-  font-size: 9px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  font-family: monospace;
-  color: #666;
-  padding-left: 16px;
-  line-height: 1.9;
-}
-
-/* ── § 04 License Information ───────────────────────────────── */
+/* ── § 03 License Information ───────────────────────────────── */
 .sp-license-cols {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -2286,7 +2249,9 @@ body#specimen .specimen-wrap {
   .ticker-sidebar { display: none; }
   body#specimen .specimen-wrap { padding-right: 0; }
   .sp-section-inner--charmap { height: auto; min-height: calc(100vh - 100px); }
+  .sp-charmap-head { padding-left: 0; }
   .sp-charmap-workbench { grid-template-columns: 1fr; }
+  .sp-glyph-detail { border-right: none; border-bottom: var(--rule); }
   .sp-glyph-display-wrap { min-height: 220px; }
   .sp-charmap-grid {
     grid-template-columns: repeat(auto-fill, minmax(28px, 1fr));
@@ -2653,62 +2618,13 @@ body#specimen .specimen-wrap {
 }
 
 /* ================================================================
-   HEADER — INLINE HUD LAYOUT (logged-in pages)
+   HEADER — LOGGED-IN PAGE LAYOUT
    ================================================================ */
 
 /* Header-left: logo link + inline HUD card */
 .header-left {
   display: flex;
   align-items: center;
-}
-
-/* Inline HUD card — upgrade page: side-by-side with border-left */
-.hud-card--inline {
-  position: static !important;
-  top: auto !important;
-  right: auto !important;
-  width: auto;
-  min-width: 160px;
-  border: none;
-  border-left: var(--rule);
-  border-bottom: none;
-  margin-left: var(--space-16);
-  padding-left: var(--space-16);
-  background: transparent;
-}
-
-.hud-card--inline.active {
-  display: block;
-}
-
-.hud-card--inline .hud-body {
-  padding: 4px 0;
-  gap: 4px;
-}
-
-/* Upgrade page header expands for inline HUD */
-body#upgrade .site-header {
-  height: auto;
-  min-height: 80px;
-  padding-top: var(--space-8);
-  padding-bottom: var(--space-8);
-}
-
-body#upgrade .page-wrap {
-  padding-top: 80px;
-}
-
-@media (max-width: 1100px) {
-  body#upgrade .site-header {
-    min-height: 52px;
-    height: 52px;
-    padding-top: 0;
-    padding-bottom: 0;
-  }
-
-  body#upgrade .page-wrap {
-    padding-top: 52px;
-  }
 }
 
 /* ================================================================
@@ -2814,15 +2730,12 @@ button,
 .co-processing-title,
 .co-success-title,
 .co-success-id,
-.sp-section-heading,
-.sp-glyph-char,
-.page-wordmark-rotated {
+.sp-section-heading {
   font-size: var(--type-licensed-display);
 }
 
 /* Monospace: 9 / 11 / 13 */
 .ticker-time,
-.sp-glyph-caption,
 .page-wordmark-top,
 .page-wordmark-bottom,
 .co-summary-heading {
@@ -2838,10 +2751,6 @@ button,
   font-size: var(--type-mono-ui);
 }
 
-.sp-log-meta,
-.sp-log-empty,
-.sp-log-entry-header,
-.sp-log-entry-line,
 .sp-license-table td {
   font-size: var(--type-mono-body);
 }
@@ -2871,30 +2780,54 @@ button,
 
 .page-wordmark {
   position: fixed;
-  left: 0; top: 0; bottom: 0;
+  left: 0;
+  top: 52px;
+  bottom: 0;
   width: var(--wordmark-w);
   border-right: 1px solid var(--black);
   background: var(--white);
-  z-index: 550;
+  z-index: 450;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 24px 0;
+  padding: var(--space-16) 0;
   overflow: hidden;
   pointer-events: none;
 }
+
+.page-wordmark::before,
+.page-wordmark::after {
+  content: '';
+  width: 100%;
+  border-top: var(--rule);
+  flex-shrink: 0;
+}
+
+.page-wordmark::before {
+  margin-bottom: var(--space-16);
+}
+
+.page-wordmark::after {
+  margin-top: var(--space-16);
+}
+
 .page-wordmark-top,
 .page-wordmark-bottom {
   font-family: monospace;
   font-size: 9px;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  line-height: 1.6;
+  line-height: 1.45;
   text-align: center;
   color: var(--black);
   flex-shrink: 0;
-  padding: 0 8px;
+  padding: 0 var(--space-8);
 }
+
+.page-wordmark-bottom {
+  color: #555;
+}
+
 .page-wordmark-center {
   flex: 1;
   display: flex;
@@ -2904,16 +2837,15 @@ button,
 }
 .page-wordmark-rotated {
   font-family: var(--font-licensed);
-  font-size: 80px;
+  font-size: 62px;
   font-weight: 400;
   color: var(--black);
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0;
   transform: rotate(-90deg);
   white-space: nowrap;
   line-height: 1;
   display: block;
-  padding-top: 15px;
 }
 
 /* Content offset for wordmark column */
@@ -3510,8 +3442,8 @@ select.co-field-input {
 }
 
 #section-tester {
-  padding-top: var(--space-64);
-  padding-bottom: var(--space-80);
+  padding-top: var(--space-48);
+  padding-bottom: var(--space-64);
 }
 
 .sp-section-inner,
@@ -3522,12 +3454,12 @@ select.co-field-input {
 }
 
 .tester-frame {
-  padding-top: var(--space-64);
-  padding-bottom: var(--space-64);
+  padding-top: var(--space-40);
+  padding-bottom: var(--space-40);
 }
 
 .specimen-char-bar {
-  margin-top: var(--space-24);
+  margin-top: var(--space-16);
 }
 
 .tier-card {
@@ -4098,14 +4030,11 @@ button,
 .co-processing-title,
 .co-success-title,
 .co-success-id,
-.sp-section-heading,
-.sp-glyph-char,
-.page-wordmark-rotated {
+.sp-section-heading {
   font-size: var(--type-licensed-display);
 }
 
 .ticker-time,
-.sp-glyph-caption,
 .page-wordmark-top,
 .page-wordmark-bottom,
 .co-summary-heading {
@@ -4122,10 +4051,6 @@ button,
   font-size: var(--type-mono-ui);
 }
 
-.sp-log-meta,
-.sp-log-empty,
-.sp-log-entry-header,
-.sp-log-entry-line,
 .sp-license-table td {
   font-size: var(--type-mono-body);
 }

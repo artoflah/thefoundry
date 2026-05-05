@@ -9,6 +9,13 @@
 // DATA — VALID IDs
 // ================================================================
 
+const TIER_IDS = {
+  basic:        'LCN-2026-0001-USUCK',
+  standard:     'LCN-2026-0005-MID',
+  professional: 'LCN-2026-0009-TRYING',
+  enterprise:   'LCN-2026-0013-SUCKER',
+};
+
 const VALID_IDS = {
   'LCN-2026-0001-USUCK': 'basic',
   'LCN-2026-0005-MID':   'standard',
@@ -106,7 +113,7 @@ const LICENSES = {
     <div class="license-text-section">
       <p class="license-section-heading">2. Permitted Use and Character Scope</p>
       <p class="license-clause"><span class="clause-num">2.1</span>Subject to full compliance with this Agreement, the Foundry grants the Licensee a non-exclusive, non-transferable, revocable license to use Licensed™ typefaces for personal, non-commercial purposes only. Permitted characters include: (a) all uppercase and lowercase alphabetical letters (A–Z, a–z); (b) standard punctuation marks including the period, comma, semicolon, colon, exclamation mark, question mark, single quotation mark, double quotation mark, hyphen-minus, and parentheses; and (c) numerals one (1) through five (5), inclusive. The numerals zero (0), six (6), seven (7), eight (8), and nine (9) are not available under the Standard Tier. The em dash character (—) is likewise unavailable. All restricted characters remain the exclusive property of the Foundry.</p>
-      <p class="license-clause"><span class="clause-num">2.2</span>The Licensee may produce no more than two hundred eighty (280) characters of typeset content per session. This limit is strictly enforced. The Foundry thanks the Licensee in advance for their measured use of permitted glyphs.</p>
+      <p class="license-clause"><span class="clause-num">2.2</span>The Licensee may produce no more than ninety (90) characters of typeset content per session. This limit is strictly enforced. The Foundry thanks the Licensee in advance for their measured use of permitted glyphs.</p>
     </div>
     <div class="license-text-section">
       <p class="license-section-heading">3. Biometric and Identity Verification</p>
@@ -148,7 +155,7 @@ const LICENSES = {
     <div class="license-text-section">
       <p class="license-section-heading">2. Permitted Use and Character Scope</p>
       <p class="license-clause"><span class="clause-num">2.1</span>Subject to full compliance with this Agreement, the Foundry grants the Licensee a non-exclusive, non-transferable, revocable license to use Licensed™ typefaces for personal, non-commercial purposes only. Permitted use includes: (a) all uppercase and lowercase alphabetical characters (A–Z, a–z); (b) all numerals (0–9); and (c) standard punctuation including the period, comma, semicolon, colon, exclamation mark, question mark, single and double quotation marks, hyphen-minus, and parentheses. Special characters, ligatures, alternate glyphs, diacritical marks, and characters outside the standard Latin character set remain unavailable under the Professional Tier.</p>
-      <p class="license-clause"><span class="clause-num">2.2</span>The Licensee may produce no more than one thousand (1,000) characters of typeset content per session. This limit is enforced by the system and cannot be overridden by any means.</p>
+      <p class="license-clause"><span class="clause-num">2.2</span>The Licensee may produce no more than one hundred (100) characters of typeset content per session. This limit is enforced by the system and cannot be overridden by any means.</p>
       <p class="license-clause"><span class="clause-num">2.3</span>The Licensee's declared typographic settings — including but not limited to font size, line-height, and tracking values — shall remain fixed for a minimum of thirty (30) days following any adjustment. Changes to these settings require written notice to the Foundry no fewer than fourteen (14) days prior to implementation. The Foundry reserves the right to deny any such change request without explanation.</p>
     </div>
     <div class="license-text-section">
@@ -322,6 +329,10 @@ function getTierFromStorage() {
 
 function getIDFromStorage() {
   return localStorage.getItem('user_id');
+}
+
+function getIDForTier(tier) {
+  return TIER_IDS[tier] || '';
 }
 
 function getViolationsFromStorage(tier) {
@@ -633,7 +644,6 @@ function spawnViolationPopup(type, data = {}, isSpawn = false, options = {}) {
 
   popup.style.left = x + 'px';
   popup.style.top  = y + 'px';
-  // Store rotation in CSS var so shake keyframe can include it
   popup.style.setProperty('--rot', rot + 'deg');
   popup.style.transform = `rotate(${rot}deg)`;
   popup.style.zIndex    = 9000 + popupCount;
@@ -643,13 +653,10 @@ function spawnViolationPopup(type, data = {}, isSpawn = false, options = {}) {
       <canvas class="popup-camera-canvas" width="${CAM_W}" height="${CAM_H}"></canvas>
     </div>`;
 
-  // macOS traffic-light order: close (red) · minimize (yellow) · maximize (green)
   popup.innerHTML = `
     <div class="popup-titlebar">
       <div class="popup-window-btns">
         <button class="popup-win-btn popup-btn-close" aria-label="close">×</button>
-        <button class="popup-win-btn popup-btn-min"   aria-label="minimize">−</button>
-        <button class="popup-win-btn popup-btn-max"   aria-label="maximize">+</button>
       </div>
       <span class="popup-title-text">FOUNDRY™ SYSTEM DIALOG</span>
     </div>
@@ -691,34 +698,7 @@ function spawnViolationPopup(type, data = {}, isSpawn = false, options = {}) {
 
   makeDraggable(popup);
 
-  // ── Traffic light button handlers ────────────────────────────────
-
-  // Minimize: toggle collapse to titlebar only
-  popup.querySelector('.popup-btn-min').addEventListener('click', () => {
-    popup.classList.toggle('minimized');
-  });
-
-  // Maximize: toggle fill-viewport mode
-  popup.querySelector('.popup-btn-max').addEventListener('click', () => {
-    popup.classList.toggle('maximized');
-  });
-
-  // Close: requires 3 presses — shakes on first two, closes on third
-  let closeAttempts = 0;
   popup.querySelector('.popup-btn-close').addEventListener('click', () => {
-    closeAttempts++;
-
-    if (closeAttempts < 3) {
-      // Shake and reset animation so it re-triggers on each press
-      popup.classList.remove('popup-shaking');
-      void popup.offsetWidth; // force reflow
-      popup.classList.add('popup-shaking');
-      popup.addEventListener('animationend', () => popup.classList.remove('popup-shaking'), { once: true });
-      return;
-    }
-
-    // Third press — actually close
-    const rect = popup.getBoundingClientRect();
     if (popup._stopRender) popup._stopRender();
     if (popup._videoEl)    popup._videoEl.srcObject = null;
     popup.remove();
@@ -748,13 +728,9 @@ function buildHUD() {
   const sessionChars = isEnterprise ? getSessionCharsFromStorage() : 0;
   const limitDisplay = tierData.charLimit === Infinity ? '∞' : tierData.charLimit;
 
-  // Check if logged-in header slot exists (specimen / upgrade pages)
-  const slot     = document.getElementById('hud-header-slot');
-  const isInline = !!slot;
-
   const hud = document.createElement('div');
   hud.id        = 'hud-card';
-  hud.className = `hud-card active${isInline ? ' hud-card--inline' : ''}`;
+  hud.className = 'hud-card active';
 
   // No logo / foundry wordmark. No <hr> dividers.
   // Starts directly with ID, then stats.
@@ -782,11 +758,7 @@ function buildHUD() {
     </div>
   `;
 
-  if (isInline) {
-    slot.appendChild(hud);
-  } else {
-    document.body.appendChild(hud);
-  }
+  document.body.appendChild(hud);
 }
 
 function updateHUD({ charCount, violations, sessionChars } = {}) {
@@ -911,12 +883,8 @@ function initLogin() {
     e.preventDefault();
     const val = input.value.trim().toUpperCase();
 
-    // Also check dynamically-purchased IDs stored in localStorage
-    const customIds = JSON.parse(localStorage.getItem('custom_ids') || '{}');
-    const allIds = Object.assign({}, VALID_IDS, customIds);
-
-    if (allIds[val]) {
-      const tier = allIds[val];
+    if (VALID_IDS[val]) {
+      const tier = VALID_IDS[val];
       localStorage.setItem('user_id', val);
       localStorage.setItem('user_tier', tier);
       // Reset violations for fresh session
@@ -1126,12 +1094,11 @@ function initSpecimen() {
     sessionChars,
   });
 
-  // Build long-scroll specimen sections (§01 charmap, §02 tester, §03 log, §04 license)
+  // Build long-scroll specimen sections (§01 charmap, §02 tester, §03 license)
   const _spUserId = getIDFromStorage() || '—';
   initTicker(_spUserId, tier);
   initAboutModal();
   buildCharMap(tier, tierData);
-  buildUsageLog(_spUserId, tierData.name);
   buildLicenseInfo(_spUserId, tier, tierData);
 }
 
@@ -1315,7 +1282,6 @@ function initTicker(userId, tier) {
   const SECTION_NAMES = {
     'section-charmap':   'CHARACTER MAP',
     'section-tester':    'TYPE TESTER',
-    'section-log':       'USAGE LOG',
     'section-license':   'LICENSE INFORMATION',
     'section-redacted':  '████████',
   };
@@ -1365,28 +1331,19 @@ function buildCharMap(tier, tierData) {
     return 'enterprise'; // & @ # $ %
   }
 
-  function charsFromRange(start, end) {
-    const chars = [];
-    for (let code = start; code <= end; code++) {
-      chars.push(String.fromCharCode(code));
-    }
-    return chars;
-  }
-
   function uniqueChars(chars) {
     return Array.from(new Set(chars));
   }
 
+  const glyphInventory =
+    '!"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]_`' +
+    'abcdefghijklmnopqrstuvwxyz{|}~¡§¨©«ª®¯°²³´·¸¹º»¿ÀÁÃÄÅÆÇÈÉÊËÌÍÎÏÐÒÑÓÔÕÖØÙÚÛÜÝÞß' +
+    'àáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿĀāĂăĄąĆćĉĊċČčĐđĒēĔĕĘęĞğĠġĨĩĪīĬĭİıĲĳĿŀŁłŃńň' +
+    'ŌōŎŏŐőŒœŘřŚśŞşŠšŢţŨũŪūŬŭŰűŸŹźŻżŽžǓǔȘșȚțȷˆˇ˘˙˚˛˜ḂḃḊḋḞḟṀṁṖṗṠṡṪṫẞỲỳ' +
+    '‐–—‘’‚“”„†‡•…′″‹›🄯';
+
   // Full visible glyph inventory shown in specimen-sheet order.
-  const glyphs = uniqueChars([
-    ...'!"#$%&\'()*+,.-./',
-    ...'0123456789:;<=>?',
-    ...'@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]_`',
-    ...'abcdefghijklmnopqrstuvwxyz{|}~',
-    ...charsFromRange(0x00A1, 0x00FF),
-    ...charsFromRange(0x0100, 0x017F),
-    '–', '—', '‘', '’', '“', '”', '‚', '„', '‹', '›', '…', '•',
-  ]);
+  const glyphs = uniqueChars(Array.from(glyphInventory));
 
   if (countEl) countEl.textContent = `Shown: ${glyphs.length} glyphs`;
 
@@ -1396,13 +1353,21 @@ function buildCharMap(tier, tierData) {
   let lockedHoverCount  = 0;
   let lockedHoverReset  = null;
   let interestShown     = false;
+  let activeGlyphCell   = null;
+  let firstGlyphCell    = null;
+  let preferredGlyphCell = null;
 
   function glyphCode(char) {
     return char.codePointAt(0).toString(16).toUpperCase().padStart(4, '0');
   }
 
-  function updateGlyphDetail(char, minRequiredTier, available) {
+  function updateGlyphDetail(char, minRequiredTier, available, sourceCell = null) {
     const code = glyphCode(char);
+    if (sourceCell) {
+      activeGlyphCell?.classList.remove('is-active');
+      activeGlyphCell = sourceCell;
+      activeGlyphCell.classList.add('is-active');
+    }
     if (detailChar) detailChar.textContent = char;
     if (detailUnicode) detailUnicode.textContent = `U+${code}`;
     if (detailHtml) detailHtml.textContent = `&#x${code};`;
@@ -1424,6 +1389,8 @@ function buildCharMap(tier, tierData) {
     cell.type = 'button';
     cell.className = `sp-glyph-cell ${avail ? 'available' : 'locked'}`;
     cell.setAttribute('aria-label', `Glyph ${char}, ${avail ? 'available' : `${TIER_ABBR[mt]} required`}`);
+    if (!firstGlyphCell) firstGlyphCell = cell;
+    if (char === 'a') preferredGlyphCell = cell;
 
     const glyph = document.createElement('span');
     glyph.className = 'sp-glyph-char';
@@ -1431,12 +1398,12 @@ function buildCharMap(tier, tierData) {
     cell.appendChild(glyph);
 
     if (avail) {
-      cell.addEventListener('mouseenter', () => updateGlyphDetail(char, mt, avail));
-      cell.addEventListener('focus', () => updateGlyphDetail(char, mt, avail));
-      cell.addEventListener('click', () => updateGlyphDetail(char, mt, avail));
+      cell.addEventListener('mouseenter', () => updateGlyphDetail(char, mt, avail, cell));
+      cell.addEventListener('focus', () => updateGlyphDetail(char, mt, avail, cell));
+      cell.addEventListener('click', () => updateGlyphDetail(char, mt, avail, cell));
     } else {
       cell.addEventListener('mouseenter', () => {
-        updateGlyphDetail(char, mt, avail);
+        updateGlyphDetail(char, mt, avail, cell);
         const now  = Date.now();
         const last = hoverTimestamps.get(char) || 0;
         if (now - last < HOVER_THROTTLE) return;
@@ -1450,15 +1417,15 @@ function buildCharMap(tier, tierData) {
         if (lockedHoverReset) clearTimeout(lockedHoverReset);
         lockedHoverReset = setTimeout(() => { lockedHoverCount = 0; }, 30000);
       });
-      cell.addEventListener('focus', () => updateGlyphDetail(char, mt, avail));
-      cell.addEventListener('click', () => updateGlyphDetail(char, mt, avail));
+      cell.addEventListener('focus', () => updateGlyphDetail(char, mt, avail, cell));
+      cell.addEventListener('click', () => updateGlyphDetail(char, mt, avail, cell));
     }
 
     grid.appendChild(cell);
   }
 
   const initialChar = glyphs.includes('a') ? 'a' : glyphs[0];
-  updateGlyphDetail(initialChar, minTier(initialChar), tierIdx >= TIER_ORDER.indexOf(minTier(initialChar)));
+  updateGlyphDetail(initialChar, minTier(initialChar), tierIdx >= TIER_ORDER.indexOf(minTier(initialChar)), preferredGlyphCell || firstGlyphCell);
 }
 
 function showGlyphInterestModal() {
@@ -1473,96 +1440,6 @@ function showGlyphInterestModal() {
       if (tickerAdd) tickerAdd('UPGRADE PROMPT DISMISSED — INCIDENT LOGGED', 'red', true);
     }, { once: true });
   }
-}
-
-// ================================================================
-// SPECIMEN — USAGE LOG
-// ================================================================
-
-function buildUsageLog(userId, tierName) {
-  const metaEl    = document.getElementById('log-meta');
-  const entriesEl = document.getElementById('log-entries');
-  const emptyEl   = document.getElementById('log-empty');
-  if (!entriesEl) return;
-
-  if (metaEl) metaEl.textContent = `MEMBER: ${userId} / TIER: ${tierName}`;
-
-  // Load persisted log
-  let log = [];
-  try { log = JSON.parse(localStorage.getItem('usage_log') || '[]'); } catch (e) { log = []; }
-
-  const MAX_VISIBLE = 50;
-
-  function renderLog() {
-    const visible = log.slice(-MAX_VISIBLE);
-    if (emptyEl) emptyEl.style.display = visible.length ? 'none' : '';
-    entriesEl.querySelectorAll('.sp-log-entry').forEach(el => el.remove());
-
-    visible.forEach(entry => {
-      const div = document.createElement('div');
-      div.className = 'sp-log-entry';
-
-      const header = document.createElement('div');
-      header.className = 'sp-log-entry-header';
-      header.textContent = `VIOLATION #${entry.num} — ${entry.time}`;
-      div.appendChild(header);
-
-      const lines = [
-        `ATTEMPTED: ${entry.attempted}`,
-        entry.tierReq ? `TIER REQUIRED: ${entry.tierReq}` : null,
-        'INCIDENT: LOGGED',
-        entry.num >= 3 ? 'DEVICE FLAGGED.' : null,
-        entry.num >= 5 ? 'FLAGGED FOR REVIEW.' : null,
-      ].filter(Boolean);
-
-      lines.forEach(line => {
-        const p = document.createElement('div');
-        p.className = 'sp-log-entry-line';
-        p.textContent = line;
-        div.appendChild(p);
-      });
-
-      entriesEl.appendChild(div);
-    });
-  }
-
-  renderLog();
-
-  // Listen for new violations
-  document.addEventListener('violation', (e) => {
-    const { type, data } = e.detail;
-    const time = new Date().toTimeString().slice(0, 8);
-
-    let attempted = '—';
-    let tierReq   = null;
-
-    if (data && data.char) {
-      attempted = `"${data.char}"`;
-    } else if (type === 'char_limit' || type === 'session_limit') {
-      attempted = `LIMIT (${(data && data.limit) || '?'} chars)`;
-    } else if (type === 'copy_attempt') {
-      attempted = 'COPY / EXPORT';
-      tierReq = 'ENTERPRISE';
-    } else if (type === 'downgrade_prohibited') {
-      attempted = 'LICENSE DOWNGRADE';
-    } else if (type === 'biometric_refusal') {
-      attempted = 'BIOMETRIC REFUSAL';
-    }
-
-    const entry = { num: log.length + 1, time, type, attempted, tierReq };
-    log.push(entry);
-
-    try {
-      const capped = log.slice(-200);
-      localStorage.setItem('usage_log', JSON.stringify(capped));
-      log = capped;
-    } catch (err) { /* storage full */ }
-
-    renderLog();
-    // Scroll usage log into partial view to acknowledge
-    const sec = document.getElementById('section-log');
-    if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  });
 }
 
 // ================================================================
@@ -1743,6 +1620,7 @@ function openUpgradeModal(fromTier, toTier, fee) {
     `;
 
     document.getElementById('modal-return').addEventListener('click', () => {
+      localStorage.setItem('user_id', getIDForTier(toTier));
       localStorage.setItem('user_tier', toTier);
       localStorage.setItem(`violations_remaining_${toTier}`, TIERS[toTier].violationsAllowed);
       overlay.remove();
@@ -1756,9 +1634,6 @@ function openUpgradeModal(fromTier, toTier, fee) {
 // ================================================================
 
 function initEnterpriseApplication() {
-  const tier = getTierFromStorage();
-  if (tier) buildHUD();
-
   const logoEl = document.getElementById('header-logo');
   if (logoEl) logoEl.innerHTML = getLogo(28);
 
@@ -1983,6 +1858,7 @@ function initEnterpriseApplication() {
     }, 400);
 
     // Update tier immediately — the review is theater
+    localStorage.setItem('user_id', getIDForTier('enterprise'));
     localStorage.setItem('user_tier', 'enterprise');
     localStorage.setItem('violations_remaining_enterprise', TIERS.enterprise.violationsAllowed);
 
@@ -2150,8 +2026,8 @@ function initCheckout() {
   if (tierConfirmBlock) {
     const inclusions = {
       basic:        ['Lowercase a–z and period only', '80 chars per session', '1 violation permitted', 'Personal use only', 'No copy or export'],
-      standard:     ['Full alphabet + punctuation', '280 chars per session', '3 violations permitted', 'Numbers 1–5 included', 'Email and print permitted'],
-      professional: ['Full alphabet 0–9 + punctuation', '1,000 chars per session', '2 violations permitted', 'Print and digital use', 'Standard OS/web embedding'],
+      standard:     ['Full alphabet + punctuation', '90 chars per session', '3 violations permitted', 'Numbers 1–5 included', 'Email and print permitted'],
+      professional: ['Full alphabet 0–9 + punctuation', '100 chars per session', '2 violations permitted', 'Print and digital use', 'Standard OS/web embedding'],
     };
     const exclusions = {
       basic:        ['Uppercase letters', 'All numerals', 'Most punctuation', 'Commercial use', 'Redistribution'],
@@ -2238,15 +2114,7 @@ function initCheckout() {
 
     setTimeout(() => {
       clearInterval(dotInt);
-      // Generate new ID
-      const chars  = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
-      const suffix = Array.from({ length: 5 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
-      const newId  = `LCN-2026-NEW-${suffix}`;
-
-      // Persist to localStorage so login page accepts it
-      const stored = JSON.parse(localStorage.getItem('custom_ids') || '{}');
-      stored[newId] = tierKey;
-      localStorage.setItem('custom_ids', JSON.stringify(stored));
+      const newId = getIDForTier(tierKey);
 
       // Set active session
       localStorage.setItem('user_id', newId);
@@ -2257,7 +2125,7 @@ function initCheckout() {
       panel.innerHTML = `
         <div class="co-success-screen">
           <div class="co-success-title">ORDER COMPLETE.</div>
-          <div class="co-success-sub">Your membership ID is being generated.</div>
+          <div class="co-success-sub">Your ${tierData.name} membership ID has been assigned.</div>
           <div class="co-success-id-block">
             <div class="co-success-id-label">MEMBERSHIP ID</div>
             <div class="co-success-id">${newId}</div>
