@@ -1,52 +1,20 @@
 /* ================================================================
-   THE FOUNDRY(TM) — intro.js v4
-   Canvas pattern-mask intro for login.html.
-
-   Emulates the Tooooools.app "patterns" effect by sampling fdrylogo.svg
-   as a mask, then re-rendering the same regular pattern grid while
-   animating grid density upward. As density rises, cells get smaller
-   and more emblems appear.
-
-   Plays once per session (sessionStorage 'intro_played').
-   ?intro=true force-plays. Any keydown/click skips immediately.
-   Fires CustomEvent 'intro-complete' on finish or skip.
+   THE FOUNDRY(TM) — intro.js
+   Minimal registry preloader for login.html.
    ================================================================ */
 
 (function () {
   'use strict';
 
-  var STAGE = 300;
-  var MASK_SZ = 900;
-  var DPR = Math.min(window.devicePixelRatio || 1, 2);
-
-  var SRCS = [
-    'assets/emblem-04.svg',
-    'assets/emblem-12.svg',
-    'assets/emblem-13.svg',
-    'assets/emblem-14.svg',
-  ];
-
-  var THRESHOLD = 178;
-  var DENSITY_START = 7;
-  var DENSITY_END = 78;
-  var DENSITY_DURATION = 7500;
-  var T = {
-    resolve: 6800,
-    fadeOut: 7800,
-    done: 8600,
-  };
-
-  var maskPx = null;
-  var emblems = [];
   var overlay = null;
-  var stageEl = null;
-  var canvas = null;
-  var ctx = null;
-  var plainEl = null;
-  var raf = 0;
   var timers = [];
-  var startedAt = 0;
+  var intervals = [];
   var done = false;
+
+  var ROWS = [
+    ['0', '2', '4', '7', '9'],
+    ['0', '3', '5', '6', '9'],
+  ];
 
   function shouldPlay() {
     if (new URLSearchParams(window.location.search).get('intro') === 'true') return true;
@@ -58,233 +26,107 @@
     document.dispatchEvent(new CustomEvent('intro-complete'));
   }
 
-  function sched(fn, ms) {
+  function schedule(fn, ms) {
     timers.push(setTimeout(fn, ms));
   }
 
-  function abort() {
+  function finish() {
     if (done) return;
     done = true;
     timers.forEach(clearTimeout);
-    cancelAnimationFrame(raf);
-    document.removeEventListener('keydown', abort, true);
-    document.removeEventListener('click', abort, true);
+    intervals.forEach(clearInterval);
+    document.removeEventListener('keydown', finish, true);
+    document.removeEventListener('click', finish, true);
     if (overlay) overlay.remove();
     fireComplete();
   }
 
-  function easeOutCubic(t) {
-    return 1 - Math.pow(1 - t, 3);
-  }
-
-  function easeInOutCubic(t) {
-    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-  }
-
-  function clamp(n, lo, hi) {
-    return Math.max(lo, Math.min(hi, n));
-  }
-
-  function hash01(n) {
-    var x = Math.sin(n * 12.9898) * 43758.5453;
-    return x - Math.floor(x);
-  }
-
-  function maskBright(mx, my) {
-    var x = clamp(Math.round(mx), 0, MASK_SZ - 1);
-    var y = clamp(Math.round(my), 0, MASK_SZ - 1);
-    var i = (y * MASK_SZ + x) * 4;
-    return (maskPx[i] + maskPx[i + 1] + maskPx[i + 2]) / 3;
-  }
-
-  function loadImage(src) {
-    return new Promise(function (resolve) {
-      var img = new Image();
-      img.onload = function () { resolve(img); };
-      img.onerror = function () { resolve(null); };
-      img.src = src;
-    });
-  }
-
-  function buildMask() {
-    return new Promise(function (resolve) {
-      var c = document.createElement('canvas');
-      c.width = MASK_SZ;
-      c.height = MASK_SZ;
-      var cctx = c.getContext('2d');
-      var img = new Image();
-
-      img.onload = function () {
-        cctx.fillStyle = '#fff';
-        cctx.fillRect(0, 0, MASK_SZ, MASK_SZ);
-        cctx.drawImage(img, 0, 0, MASK_SZ, MASK_SZ);
-        try {
-          maskPx = cctx.getImageData(0, 0, MASK_SZ, MASK_SZ).data;
-        } catch (e) {
-          maskPx = null;
-        }
-        resolve();
-      };
-
-      img.onerror = function () {
-        maskPx = null;
-        resolve();
-      };
-
-      img.src = 'assets/fdrylogo.svg';
-    });
-  }
-
   function injectStyles() {
-    var half = STAGE / 2;
-    var el = document.createElement('style');
-    el.textContent =
-      '#intro-overlay{position:fixed;inset:0;background:#fff;z-index:9000;overflow:hidden;}' +
-      '#fdry-stage{position:fixed;width:' + STAGE + 'px;height:' + STAGE + 'px;' +
-        'top:calc(50vh - ' + half + 'px);left:calc(50% - ' + half + 'px);}' +
-      '#fdry-pattern{position:absolute;inset:0;width:100%;height:100%;opacity:1;' +
-        'transition:opacity 700ms ease;}' +
-      '#fdry-plain{position:absolute;inset:0;width:100%;height:100%;opacity:0;' +
-        'will-change:opacity;pointer-events:none;transition:opacity 700ms ease;}';
-    document.head.appendChild(el);
+    var style = document.createElement('style');
+    style.textContent =
+      '#intro-overlay{position:fixed;inset:0;z-index:9000;background:#fff;color:#000;overflow:hidden;' +
+        'font-family:monospace;letter-spacing:.16em;text-transform:uppercase;}' +
+      '#intro-overlay::before{content:"";position:absolute;left:0;right:0;top:0;border-top:6px solid #351c22;}' +
+      '#intro-overlay::after{content:"";position:absolute;inset:0;background:#000;transform:translateY(100%);' +
+        'transition:transform 760ms cubic-bezier(.76,0,.24,1);}' +
+      '#intro-overlay.intro-wipe::after{transform:translateY(0);}' +
+      '#intro-overlay.intro-clear{background:#000;transition:opacity 520ms ease;opacity:0;}' +
+      '.intro-top{position:absolute;top:13vh;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;' +
+        'gap:9px;font-size:15px;color:#9a9a9a;}' +
+      '.intro-number-row{display:grid;grid-template-columns:repeat(5,24px);gap:22px;justify-content:center;}' +
+      '.intro-number-row span{display:block;text-align:center;transition:color 160ms ease,transform 160ms ease;}' +
+      '.intro-number-row span.is-hot{color:#000;transform:translateY(-2px);}' +
+      '.intro-lockup{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;' +
+        'flex-direction:column;align-items:center;gap:18px;text-align:center;}' +
+      '.intro-logo{width:70px;height:70px;opacity:0;transform:scale(.92);transition:opacity 620ms ease,transform 620ms ease;}' +
+      '.intro-title{font-family:var(--font-licensed);font-size:clamp(42px,7vw,108px);line-height:.9;letter-spacing:0;' +
+        'font-variation-settings:"wght" 60,"wdth" 80;clip-path:inset(0 100% 0 0);transition:clip-path 900ms cubic-bezier(.76,0,.24,1);}' +
+      '.intro-subtitle{font-size:10px;line-height:1.8;color:#777;opacity:0;transform:translateY(6px);' +
+        'transition:opacity 520ms ease,transform 520ms ease;}' +
+      '.intro-footer{position:absolute;left:32px;right:32px;bottom:30px;display:flex;justify-content:space-between;' +
+        'font-size:9px;color:#8a8a8a;}' +
+      '#intro-overlay.intro-mark .intro-logo{opacity:1;transform:scale(1);}' +
+      '#intro-overlay.intro-title-on .intro-title{clip-path:inset(0 0 0 0);}' +
+      '#intro-overlay.intro-title-on .intro-subtitle{opacity:1;transform:translateY(0);}' +
+      '@media (max-width:600px){.intro-top{top:11vh}.intro-number-row{gap:12px}.intro-footer{left:16px;right:16px;' +
+        'bottom:18px;display:block;line-height:1.8}.intro-logo{width:58px;height:58px}}';
+    document.head.appendChild(style);
+  }
+
+  function numberRows() {
+    return ROWS.map(function (row, rowIndex) {
+      return '<div class="intro-number-row" data-row="' + rowIndex + '">' +
+        row.map(function (digit) { return '<span>' + digit + '</span>'; }).join('') +
+      '</div>';
+    }).join('');
   }
 
   function buildDOM() {
     overlay = document.createElement('div');
     overlay.id = 'intro-overlay';
-
-    stageEl = document.createElement('div');
-    stageEl.id = 'fdry-stage';
-
-    canvas = document.createElement('canvas');
-    canvas.id = 'fdry-pattern';
-    canvas.width = Math.round(STAGE * DPR);
-    canvas.height = Math.round(STAGE * DPR);
-    ctx = canvas.getContext('2d');
-    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-
-    plainEl = document.createElement('img');
-    plainEl.id = 'fdry-plain';
-    plainEl.src = 'assets/fdrylogo.svg';
-    plainEl.setAttribute('aria-hidden', 'true');
-
-    stageEl.appendChild(canvas);
-    stageEl.appendChild(plainEl);
-    overlay.appendChild(stageEl);
+    overlay.innerHTML =
+      '<div class="intro-top" aria-hidden="true">' + numberRows() + '</div>' +
+      '<div class="intro-lockup">' +
+        '<img class="intro-logo" src="assets/fdrylogo.svg" alt="">' +
+        '<div class="intro-title">FDRY</div>' +
+        '<div class="intro-subtitle">Member access registry / Licensed grotesque</div>' +
+      '</div>' +
+      '<div class="intro-footer" aria-hidden="true">' +
+        '<span>Registry boot sequence</span>' +
+        '<span>Identity verification pending</span>' +
+      '</div>';
     document.body.appendChild(overlay);
   }
 
-  function drawCell(imgIndex, x, y, w, h, alpha) {
-    var img = emblems[imgIndex % emblems.length];
-    ctx.save();
-    ctx.globalAlpha = alpha;
-
-    if (img) {
-      ctx.drawImage(img, x, y, w, h);
-    } else {
-      ctx.fillStyle = ['#b10a18', '#4e7c93', '#fbb03b', '#1b1464'][imgIndex % 4];
-      ctx.fillRect(x, y, w, h);
-    }
-
-    ctx.restore();
-  }
-
-  function getDensity(t) {
-    if (t < 120) return 0;
-    var k = clamp((t - 120) / DENSITY_DURATION, 0, 1);
-    return DENSITY_START + (DENSITY_END - DENSITY_START) * easeInOutCubic(k);
-  }
-
-  function drawPatternGrid(t) {
-    if (!maskPx) return;
-
-    var density = getDensity(t);
-    if (density <= 0) return;
-
-    var cellBase = STAGE / density;
-    var cols = Math.ceil(STAGE / cellBase);
-    var rows = Math.ceil(STAGE / cellBase);
-    var cellW = STAGE / cols;
-    var cellH = STAGE / rows;
-    var fade = easeOutCubic(clamp((t - 120) / 520, 0, 1));
-
-    for (var row = 0; row < rows; row++) {
-      for (var col = 0; col < cols; col++) {
-        var x = col * cellW;
-        var y = row * cellH;
-        var mx = Math.floor(x / STAGE * MASK_SZ);
-        var my = Math.floor(y / STAGE * MASK_SZ);
-        var b = maskBright(mx, my);
-
-        if (b >= THRESHOLD) continue;
-
-        var seed = col * 17.17 + row * 31.31;
-        var imgIndex = Math.floor(hash01(seed) * emblems.length);
-        var alpha = fade * (0.72 + hash01(seed * 2.7) * 0.28);
-
-        drawCell(imgIndex, x, y, cellW, cellH, alpha);
-      }
-    }
-  }
-
-  function render(now) {
-    if (done) return;
-    var t = now - startedAt;
-
-    ctx.clearRect(0, 0, STAGE, STAGE);
-    drawPatternGrid(t);
-
-    raf = requestAnimationFrame(render);
-  }
-
-  function runSequence() {
-    document.addEventListener('keydown', abort, true);
-    document.addEventListener('click', abort, true);
-
-    startedAt = performance.now();
-    raf = requestAnimationFrame(render);
-
-    sched(function () {
-      if (done) return;
-      plainEl.style.opacity = '0.92';
-    }, T.resolve);
-
-    sched(function () {
-      if (done) return;
-      canvas.style.opacity = '0';
-      plainEl.style.opacity = '0';
-    }, T.fadeOut);
-
-    sched(function () {
-      if (done) return;
-      done = true;
-      cancelAnimationFrame(raf);
-      document.removeEventListener('keydown', abort, true);
-      document.removeEventListener('click', abort, true);
-      overlay.remove();
-      fireComplete();
-    }, T.done);
+  function runNumbers() {
+    var cells = Array.from(overlay.querySelectorAll('.intro-number-row span'));
+    var tick = 0;
+    intervals.push(setInterval(function () {
+      tick++;
+      cells.forEach(function (cell, i) {
+        var n = (Number(cell.textContent) + 1 + ((i + tick) % 3)) % 10;
+        cell.textContent = String(n);
+        cell.classList.toggle('is-hot', (i + tick) % 4 === 0);
+      });
+    }, 90));
   }
 
   function run() {
-    Promise.all([buildMask(), Promise.all(SRCS.map(loadImage))]).then(function (results) {
-      if (done) return;
-      emblems = results[1].filter(Boolean);
-      injectStyles();
-      buildDOM();
-      requestAnimationFrame(function () {
-        requestAnimationFrame(function () {
-          if (!done) runSequence();
-        });
-      });
-    });
+    document.addEventListener('keydown', finish, true);
+    document.addEventListener('click', finish, true);
+    injectStyles();
+    buildDOM();
+    runNumbers();
+
+    schedule(function () { overlay.classList.add('intro-mark'); }, 260);
+    schedule(function () { overlay.classList.add('intro-title-on'); }, 740);
+    schedule(function () { overlay.classList.add('intro-wipe'); }, 2100);
+    schedule(function () { overlay.classList.add('intro-clear'); }, 2820);
+    schedule(finish, 3360);
   }
 
   document.addEventListener('DOMContentLoaded', function () {
-    if (shouldPlay()) {
-      run();
-    } else {
-      fireComplete();
-    }
+    if (shouldPlay()) run();
+    else fireComplete();
   });
 }());

@@ -730,7 +730,7 @@ function buildHUD() {
 
   const hud = document.createElement('div');
   hud.id        = 'hud-card';
-  hud.className = 'hud-card active';
+  hud.className = 'hud-card';
 
   // No logo / foundry wordmark. No <hr> dividers.
   // Starts directly with ID, then stats.
@@ -758,6 +758,33 @@ function buildHUD() {
     </div>
   `;
 
+  const slot = document.getElementById('hud-nav-slot');
+  const toggle = document.getElementById('hud-toggle');
+
+  if (slot && toggle) {
+    slot.appendChild(hud);
+
+    function setOpen(isOpen) {
+      slot.classList.toggle('is-open', isOpen);
+      toggle.setAttribute('aria-expanded', String(isOpen));
+    }
+
+    toggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      setOpen(!slot.classList.contains('is-open'));
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!slot.contains(e.target)) setOpen(false);
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') setOpen(false);
+    });
+    return;
+  }
+
+  hud.classList.add('active');
   document.body.appendChild(hud);
 }
 
@@ -2152,9 +2179,9 @@ function initWordmark() {
   wm.className = 'page-wordmark';
   wm.setAttribute('aria-hidden', 'true');
   wm.innerHTML = `
-    <div class="page-wordmark-top">LICENSED™<br>GROTESQUE<br>REGULAR<br>V.1.0.0</div>
+    <div class="page-wordmark-top">FDRY™<br>SPECIMEN<br>REGISTRY<br>V.1.0.0</div>
     <div class="page-wordmark-center">
-      <span class="page-wordmark-rotated">LICENSED</span>
+      <span class="page-wordmark-rotated">FDRY</span>
     </div>
     <div class="page-wordmark-bottom">© THE<br>FOUNDRY™<br>2026<br>ALL RIGHTS<br>RESERVED.</div>
   `;
