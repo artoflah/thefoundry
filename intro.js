@@ -1,6 +1,6 @@
 /* ================================================================
    THE FOUNDRY(TM) — intro.js
-   Minimal registry preloader for login.html.
+   White emblem preloader for login.html.
    ================================================================ */
 
 (function () {
@@ -8,12 +8,21 @@
 
   var overlay = null;
   var timers = [];
-  var intervals = [];
   var done = false;
 
-  var ROWS = [
-    ['0', '2', '4', '7', '9'],
-    ['0', '3', '5', '6', '9'],
+  var EMBLEMS = [
+    { src: 'assets/emblem-04.svg', cls: 'intro-mark--a' },
+    { src: 'assets/emblem-12.svg', cls: 'intro-mark--b' },
+    { src: 'assets/emblem-13.svg', cls: 'intro-mark--c' },
+    { src: 'assets/emblem-14.svg', cls: 'intro-mark--d' },
+  ];
+
+  var PHASES = [
+    { letter: 'F', marks: [{ i: 0, pos: 'top-center', show: true }] },
+    { letter: 'D', marks: [{ i: 0, pos: 'top-center', show: true }, { i: 1, pos: 'bottom-center', show: true }] },
+    { letter: 'R', marks: [{ i: 0, pos: 'top-left', show: true }, { i: 1, pos: 'bottom-right', show: true }] },
+    { letter: 'Y', marks: [{ i: 2, pos: 'left-center', show: true }, { i: 3, pos: 'right-center', show: true }] },
+    { letter: 'FDRY', marks: [{ i: 0, pos: 'top-right', show: true }, { i: 1, pos: 'bottom-left', show: true }, { i: 2, pos: 'left-center', show: true }, { i: 3, pos: 'right-center', show: true }] },
   ];
 
   function shouldPlay() {
@@ -34,7 +43,6 @@
     if (done) return;
     done = true;
     timers.forEach(clearTimeout);
-    intervals.forEach(clearInterval);
     document.removeEventListener('keydown', finish, true);
     document.removeEventListener('click', finish, true);
     if (overlay) overlay.remove();
@@ -45,84 +53,122 @@
     var style = document.createElement('style');
     style.textContent =
       '#intro-overlay{position:fixed;inset:0;z-index:9000;background:#fff;color:#000;overflow:hidden;' +
-        'font-family:monospace;letter-spacing:.16em;text-transform:uppercase;}' +
-      '#intro-overlay::before{content:"";position:absolute;left:0;right:0;top:0;border-top:6px solid #351c22;}' +
-      '#intro-overlay::after{content:"";position:absolute;inset:0;background:#000;transform:translateY(100%);' +
-        'transition:transform 760ms cubic-bezier(.76,0,.24,1);}' +
-      '#intro-overlay.intro-wipe::after{transform:translateY(0);}' +
-      '#intro-overlay.intro-clear{background:#000;transition:opacity 520ms ease;opacity:0;}' +
-      '.intro-top{position:absolute;top:13vh;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;' +
-        'gap:9px;font-size:15px;color:#9a9a9a;}' +
-      '.intro-number-row{display:grid;grid-template-columns:repeat(5,24px);gap:22px;justify-content:center;}' +
-      '.intro-number-row span{display:block;text-align:center;transition:color 160ms ease,transform 160ms ease;}' +
-      '.intro-number-row span.is-hot{color:#000;transform:translateY(-2px);}' +
-      '.intro-lockup{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;' +
-        'flex-direction:column;align-items:center;gap:18px;text-align:center;}' +
-      '.intro-logo{width:70px;height:70px;opacity:0;transform:scale(.92);transition:opacity 620ms ease,transform 620ms ease;}' +
-      '.intro-title{font-family:var(--font-licensed);font-size:clamp(42px,7vw,108px);line-height:.9;letter-spacing:0;' +
-        'font-variation-settings:"wght" 60,"wdth" 80;clip-path:inset(0 100% 0 0);transition:clip-path 900ms cubic-bezier(.76,0,.24,1);}' +
-      '.intro-subtitle{font-size:10px;line-height:1.8;color:#777;opacity:0;transform:translateY(6px);' +
-        'transition:opacity 520ms ease,transform 520ms ease;}' +
-      '.intro-footer{position:absolute;left:32px;right:32px;bottom:30px;display:flex;justify-content:space-between;' +
-        'font-size:9px;color:#8a8a8a;}' +
-      '#intro-overlay.intro-mark .intro-logo{opacity:1;transform:scale(1);}' +
-      '#intro-overlay.intro-title-on .intro-title{clip-path:inset(0 0 0 0);}' +
-      '#intro-overlay.intro-title-on .intro-subtitle{opacity:1;transform:translateY(0);}' +
-      '@media (max-width:600px){.intro-top{top:11vh}.intro-number-row{gap:12px}.intro-footer{left:16px;right:16px;' +
-        'bottom:18px;display:block;line-height:1.8}.intro-logo{width:58px;height:58px}}';
+        'font-family:monospace;letter-spacing:.16em;text-transform:uppercase;opacity:1;transition:opacity 420ms ease;}' +
+      '#intro-overlay::before{content:"";position:absolute;left:0;right:0;top:0;border-top:1px solid rgba(0,0,0,.28);}' +
+      '#intro-overlay::after{content:"";position:absolute;left:0;right:0;bottom:0;border-bottom:1px solid rgba(0,0,0,.28);}' +
+      '.intro-stage{position:absolute;inset:0;}' +
+      '.intro-center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:16px;}' +
+      '.intro-badge{position:relative;width:76px;height:76px;border:6px solid #000;border-radius:50%;display:flex;align-items:center;justify-content:center;opacity:0;transform:scale(.84);transition:opacity 500ms ease,transform 760ms cubic-bezier(.22,1,.36,1);}' +
+      '.intro-badge.is-on{opacity:1;transform:scale(1);}' +
+      '.intro-badge::before,.intro-badge::after{content:"";position:absolute;width:4px;height:4px;border-radius:50%;background:#000;}' +
+      '.intro-badge::before{top:8px;left:50%;transform:translateX(-50%);box-shadow:-14px 16px 0 #000,14px 16px 0 #000;opacity:.92;}' +
+      '.intro-badge::after{bottom:8px;left:50%;transform:translateX(-50%);box-shadow:-14px -16px 0 #000,14px -16px 0 #000;opacity:.92;}' +
+      '.intro-letter{font-family:var(--font-licensed);font-size:34px;line-height:1;letter-spacing:0;font-variation-settings:"wght" 60,"wdth" 80;transform:translateY(-1px);}' +
+      '.intro-subtitle{font-size:9px;line-height:1.8;color:#777;opacity:0;transform:translateY(6px);transition:opacity 400ms ease,transform 400ms ease;}' +
+      '.intro-subtitle.is-on{opacity:1;transform:translateY(0);}' +
+      '.intro-mark{position:absolute;width:44px;height:44px;opacity:0;transform:translate(-50%,-50%) scale(.35);transition:opacity 320ms ease,transform 780ms cubic-bezier(.22,1,.36,1),left 780ms cubic-bezier(.22,1,.36,1),top 780ms cubic-bezier(.22,1,.36,1),right 780ms cubic-bezier(.22,1,.36,1),bottom 780ms cubic-bezier(.22,1,.36,1);will-change:transform,opacity,left,top,right,bottom;}' +
+      '.intro-mark.is-on{opacity:1;transform:translate(-50%,-50%) scale(1);}' +
+      '.intro-mark img{width:100%;height:100%;display:block;object-fit:contain;}' +
+      '.intro-mark--a,.intro-mark--b,.intro-mark--c,.intro-mark--d{left:50%;top:50%;}' +
+      '#intro-overlay.phase-out{opacity:0;}' +
+      '@media (max-width:600px){.intro-mark{width:36px;height:36px}.intro-badge{width:64px;height:64px;border-width:5px}.intro-letter{font-size:30px}.intro-subtitle{max-width:220px;text-align:center}}';
     document.head.appendChild(style);
   }
 
-  function numberRows() {
-    return ROWS.map(function (row, rowIndex) {
-      return '<div class="intro-number-row" data-row="' + rowIndex + '">' +
-        row.map(function (digit) { return '<span>' + digit + '</span>'; }).join('') +
-      '</div>';
-    }).join('');
+  function loadImage(src) {
+    return new Promise(function (resolve) {
+      var img = new Image();
+      img.onload = function () { resolve(img); };
+      img.onerror = function () { resolve(null); };
+      img.src = src;
+    });
   }
 
-  function buildDOM() {
+  function buildDOM(images) {
     overlay = document.createElement('div');
     overlay.id = 'intro-overlay';
-    overlay.innerHTML =
-      '<div class="intro-top" aria-hidden="true">' + numberRows() + '</div>' +
-      '<div class="intro-lockup">' +
-        '<img class="intro-logo" src="assets/fdrylogo.svg" alt="">' +
-        '<div class="intro-title">FDRY</div>' +
-        '<div class="intro-subtitle">Member access registry / Licensed grotesque</div>' +
-      '</div>' +
-      '<div class="intro-footer" aria-hidden="true">' +
-        '<span>Registry boot sequence</span>' +
-        '<span>Identity verification pending</span>' +
-      '</div>';
+
+    var stage = document.createElement('div');
+    stage.className = 'intro-stage';
+
+    EMBLEMS.forEach(function (item, index) {
+      var mark = document.createElement('div');
+      mark.className = 'intro-mark ' + item.cls;
+      if (images[index]) mark.appendChild(images[index]);
+      stage.appendChild(mark);
+    });
+
+    var center = document.createElement('div');
+    center.className = 'intro-center';
+    center.innerHTML =
+      '<div class="intro-badge" id="intro-badge"><span class="intro-letter" id="intro-letter">F</span></div>' +
+      '<div class="intro-subtitle" id="intro-subtitle">Member access registry / Licensed grotesque</div>';
+
+    stage.appendChild(center);
+    overlay.appendChild(stage);
     document.body.appendChild(overlay);
   }
 
-  function runNumbers() {
-    var cells = Array.from(overlay.querySelectorAll('.intro-number-row span'));
-    var tick = 0;
-    intervals.push(setInterval(function () {
-      tick++;
-      cells.forEach(function (cell, i) {
-        var n = (Number(cell.textContent) + 1 + ((i + tick) % 3)) % 10;
-        cell.textContent = String(n);
-        cell.classList.toggle('is-hot', (i + tick) % 4 === 0);
-      });
-    }, 90));
+  function getPoint(name) {
+    var pad = Math.max(18, Math.round(Math.min(window.innerWidth, window.innerHeight) * 0.06));
+    var w = window.innerWidth;
+    var h = window.innerHeight;
+    var map = {
+      'top-center': [w * 0.5, pad],
+      'top-right': [w - pad, pad],
+      'right-center': [w - pad, h * 0.5],
+      'bottom-right': [w - pad, h - pad],
+      'bottom-center': [w * 0.5, h - pad],
+      'bottom-left': [pad, h - pad],
+      'left-center': [pad, h * 0.5],
+      'top-left': [pad, pad],
+    };
+    return map[name] || [w * 0.5, h * 0.5];
+  }
+
+  function setMark(mark, posName, visible) {
+    var point = getPoint(posName);
+    mark.style.left = point[0] + 'px';
+    mark.style.top = point[1] + 'px';
+    mark.classList.toggle('is-on', !!visible);
+  }
+
+  function setPhase(index) {
+    var phase = PHASES[index];
+    var badge = overlay.querySelector('#intro-badge');
+    var letter = overlay.querySelector('#intro-letter');
+    var subtitle = overlay.querySelector('#intro-subtitle');
+    var marks = overlay.querySelectorAll('.intro-mark');
+
+    if (!phase) return;
+
+    if (badge) badge.classList.add('is-on');
+    if (subtitle) subtitle.classList.toggle('is-on', index >= 4);
+    if (letter) letter.textContent = phase.letter;
+
+    Array.prototype.forEach.call(marks, function (mark, i) {
+      var entry = phase.marks.filter(function (m) { return m.i === i; })[0];
+      if (entry) setMark(mark, entry.pos, entry.show);
+      else mark.classList.remove('is-on');
+    });
   }
 
   function run() {
-    document.addEventListener('keydown', finish, true);
-    document.addEventListener('click', finish, true);
     injectStyles();
-    buildDOM();
-    runNumbers();
+    Promise.all(EMBLEMS.map(function (item) { return loadImage(item.src); })).then(function (images) {
+      if (done) return;
+      buildDOM(images);
+      document.addEventListener('keydown', finish, true);
+      document.addEventListener('click', finish, true);
 
-    schedule(function () { overlay.classList.add('intro-mark'); }, 260);
-    schedule(function () { overlay.classList.add('intro-title-on'); }, 740);
-    schedule(function () { overlay.classList.add('intro-wipe'); }, 2100);
-    schedule(function () { overlay.classList.add('intro-clear'); }, 2820);
-    schedule(finish, 3360);
+      schedule(function () { setPhase(0); }, 160);
+      schedule(function () { setPhase(1); }, 760);
+      schedule(function () { setPhase(2); }, 1360);
+      schedule(function () { setPhase(3); }, 1960);
+      schedule(function () { setPhase(4); }, 2600);
+      schedule(function () { overlay.classList.add('phase-out'); }, 3220);
+      schedule(finish, 3740);
+    });
   }
 
   document.addEventListener('DOMContentLoaded', function () {
