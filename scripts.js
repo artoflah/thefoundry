@@ -911,7 +911,7 @@ function buildLoginVerificationGate() {
   grid.appendChild(shade);
 
   // Edit the answer key here as row-column pairs, 1-based.
-  const correctTiles = new Set(['1-4', '2-2', '3-2', '4-4']);
+  const correctTiles = new Set(['4-1', '2-2', '2-3', '4-4ma']);
   const tiles = Array.from({ length: 16 }, (_, index) => {
     const row = Math.floor(index / 4) + 1;
     const col = (index % 4) + 1;
@@ -1653,7 +1653,7 @@ function buildLicenseInfo(userId, tier, tierData) {
     </div>
     <div class="sp-license-right">
       <p class="sp-license-desc">${DESC[tier] || ''}</p>
-      <a href="upgrade.html" class="sp-license-upgrade-btn js-upgrade-link">Upgrade license →</a>
+      <a href="upgrade.html" class="sp-license-upgrade-btn js-upgrade-link">Upgrade License →</a>
     </div>
   `;
 
