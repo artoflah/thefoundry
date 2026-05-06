@@ -891,16 +891,88 @@ function runCardReveal() {
 // PAGE: LOGIN
 // ================================================================
 
-function initLogin() {
-  // Render logo
-  const logoEl = document.getElementById('login-logo');
-  if (logoEl) logoEl.innerHTML = getLogo(80);
+function buildLoginVerificationGate() {
+  const grid = document.getElementById('login-gate-grid');
+  const status = document.getElementById('login-gate-status');
+  const formInput = document.getElementById('login-input');
+  const gate = document.getElementById('login-gate');
+  if (!grid || !status || !formInput || !gate) return;
 
+  const tiles = [
+    { correct: false },
+    { correct: false },
+    { correct: false },
+    { correct: false },
+    { correct: false },
+    { correct: true, fragment: 'tl' },
+    { correct: true, fragment: 'tr' },
+    { correct: false },
+    { correct: false },
+    { correct: true, fragment: 'bl' },
+    { correct: true, fragment: 'br' },
+    { correct: false },
+    { correct: false },
+    { correct: false },
+    { correct: false },
+    { correct: false },
+  ];
+
+  const selected = new Set();
+  const correctCount = tiles.filter(t => t.correct).length;
+  let unlocked = false;
+
+  function unlock() {
+    if (unlocked) return;
+    unlocked = true;
+    document.body.classList.add('login-unlocked');
+    status.textContent = 'Verification complete. Enter membership ID.';
+    setTimeout(() => formInput.focus(), 180);
+  }
+
+  tiles.forEach((tileData, index) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'login-gate-tile';
+    btn.setAttribute('aria-label', tileData.correct ? 'Foundry mark fragment' : 'Blank square');
+    btn.setAttribute('aria-pressed', 'false');
+
+    if (tileData.correct) {
+      btn.classList.add('is-fragment');
+      btn.dataset.fragment = tileData.fragment;
+    }
+
+    btn.addEventListener('click', () => {
+      if (unlocked) return;
+
+      if (tileData.correct) {
+        if (selected.has(index)) return;
+        selected.add(index);
+        btn.classList.add('is-selected');
+        btn.setAttribute('aria-pressed', 'true');
+        status.textContent = `${selected.size} / ${correctCount} confirmed`;
+        if (selected.size === correctCount) unlock();
+      } else {
+        btn.classList.add('is-wrong');
+        status.textContent = 'Incorrect square logged.';
+        setTimeout(() => {
+          btn.classList.remove('is-wrong');
+          if (!unlocked) status.textContent = `${selected.size} / ${correctCount} confirmed`;
+        }, 280);
+      }
+    });
+
+    grid.appendChild(btn);
+  });
+}
+
+function initLogin() {
   const input = document.getElementById('login-input');
   const errorMsg = document.getElementById('login-error');
   const form = document.getElementById('login-form');
 
   if (!form || !input) return;
+
+  buildLoginVerificationGate();
 
   // Clear any stale session data
   localStorage.removeItem('user_id');

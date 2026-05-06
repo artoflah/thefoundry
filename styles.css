@@ -214,7 +214,94 @@ body#login {
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  gap: var(--space-48);
+  gap: var(--space-32);
+  padding: var(--space-64) var(--space-32);
+}
+
+/* Verification gate */
+.login-gate {
+  width: min(760px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+.login-gate-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-24);
+}
+
+.login-gate-copy,
+.login-gate-status {
+  font-family: monospace;
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #777;
+}
+
+.login-gate-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+  width: 100%;
+  aspect-ratio: 1 / 0.78;
+  max-height: 58vh;
+  border: var(--rule);
+  background: var(--black);
+  overflow: hidden;
+}
+
+.login-gate-tile {
+  position: relative;
+  border-right: 1px solid rgba(255,255,255,0.24);
+  border-bottom: 1px solid rgba(255,255,255,0.24);
+  background: var(--black);
+  cursor: pointer;
+  padding: 0;
+  appearance: none;
+  outline: none;
+}
+
+.login-gate-tile:nth-child(4n) {
+  border-right: none;
+}
+
+.login-gate-tile:nth-last-child(-n + 4) {
+  border-bottom: none;
+}
+
+.login-gate-tile:hover {
+  background: #111;
+}
+
+.login-gate-tile.is-fragment {
+  background-color: var(--white);
+  background-image: url('assets/fdrylogo.svg');
+  background-repeat: no-repeat;
+  background-size: 200% 200%;
+}
+
+.login-gate-tile[data-fragment="tl"] { background-position: 0% 0%; }
+.login-gate-tile[data-fragment="tr"] { background-position: 100% 0%; }
+.login-gate-tile[data-fragment="bl"] { background-position: 0% 100%; }
+.login-gate-tile[data-fragment="br"] { background-position: 100% 100%; }
+
+.login-gate-tile.is-selected {
+  outline: 2px solid var(--black);
+  outline-offset: -2px;
+}
+
+.login-gate-tile.is-wrong {
+  background-color: var(--red);
+  box-shadow: inset 0 0 0 2px var(--red);
+}
+
+.login-gate-footer {
+  display: flex;
+  justify-content: flex-end;
 }
 
 /* Logo — small, centered */
@@ -238,7 +325,29 @@ body#login {
   flex-direction: column;
   align-items: center;
   text-align: center;
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(8px);
+  pointer-events: none;
+  transition: opacity 240ms ease, transform 240ms ease, max-height 240ms ease;
+}
+
+body.login-unlocked .login-field-group {
+  max-height: 240px;
   opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+body.login-unlocked .login-gate {
+  opacity: 0;
+  transform: translateY(-6px);
+  pointer-events: none;
+  height: 0;
+  margin: 0;
+  overflow: hidden;
+  transition: opacity 220ms ease, transform 220ms ease, height 0s linear 220ms, margin 0s linear 220ms;
 }
 
 .login-field-label {
@@ -1663,7 +1772,6 @@ body#specimen .specimen-wrap {
   align-items: end;
   justify-content: space-between;
   gap: var(--space-16);
-  border-top: var(--rule);
   padding-top: var(--space-16);
   margin-bottom: 0;
   flex-shrink: 0;
