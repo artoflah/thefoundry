@@ -898,23 +898,34 @@ function buildLoginVerificationGate() {
   const gate = document.getElementById('login-gate');
   if (!grid || !status || !formInput || !gate) return;
 
+  const image = document.createElement('img');
+  image.className = 'login-gate-image';
+  image.src = 'assets/captcha.png';
+  image.alt = '';
+  image.setAttribute('aria-hidden', 'true');
+  grid.appendChild(image);
+
+  const shade = document.createElement('div');
+  shade.className = 'login-gate-shade';
+  grid.appendChild(shade);
+
   const tiles = [
+    { correct: true },
     { correct: false },
     { correct: false },
     { correct: false },
     { correct: false },
-    { correct: false },
-    { correct: true, fragment: 'tl' },
-    { correct: true, fragment: 'tr' },
-    { correct: false },
-    { correct: false },
-    { correct: true, fragment: 'bl' },
-    { correct: true, fragment: 'br' },
+    { correct: true },
     { correct: false },
     { correct: false },
     { correct: false },
     { correct: false },
+    { correct: true },
     { correct: false },
+    { correct: false },
+    { correct: false },
+    { correct: false },
+    { correct: true },
   ];
 
   const selected = new Set();
@@ -935,11 +946,6 @@ function buildLoginVerificationGate() {
     btn.className = 'login-gate-tile';
     btn.setAttribute('aria-label', tileData.correct ? 'Foundry mark fragment' : 'Blank square');
     btn.setAttribute('aria-pressed', 'false');
-
-    if (tileData.correct) {
-      btn.classList.add('is-fragment');
-      btn.dataset.fragment = tileData.fragment;
-    }
 
     btn.addEventListener('click', () => {
       if (unlocked) return;
