@@ -79,15 +79,7 @@
         <p class="specimen-pre-label">
           APPROVED SPECIMEN v.1.0.0 — Pre-cleared for your license tier.
         </p>
-        <div class="tester-frame">
-          <div class="tester-meta tester-meta--tl" aria-hidden="true">
-            <div>GLYPHS: 36</div><div>WEIGHTS: 1/1</div>
-            <div>STYLES: ROMAN</div><div>RELEASE: V.1.0.0</div>
-          </div>
-          <div class="tester-meta tester-meta--tr" aria-hidden="true">
-            <div>ASCENDER: +740</div><div>X-HEIGHT: 520</div>
-            <div>DESCENDER: -240</div><div>CAP-HEIGHT: 712</div>
-          </div>
+        <div class="tester-stage">
           <div class="tester-controls" aria-label="Type tester controls">
             <div class="tester-controls-head">Type Controls</div>
             <label class="tester-control" for="tester-tracking">
@@ -116,25 +108,35 @@
               <span class="tester-toggle-state">On</span>
             </button>
           </div>
-          <div
-            id="specimen-display"
-            class="specimen-display"
-            contenteditable="true"
-            spellcheck="false"
-            autocorrect="off"
-            autocapitalize="none"
-            data-placeholder="Begin typing your specimen."
-            role="textbox"
-            aria-label="Type specimen input"
-            aria-multiline="true"
-          ></div>
-          <div class="tester-meta tester-meta--bl" aria-hidden="true">
-            <div>KERNING PAIRS: 1,247</div><div>OT FEATURES: LOCKED</div>
-            <div>LANGUAGE: ENG ONLY</div><div>ENCODING: LATIN-1</div>
-          </div>
-          <div class="tester-meta tester-meta--br" aria-hidden="true">
-            <div>BASELINE: 0.0</div><div>LINE-GAP: 200</div>
-            <div>UPM: 1000</div><div>HINTING: NONE</div>
+          <div class="tester-frame">
+            <div class="tester-meta tester-meta--tl" aria-hidden="true">
+              <div>GLYPHS: 36</div><div>WEIGHTS: 1/1</div>
+              <div>STYLES: ROMAN</div><div>RELEASE: V.1.0.0</div>
+            </div>
+            <div class="tester-meta tester-meta--tr" aria-hidden="true">
+              <div>ASCENDER: +740</div><div>X-HEIGHT: 520</div>
+              <div>DESCENDER: -240</div><div>CAP-HEIGHT: 712</div>
+            </div>
+            <div
+              id="specimen-display"
+              class="specimen-display"
+              contenteditable="true"
+              spellcheck="false"
+              autocorrect="off"
+              autocapitalize="none"
+              data-placeholder="Begin typing your specimen."
+              role="textbox"
+              aria-label="Type specimen input"
+              aria-multiline="true"
+            ></div>
+            <div class="tester-meta tester-meta--bl" aria-hidden="true">
+              <div>KERNING PAIRS: 1,247</div><div>OT FEATURES: LOCKED</div>
+              <div>LANGUAGE: ENG ONLY</div><div>ENCODING: LATIN-1</div>
+            </div>
+            <div class="tester-meta tester-meta--br" aria-hidden="true">
+              <div>BASELINE: 0.0</div><div>LINE-GAP: 200</div>
+              <div>UPM: 1000</div><div>HINTING: NONE</div>
+            </div>
           </div>
         </div>
         <div class="specimen-char-bar">
@@ -180,19 +182,16 @@
 
   <!-- About modal -->
   <div class="about-modal" id="about-modal" aria-modal="true" role="dialog" aria-labelledby="about-modal-title" hidden>
-    <div class="about-modal-panel">
-      <div class="about-modal-header">
-        <span id="about-modal-title">About The Foundry</span>
-        <button type="button" class="about-modal-close" id="about-close" aria-label="Close about modal">×</button>
-      </div>
-      <div class="about-modal-body">
-        <div class="about-modal-logo">
-          <img src="assets/fdrylogo.svg" alt="FDRY logo">
+      <div class="about-modal-panel">
+        <div class="about-modal-header">
+          <span id="about-modal-title">About The Foundry</span>
+          <button type="button" class="about-modal-close" id="about-close" aria-label="Close about modal">×</button>
         </div>
-        <div class="about-modal-copy">
-          <p class="about-modal-intro">
-            This project began as a nine-week research study of licensing, authorship, and control in typography. During that research, I kept returning to how licensing law shapes who can access form, who can distribute it, and who gets to decide what counts as legitimate use.
-          </p>
+        <div class="about-modal-body">
+          <div class="about-modal-copy">
+            <p class="about-modal-intro">
+              This project began as a nine-week research study of licensing, authorship, and control in typography. During that research, I kept returning to how licensing law shapes who can access form, who can distribute it, and who gets to decide what counts as legitimate use.
+            </p>
           <p class="about-modal-intro">
             I also read <i>In Their Own Language</i> by Bryce Wilner, and the project grew from that research into a deliberately overbuilt font foundry: a system that is so committed to the logic of licensing that it becomes exaggerated, bureaucratic, and almost absurd.
           </p>

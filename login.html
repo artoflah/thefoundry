@@ -22,18 +22,18 @@
     <section class="login-gate" id="login-gate" aria-label="Pre-login verification">
       <div class="login-gate-head">
         <span class="login-gate-kicker">Verification required</span>
-        <span class="login-gate-copy">Are you capable of handling this Foundry?</span>
-      </div>
-      <div class="login-gate-launch">
-        <button type="button" class="login-gate-checkbox" id="login-gate-checkbox" aria-checked="false" aria-label="Verification checkbox"></button>
-        <span class="login-gate-check-copy">Foundry signal</span>
-        <span class="login-gate-launch-brand">FOUNDRY</span>
+        <span class="login-gate-copy">Select all the Foundry logos.</span>
       </div>
       <div class="login-gate-challenge" id="login-gate-challenge">
         <div class="login-gate-grid" id="login-gate-grid" role="group" aria-label="Foundry mark selection grid"></div>
         <div class="login-gate-footer">
           <span class="login-gate-status" id="login-gate-status">0 / 4 confirmed</span>
         </div>
+      </div>
+      <div class="login-gate-launch" id="login-gate-launch" hidden>
+        <button type="button" class="login-gate-checkbox" id="login-gate-checkbox" aria-checked="false" aria-label="Verification checkbox"></button>
+        <span class="login-gate-check-copy" id="login-gate-check-copy">Confirm Foundry signal to continue.</span>
+        <span class="login-gate-launch-brand" id="login-gate-launch-brand">FOUNDRY</span>
       </div>
     </section>
 

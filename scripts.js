@@ -931,30 +931,39 @@ function buildLoginVerificationGate() {
 
   const selected = new Set();
   const correctCount = tiles.filter(t => t.correct).length;
-  let challengeOpen = false;
+  const launch = document.getElementById('login-gate-launch');
+  const launchCopy = document.getElementById('login-gate-check-copy');
+  const launchBrand = document.getElementById('login-gate-launch-brand');
   let unlocked = false;
 
-  function openChallenge() {
-    if (challengeOpen || unlocked) return;
-    challengeOpen = true;
-    document.body.classList.add('login-gate-open');
-    checkbox.classList.add('is-checked');
+  document.body.classList.add('login-gate-open');
+
+  function revealLaunch() {
+    if (unlocked) return;
+    if (launch) launch.hidden = false;
+    if (launchCopy) launchCopy.textContent = 'Check the Foundry signal to continue.';
+    if (launchBrand) launchBrand.textContent = 'APPROVED';
     checkbox.classList.add('is-open');
-    checkbox.innerHTML = getLogo(12);
-    checkbox.setAttribute('aria-checked', 'true');
-    checkbox.setAttribute('aria-label', 'Foundry signal active');
   }
 
   function unlock() {
     if (unlocked) return;
     unlocked = true;
     document.body.classList.add('login-unlocked');
-    openChallenge();
+    checkbox.classList.add('is-checked');
+    checkbox.innerHTML = getLogo(12);
+    checkbox.setAttribute('aria-checked', 'true');
+    checkbox.setAttribute('aria-label', 'Foundry signal confirmed');
+    if (launchCopy) launchCopy.textContent = 'Signal confirmed. Loading login.';
+    if (launchBrand) launchBrand.textContent = 'FOUNDRY';
     status.textContent = 'Verification complete. Enter membership ID.';
     setTimeout(() => formInput.focus(), 180);
   }
 
-  checkbox.addEventListener('click', openChallenge);
+  checkbox.addEventListener('click', () => {
+    if (unlocked) return;
+    unlock();
+  });
 
   tiles.forEach((tileData, index) => {
     const btn = document.createElement('button');
@@ -972,7 +981,7 @@ function buildLoginVerificationGate() {
         btn.classList.add('is-selected');
         btn.setAttribute('aria-pressed', 'true');
         status.textContent = `${selected.size} / ${correctCount} confirmed`;
-        if (selected.size === correctCount) unlock();
+        if (selected.size === correctCount) revealLaunch();
       } else {
         btn.classList.add('is-wrong');
         status.textContent = 'Incorrect square logged.';
@@ -985,6 +994,8 @@ function buildLoginVerificationGate() {
 
     grid.appendChild(btn);
   });
+
+  status.textContent = `${selected.size} / ${correctCount} confirmed`;
 }
 
 function initLogin() {

@@ -65,7 +65,7 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  cursor: url('assets/cursor.png') 67 67, auto;
+  cursor: url('assets/cursor-128.png') 64 64, auto;
 }
 
 a {
@@ -83,7 +83,7 @@ img, svg {
 
 button {
   font-family: var(--font-licensed);
-  cursor: pointer;
+  cursor: url('assets/cursor-128.png') 64 64, auto;
   border: none;
   background: none;
   padding: 0;
@@ -98,7 +98,7 @@ a,
 button,
 [role="button"],
 select {
-  cursor: url('assets/cursor.png') 67 67, pointer;
+  cursor: url('assets/cursor-128.png') 64 64, auto;
 }
 
 /* === SHARED TYPOGRAPHY ======================================== */
@@ -306,6 +306,10 @@ body.login-gate-open .login-gate-challenge {
   max-height: 360px;
   opacity: 1;
   transform: translateY(0);
+}
+
+body.login-gate-open .login-gate-launch[hidden] {
+  display: grid;
 }
 
 .login-gate-image {
@@ -522,9 +526,10 @@ body.login-unlocked .login-gate {
   text-transform: uppercase;
   color: var(--black);
   margin-top: var(--space-4);
-  display: inline-block;
+  display: block;
   opacity: 0.48;
-  align-self: flex-end;
+  align-self: center;
+  text-align: center;
 }
 
 .login-request-link:hover {
@@ -1045,11 +1050,16 @@ body#license .page-wrap {
 }
 
 .specimen-pre-label {
+  font-family: monospace;
   font-size: 9px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   margin-bottom: var(--space-24);
   color: #999;
+  display: inline-flex;
+  align-items: center;
+  min-height: 20px;
+  padding: 0 6px;
 }
 
 .specimen-display {
@@ -1766,8 +1776,8 @@ body#not-found .site-footer {
 
 /* Content area leaves room for fixed ticker sidebar */
 body#specimen .specimen-wrap {
-  padding-left: calc(var(--wordmark-w) + var(--space-24));
-  padding-right: calc(280px + var(--space-16));
+  padding-left: calc(var(--wordmark-w) + var(--space-32));
+  padding-right: calc(270px + var(--space-32));
 }
 
 /* ── Surveillance Ticker Sidebar ───────────────────────────── */
@@ -1776,7 +1786,7 @@ body#specimen .specimen-wrap {
   right: 0;
   top: 52px;   /* header height */
   bottom: 0;
-  width: 280px;
+  width: 270px;
   background: var(--white);
   border-left: var(--rule);
   display: flex;
@@ -1910,6 +1920,14 @@ body#specimen .specimen-wrap {
   font-weight: 400;
   margin-bottom: var(--space-40);
   color: var(--black);
+  padding: 0 6px;
+  line-height: 1;
+}
+
+.sp-section-label,
+.specimen-pre-label,
+.sp-section-heading {
+  box-sizing: border-box;
 }
 
 /* ── § 01 Character Map ─────────────────────────────────────── */
@@ -2024,7 +2042,7 @@ body#specimen .specimen-wrap {
   display: flex;
   align-items: center;
   justify-content: center;
-  transform: none;
+  transform: translateY(14%);
   z-index: 1;
 }
 
@@ -2108,15 +2126,19 @@ body#specimen .specimen-wrap {
 }
 
 #section-charmap .sp-section-label {
-  display: block;
+  display: inline-flex;
   min-height: 0;
   margin-bottom: 6px;
+  padding-left: 0;
+  padding-right: 0;
 }
 
 #section-charmap .sp-section-heading {
   margin-bottom: 0;
   line-height: 0.92;
   max-width: 760px;
+  padding-left: 0;
+  padding-right: 0;
 }
 
 .sp-glyph-cell {
@@ -2219,6 +2241,8 @@ body#specimen .specimen-wrap {
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
   column-gap: var(--space-24);
+  padding: 0 var(--space-32);
+  overflow: visible;
 }
 
 .site-header--specimen .header-logo {
@@ -2239,12 +2263,20 @@ body#specimen .specimen-wrap {
 
 .specimen-nav-btn,
 .specimen-nav-link {
+  appearance: none;
+  background: none;
+  border: none;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
   font-family: var(--font-licensed);
   font-size: var(--type-licensed-caption);
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--black);
   text-decoration: none;
+  cursor: pointer;
 }
 
 .specimen-nav-btn:hover,
@@ -2256,8 +2288,8 @@ body#specimen .specimen-wrap {
 .specimen-license-menu .hud-card {
   position: absolute;
   top: calc(100% + 18px);
-  right: 0;
-  left: auto;
+  left: 0;
+  right: auto;
   z-index: 700;
   width: 248px;
   border: var(--rule);
@@ -2364,23 +2396,10 @@ body.violation-alert-active .violation-popup .popup-violation-text {
 
 .about-modal-body {
   display: grid;
-  grid-template-columns: 240px 1fr;
+  grid-template-columns: 1fr;
   gap: var(--space-32);
   overflow: auto;
   padding: var(--space-24);
-}
-
-.about-modal-logo {
-  aspect-ratio: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--space-32);
-}
-
-.about-modal-logo img {
-  width: 100%;
-  height: auto;
 }
 
 .about-modal-intro {
@@ -2478,8 +2497,8 @@ body.violation-alert-active .violation-popup .popup-violation-text {
 }
 
 .sp-license-table td {
-  font-size: 9px;
-  letter-spacing: 0.12em;
+  font-size: 8px;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   font-family: monospace;
   padding: 7px 0;
@@ -2491,9 +2510,15 @@ body.violation-alert-active .violation-popup .popup-violation-text {
   color: #999;
   width: 50%;
   padding-right: 12px;
+  font-size: 8px;
+  letter-spacing: 0.08em;
 }
 
-.sp-license-val { color: var(--black); }
+.sp-license-val {
+  color: var(--black);
+  font-size: 8px;
+  letter-spacing: 0.08em;
+}
 
 .sp-status-indicator {
   display: inline-flex;
@@ -2512,9 +2537,9 @@ body.violation-alert-active .violation-popup .popup-violation-text {
 
 .sp-license-desc {
   font-size: 9px;
-  letter-spacing: 0.1em;
-  line-height: 1.9;
-  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  line-height: 1.8;
+  text-transform: none;
   color: #666;
   margin-bottom: var(--space-32);
 }
@@ -2526,7 +2551,12 @@ body.violation-alert-active .violation-popup .popup-violation-text {
   color: var(--black);
   text-decoration: underline;
   text-underline-offset: 3px;
-  display: inline-block;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+  padding: var(--space-16) var(--space-20);
+  border-top: var(--rule);
 }
 
 /* ── Restricted-Glyph Interest Modal ───────────────────────── */
@@ -3188,7 +3218,7 @@ button,
 }
 .page-wordmark-rotated {
   position: absolute;
-  left: 50%;
+  left: 60%;
   top: 50%;
   font-family: var(--font-licensed);
   font-size: 68px;
@@ -3223,18 +3253,25 @@ body#license .page-wrap { padding-left: var(--wordmark-w); }
 .tester-frame {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(220px, 0.34fr) minmax(0, 1fr) minmax(180px, 0.34fr);
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 0.34fr);
   grid-template-areas:
-    "tl . tr"
-    "controls display display"
-    "controls display display"
-    "bl . br";
+    "tl tr"
+    "display display"
+    "display display"
+    "bl br";
   row-gap: var(--space-40);
   column-gap: var(--space-24);
   min-height: 420px;
   padding: var(--space-32) 0;
   border-top: var(--rule);
   border-bottom: var(--rule);
+}
+
+.tester-stage {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.34fr) minmax(0, 1fr);
+  gap: var(--space-24);
+  align-items: start;
 }
 .tester-meta {
   position: static;
@@ -3254,7 +3291,6 @@ body#license .page-wrap { padding-left: var(--wordmark-w); }
 .tester-meta--br { grid-area: br; align-self: end; text-align: right; }
 
 .tester-controls {
-  grid-area: controls;
   align-self: stretch;
   justify-self: start;
   width: 100%;
@@ -4103,35 +4139,49 @@ select.co-field-input {
 .sp-license-key {
   width: 42%;
   color: #777;
+  font-size: 8px;
+  letter-spacing: 0.08em;
 }
 
 .sp-license-val {
   font-size: 8px;
-  letter-spacing: 0.1em;
-  line-height: 1.45;
+  letter-spacing: 0.08em;
+  line-height: 1.35;
   text-align: right;
 }
 
 .sp-license-right {
   display: flex;
   flex-direction: column;
+  min-height: 100%;
 }
 
 .sp-license-desc {
   flex: 1;
   margin: 0;
   padding: var(--space-20);
+  font-size: 9px;
+  letter-spacing: 0.05em;
+  line-height: 1.8;
+  text-transform: none;
 }
 
 .sp-license-upgrade-btn {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  margin-top: auto;
   border-top: var(--rule);
   padding: var(--space-16) var(--space-20);
   text-decoration: none;
   text-transform: none;
   letter-spacing: 0.08em;
+}
+
+body#upgrade .page-wrap {
+  padding-left: 0;
+  padding-right: 0;
+  padding-top: 52px;
 }
 
 .sp-license-upgrade-btn:hover {
@@ -4619,12 +4669,14 @@ button,
 }
 
 @media (max-width: 1100px) {
+  .tester-stage {
+    grid-template-columns: 1fr;
+  }
   .tester-frame {
     grid-template-columns: 1fr;
     grid-template-areas:
       "tl"
       "tr"
-      "controls"
       "display"
       "bl"
       "br";
@@ -4637,12 +4689,14 @@ button,
 }
 
 @media (max-width: 600px) {
+  .tester-stage {
+    grid-template-columns: 1fr;
+  }
   .tester-frame {
     grid-template-columns: 1fr;
     grid-template-areas:
       "tl"
       "tr"
-      "controls"
       "display"
       "bl"
       "br";
