@@ -65,7 +65,6 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  cursor: url('assets/cursor-128.png') 64 64, auto;
 }
 
 a {
@@ -83,7 +82,6 @@ img, svg {
 
 button {
   font-family: var(--font-licensed);
-  cursor: url('assets/cursor-128.png') 64 64, auto;
   border: none;
   background: none;
   padding: 0;
@@ -91,15 +89,8 @@ button {
 
 input, textarea {
   font-family: var(--font-licensed);
-  cursor: text;
 }
 
-a,
-button,
-[role="button"],
-select {
-  cursor: url('assets/cursor-128.png') 64 64, auto;
-}
 
 /* === SHARED TYPOGRAPHY ======================================== */
 .label-caps {
@@ -526,6 +517,7 @@ body.login-unlocked .login-gate {
   text-transform: uppercase;
   color: var(--black);
   margin-top: var(--space-4);
+  padding-top: 8px;
   display: block;
   opacity: 0.48;
   align-self: center;
@@ -2054,12 +2046,12 @@ body#specimen .specimen-wrap {
 }
 
 .sp-glyph-guide--cap {
-  top: 24%;
+  top: 44.8%;
   border-top: 1px dashed #777;
 }
 
 .sp-glyph-guide--baseline {
-  top: 50%;
+  top: 75%;
   bottom: auto;
   border-top: 1px solid var(--red);
 }
@@ -2277,6 +2269,7 @@ body#specimen .specimen-wrap {
   color: var(--black);
   text-decoration: none;
   cursor: pointer;
+  font-weight: 400;
 }
 
 .specimen-nav-btn:hover,
@@ -2334,6 +2327,11 @@ body.violation-alert-active .login-copyright-block,
 body.violation-alert-active .login-footer {
   color: var(--black) !important;
   opacity: 1 !important;
+}
+
+.site-header--specimen .specimen-nav--left,
+.site-header--specimen .specimen-nav--right {
+  align-items: center;
 }
 
 body.violation-alert-active .violation-popup .popup-title-text,
@@ -3269,7 +3267,7 @@ body#license .page-wrap { padding-left: var(--wordmark-w); }
 
 .tester-stage {
   display: grid;
-  grid-template-columns: minmax(220px, 0.34fr) minmax(0, 1fr);
+  grid-template-columns: minmax(220px, 0.28fr) minmax(0, 1fr);
   gap: var(--space-24);
   align-items: start;
 }

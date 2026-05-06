@@ -910,24 +910,13 @@ function buildLoginVerificationGate() {
   shade.className = 'login-gate-shade';
   grid.appendChild(shade);
 
-  const tiles = [
-    { correct: false },
-    { correct: false },
-    { correct: false },
-    { correct: true },
-    { correct: false },
-    { correct: true },
-    { correct: false },
-    { correct: false },
-    { correct: false },
-    { correct: true },
-    { correct: false },
-    { correct: false },
-    { correct: false },
-    { correct: false },
-    { correct: false },
-    { correct: true },
-  ];
+  // Edit the answer key here as row-column pairs, 1-based.
+  const correctTiles = new Set(['1-4', '2-2', '3-2', '4-4']);
+  const tiles = Array.from({ length: 16 }, (_, index) => {
+    const row = Math.floor(index / 4) + 1;
+    const col = (index % 4) + 1;
+    return { correct: correctTiles.has(`${row}-${col}`) };
+  });
 
   const selected = new Set();
   const correctCount = tiles.filter(t => t.correct).length;
@@ -941,8 +930,8 @@ function buildLoginVerificationGate() {
   function revealLaunch() {
     if (unlocked) return;
     if (launch) launch.hidden = false;
-    if (launchCopy) launchCopy.textContent = 'Check the Foundry signal to continue.';
-    if (launchBrand) launchBrand.textContent = 'APPROVED';
+    if (launchCopy) launchCopy.textContent = 'Are you fully committed to The Foundry?';
+    if (launchBrand) launchBrand.textContent = 'VERIFY';
     checkbox.classList.add('is-open');
   }
 
@@ -954,7 +943,7 @@ function buildLoginVerificationGate() {
     checkbox.innerHTML = getLogo(12);
     checkbox.setAttribute('aria-checked', 'true');
     checkbox.setAttribute('aria-label', 'Foundry signal confirmed');
-    if (launchCopy) launchCopy.textContent = 'Signal confirmed. Loading login.';
+    if (launchCopy) launchCopy.textContent = 'Commitment confirmed. Loading login.';
     if (launchBrand) launchBrand.textContent = 'FOUNDRY';
     status.textContent = 'Verification complete. Enter membership ID.';
     setTimeout(() => formInput.focus(), 180);
@@ -1652,7 +1641,6 @@ function buildLicenseInfo(userId, tier, tierData) {
     ['Expires',              'NEVER'],
     ['Version',              '1.0.0'],
     ['Last Audit',           lastAudit],
-    ['Next Wellness Check',  nextCheck],
   ];
 
   const tableRows = rows.map(([k, v]) =>
