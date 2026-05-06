@@ -3575,13 +3575,15 @@ body#checkout {
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: end;
   gap: var(--space-24);
-  padding: var(--space-40) var(--space-40) var(--space-32);
+  margin: 0 var(--space-32);
+  padding: var(--space-24) 0 var(--space-24);
+  border-top: var(--rule);
   border-bottom: var(--rule);
 }
 .co-page-header-left {
   display: flex;
   flex-direction: column;
-  gap: var(--space-8);
+  gap: var(--space-4);
 }
 .co-page-kicker {
   font-family: monospace;
@@ -3727,12 +3729,16 @@ body#checkout {
   border-bottom: 1.5px solid #ccc;
   background: transparent;
   font-family: var(--font-licensed);
-  font-size: 13px;
+  font-size: var(--type-licensed-body);
+  font-weight: 400;
+  font-variation-settings: 'wght' 60, 'wdth' 80;
   color: var(--black);
   padding: 0;
   outline: none;
   transition: border-color 0.15s;
   width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
 }
 .co-field-input:focus { border-color: var(--black); }
 .co-field-input::placeholder { color: #ccc; }
