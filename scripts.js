@@ -1,13 +1,10 @@
 'use strict';
 
-/* ================================================================
-   FOUNDRY™ — THE FOUNDRY™
-   scripts.js v1.0.0
-   ================================================================ */
 
-// ================================================================
-// DATA — VALID IDs
-// ================================================================
+
+
+
+
 
 const TIER_IDS = {
   basic:        'LCN-2026-0001-USUCK',
@@ -23,9 +20,9 @@ const VALID_IDS = {
   'LCN-2026-0013-SUCKER': 'enterprise',
 };
 
-// ================================================================
-// DATA — TIERS
-// ================================================================
+
+
+
 
 const TIERS = {
   basic: {
@@ -68,9 +65,9 @@ const TIERS = {
   },
 };
 
-// ================================================================
-// DATA — LICENSE TEXT (full copy, all 4 tiers)
-// ================================================================
+
+
+
 
 const LICENSES = {
 
@@ -285,16 +282,16 @@ const LICENSES = {
   `,
 };
 
-// ================================================================
-// SVG ASSETS
-// ================================================================
+
+
+
 
 function getLogo(size = 120) {
   return `<img src="assets/fdrylogo.svg" width="${size}" height="${size}" alt="The Foundry™" style="display:block;">`;
 }
 
 function getQRPlaceholder(size = 56) {
-  // a grid that reads as a QR code without being a real one
+
   const cell = size / 7;
   const cells = [
     [0,0],[1,0],[2,0],[3,0],[4,0],[5,0],[6,0],
@@ -311,9 +308,9 @@ function getQRPlaceholder(size = 56) {
   return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">${rects}</svg>`;
 }
 
-// ================================================================
-// UTILITY FUNCTIONS
-// ================================================================
+
+
+
 
 function getToday() {
   const d = new Date();
@@ -358,9 +355,9 @@ function setSessionCharsInStorage(n) {
   sessionStorage.setItem('session_chars', n);
 }
 
-// ================================================================
-// VIOLATION POPUP SYSTEM
-// ================================================================
+
+
+
 
 let popupCount = 0;
 const MAX_POPUPS = 12;
@@ -369,37 +366,37 @@ function syncViolationScreenState() {
   document.body.classList.toggle('violation-alert-active', !!document.querySelector('.violation-popup'));
 }
 
-// ================================================================
-// CAMERA / EMBLEM-TILE SYSTEM
-// ================================================================
+
+
+
 
 const CAM_W          = 320;
 const CAM_H          = 200;
 const EMBLEM_SIZE    = 15;
-const EMBLEM_INPUT_W = Math.floor(CAM_W / EMBLEM_SIZE);  // 21 cols
-const EMBLEM_INPUT_H = Math.floor(CAM_H / EMBLEM_SIZE);  // 13 rows
+const EMBLEM_INPUT_W = Math.floor(CAM_W / EMBLEM_SIZE);
+const EMBLEM_INPUT_H = Math.floor(CAM_H / EMBLEM_SIZE);
 
-// Brightness order: index 0 = darkest (YIELD), index 3 = lightest non-blank (FOUNDRY).
-// Brightness > 200 stamps nothing (white background shows through).
+
+
 const EMBLEM_SRCS = [
-  'assets/emblem-14.svg',  // 0 — YIELD    (purple #1b1464)
-  'assets/emblem-12.svg',  // 1 — DOMINION (blue   #4e7c93)
-  'assets/emblem-13.svg',  // 2 — REGISTRY (yellow #fbb03b)
-  'assets/emblem-04.svg',  // 3 — FOUNDRY  (red    #b10a18)
+  'assets/emblem-14.svg',
+  'assets/emblem-12.svg',
+  'assets/emblem-13.svg',
+  'assets/emblem-04.svg',
 ];
 const EMBLEM_FALLBACK_COLORS = ['#1b1464', '#4e7c93', '#fbb03b', '#b10a18'];
 
-let cameraState           = 'idle'; // 'idle' | 'requesting' | 'active' | 'denied'
+let cameraState           = 'idle';
 let sharedStream          = null;
-let emblemTextures        = null;   // Array<Canvas> — 32×32 each, dark→light
+let emblemTextures        = null;
 let emblemTexturesReady   = false;
-const _pendingCameraPopups = [];    // { popup, canvas } — queued while camera initializes
-let _onViolationDecrement = null;   // set by initSpecimen; used for biometric refusal
+const _pendingCameraPopups = [];
+let _onViolationDecrement = null;
 
-// Global ticker function — set by initTicker; callable from any section
+
 let tickerAdd = null;
 
-// Pre-render 4 emblem textures at 128×128. Runs once at script load.
+
 function _initEmblemTextures() {
   emblemTextures = new Array(4).fill(null);
   let loaded = 0;
@@ -441,12 +438,12 @@ function _initCamera(onGranted, onDenied) {
     });
 }
 
-// Render one emblem-tile frame from a per-popup video element onto the popup canvas.
+
 function _renderEmblemFrame(ctx, canvas, tinyCtx, tinyCanvas, videoEl) {
   if (!emblemTexturesReady) return;
   if (videoEl.readyState < 2) return;
 
-  // Downsample + mirror (selfie view)
+
   tinyCtx.save();
   tinyCtx.scale(-1, 1);
   tinyCtx.drawImage(videoEl, -EMBLEM_INPUT_W, 0, EMBLEM_INPUT_W, EMBLEM_INPUT_H);
@@ -454,7 +451,7 @@ function _renderEmblemFrame(ctx, canvas, tinyCtx, tinyCanvas, videoEl) {
 
   const { data } = tinyCtx.getImageData(0, 0, EMBLEM_INPUT_W, EMBLEM_INPUT_H);
 
-  // Adaptive contrast: find brightness range across this frame
+
   let minB = 255, maxB = 0;
   for (let i = 0; i < data.length; i += 4) {
     const b = (data[i] + data[i + 1] + data[i + 2]) / 3;
@@ -463,7 +460,7 @@ function _renderEmblemFrame(ctx, canvas, tinyCtx, tinyCanvas, videoEl) {
   }
   const range = (maxB - minB) || 1;
 
-  // Clear to white (blank cells show as white)
+
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -472,23 +469,23 @@ function _renderEmblemFrame(ctx, canvas, tinyCtx, tinyCanvas, videoEl) {
       const p   = (y * EMBLEM_INPUT_W + x) * 4;
       let   avg = (data[p] + data[p + 1] + data[p + 2]) / 3;
 
-      // Normalize to 0–255 then apply gamma to brighten midtones
+
       avg = ((avg - minB) / range) * 255;
       avg = Math.pow(avg / 255, 0.7) * 255;
 
       let idx;
-      if      (avg <=  50) idx = 0;  // YIELD
-      else if (avg <= 100) idx = 1;  // DOMINION
-      else if (avg <= 150) idx = 2;  // REGISTRY
-      else if (avg <= 200) idx = 3;  // FOUNDRY
-      else continue;                  // > 200 — blank
+      if      (avg <=  50) idx = 0;
+      else if (avg <= 100) idx = 1;
+      else if (avg <= 150) idx = 2;
+      else if (avg <= 200) idx = 3;
+      else continue;
 
       ctx.drawImage(emblemTextures[idx], x * EMBLEM_SIZE, y * EMBLEM_SIZE, EMBLEM_SIZE, EMBLEM_SIZE);
     }
   }
 }
 
-// Static placeholder grid for denied-camera state (random emblem distribution).
+
 const PLACEHOLDER_SIZE   = 7;
 const PLACEHOLDER_COLS   = Math.floor(CAM_W / PLACEHOLDER_SIZE);
 const PLACEHOLDER_ROWS   = Math.floor(CAM_H / PLACEHOLDER_SIZE);
@@ -505,7 +502,7 @@ function _renderStaticPlaceholder(canvas, ctx) {
   }
 }
 
-// Attach sharedStream to a new per-popup video element and start its render loop.
+
 function _attachAndStartRender(popupEl, canvas) {
   const videoEl       = document.createElement('video');
   videoEl.srcObject   = sharedStream;
@@ -539,7 +536,7 @@ function _attachAndStartRender(popupEl, canvas) {
   popupEl._stopRender = () => { running = false; };
 }
 
-// Drain popups that were queued while camera permission was pending.
+
 function _activatePendingPopups() {
   _pendingCameraPopups.forEach(({ popup: p, canvas: c }) => {
     if (document.body.contains(p) && !p._stopRender) {
@@ -618,7 +615,7 @@ function makeDraggable(el) {
   window.addEventListener('mouseup', () => { isDragging = false; });
 }
 
-// Popup width presets — random per popup for scattered size variety
+
 const POPUP_SIZES = [220, 290, 360, 460, 560];
 
 function spawnViolationPopup(type, data = {}, isSpawn = false, options = {}) {
@@ -630,16 +627,16 @@ function spawnViolationPopup(type, data = {}, isSpawn = false, options = {}) {
   const popup = document.createElement('div');
   popup.className = 'violation-popup';
 
-  // Random size from preset list
+
   const popupW = POPUP_SIZES[Math.floor(Math.random() * POPUP_SIZES.length)];
   popup.style.width = popupW + 'px';
 
-  // Fully random placement across viewport — scattered, not clustered
+
   const maxX = Math.max(0, window.innerWidth  - popupW);
   const maxY = Math.max(0, window.innerHeight - 320);
   const x    = Math.random() * maxX;
   const y    = Math.random() * maxY;
-  // Wider rotation range for more visual scatter
+
   const rot  = (Math.random() * 20) - 10;
 
   popup.style.left = x + 'px';
@@ -671,7 +668,7 @@ function spawnViolationPopup(type, data = {}, isSpawn = false, options = {}) {
   popupCount++;
   syncViolationScreenState();
 
-  // --- Emblem-tile camera setup ---
+
   if (!noCam) {
     const canvas = popup.querySelector('.popup-camera-canvas');
 
@@ -705,15 +702,15 @@ function spawnViolationPopup(type, data = {}, isSpawn = false, options = {}) {
     popupCount = Math.max(0, popupCount - 1);
     syncViolationScreenState();
 
-    // Closing spawns two more
+
     spawnViolationPopup(type, { ...data }, true);
     spawnViolationPopup(type, { ...data }, true);
   });
 }
 
-// ================================================================
-// HUD CARD
-// ================================================================
+
+
+
 
 function buildHUD() {
   const tier = getTierFromStorage();
@@ -732,8 +729,8 @@ function buildHUD() {
   hud.id        = 'hud-card';
   hud.className = 'hud-card';
 
-  // No logo / foundry wordmark. No <hr> dividers.
-  // Starts directly with ID, then stats.
+
+
   hud.innerHTML = `
     <div class="hud-body">
       <div class="hud-id-line">${id}</div>
@@ -810,9 +807,9 @@ function updateHUD({ charCount, violations, sessionChars } = {}) {
   }
 }
 
-// ================================================================
-// ID CARD (full size for reveal)
-// ================================================================
+
+
+
 
 function buildFullCard(id, tier) {
   const tierData = TIERS[tier] || {};
@@ -842,9 +839,9 @@ function buildFullCard(id, tier) {
   `;
 }
 
-// ================================================================
-// CARD REVEAL ANIMATION
-// ================================================================
+
+
+
 
 function runCardReveal() {
   const id = getIDFromStorage();
@@ -856,7 +853,7 @@ function runCardReveal() {
   overlay.innerHTML = buildFullCard(id, tier);
   document.body.appendChild(overlay);
 
-  // Fade overlay to black
+
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       overlay.classList.add('visible');
@@ -865,20 +862,20 @@ function runCardReveal() {
 
   const card = document.getElementById('reveal-card');
 
-  // Fade card in after 400ms
+
   setTimeout(() => {
     card.classList.add('visible');
 
-    // Start spin after card is visible
+
     setTimeout(() => {
       card.classList.add('spinning');
 
-      // After spin, dock to corner
+
       setTimeout(() => {
         card.classList.remove('spinning');
         card.classList.add('docking');
 
-        // Navigate to specimen after dock
+
         setTimeout(() => {
           window.location.href = 'specimen.html';
         }, 700);
@@ -887,9 +884,9 @@ function runCardReveal() {
   }, 500);
 }
 
-// ================================================================
-// PAGE: LOGIN
-// ================================================================
+
+
+
 
 function buildLoginVerificationGate() {
   const grid = document.getElementById('login-gate-grid');
@@ -910,7 +907,7 @@ function buildLoginVerificationGate() {
   shade.className = 'login-gate-shade';
   grid.appendChild(shade);
 
-  // Edit the answer key here as row-column pairs, 1-based.
+
   const correctTiles = new Set(['2-2', '2-3', '4-4', '4-1']);
   const tiles = Array.from({ length: 16 }, (_, index) => {
     const row = Math.floor(index / 4) + 1;
@@ -996,7 +993,7 @@ function initLogin() {
 
   buildLoginVerificationGate();
 
-  // Clear any stale session data
+
   localStorage.removeItem('user_id');
   localStorage.removeItem('user_tier');
 
@@ -1014,7 +1011,7 @@ function initLogin() {
       localStorage.setItem('user_id', val);
       localStorage.setItem('user_tier', tier);
       localStorage.setItem('last_member_id', val);
-      // Reset violations for fresh session
+
       localStorage.setItem(`violations_remaining_${tier}`, TIERS[tier].violationsAllowed);
       sessionStorage.removeItem('session_chars');
       window.location.href = 'license.html';
@@ -1030,9 +1027,9 @@ function initLogin() {
   });
 }
 
-// ================================================================
-// PAGE: LICENSE
-// ================================================================
+
+
+
 
 function initLicense() {
   const tier = getTierFromStorage();
@@ -1041,22 +1038,22 @@ function initLicense() {
   const tierData = TIERS[tier];
   if (!tierData) { window.location.href = 'login.html'; return; }
 
-  // Render small logo in header
+
   const headerLogo = document.getElementById('license-header-logo');
   if (headerLogo) headerLogo.innerHTML = getLogo(24);
 
-  // Set tier name displays
+
   document.querySelectorAll('.js-tier-name').forEach(el => {
     el.textContent = tierData.name;
   });
 
-  // Inject license text
+
   const termsBox = document.getElementById('license-terms-box');
   if (termsBox) {
     termsBox.innerHTML = LICENSES[tier] || '<p>License text unavailable.</p>';
   }
 
-  // Scroll detection → enable accept button
+
   const acceptBtn = document.getElementById('license-accept-btn');
   if (termsBox && acceptBtn) {
     termsBox.addEventListener('scroll', () => {
@@ -1073,7 +1070,7 @@ function initLicense() {
     });
   }
 
-  // Decline link
+
   const declineLink = document.getElementById('license-decline');
   if (declineLink) {
     declineLink.addEventListener('click', (e) => {
@@ -1083,9 +1080,9 @@ function initLicense() {
   }
 }
 
-// ================================================================
-// PAGE: SPECIMEN
-// ================================================================
+
+
+
 
 function initSpecimen() {
   const tier = getTierFromStorage();
@@ -1109,7 +1106,7 @@ function initSpecimen() {
 
   let violationsRemaining = getViolationsFromStorage(tier);
   let sessionChars = tier === 'enterprise' ? getSessionCharsFromStorage() : 0;
-  let totalCharsTyped = sessionChars; // running total for enterprise session
+  let totalCharsTyped = sessionChars;
   let currentViolationType = null;
 
   function applyTesterControls() {
@@ -1145,11 +1142,11 @@ function initSpecimen() {
     });
   }
 
-  // Set default specimen text
+
   display.textContent = tierData.defaultSpecimen;
   applyTesterControls();
 
-  // Copy protection for professional
+
   if (tierData.blockCopy) {
     display.addEventListener('copy', (e) => {
       e.preventDefault();
@@ -1183,14 +1180,14 @@ function initSpecimen() {
 
     spawnViolationPopup(type, { ...data, tier: tierData.name });
 
-    // Notify usage log and ticker
+
     document.dispatchEvent(new CustomEvent('violation', {
       detail: { type, data: { ...data }, tierName: tierData.name }
     }));
   }
 
-  // Expose a decrement-only hook so the camera system can register
-  // a biometric refusal as a violation without re-calling triggerViolation
+
+
   _onViolationDecrement = () => {
     violationsRemaining--;
     setViolationsInStorage(tier, violationsRemaining);
@@ -1205,9 +1202,9 @@ function initSpecimen() {
     const len = text.length;
     const limit = tier === 'enterprise' ? tierData.sessionLimit : tierData.charLimit;
 
-    // Enterprise: track session characters (cumulative)
+
     if (tier === 'enterprise') {
-      totalCharsTyped = len; // current length as session usage
+      totalCharsTyped = len;
       setSessionCharsInStorage(totalCharsTyped);
       updateHUD({ charCount: len, sessionChars: totalCharsTyped });
 
@@ -1224,11 +1221,11 @@ function initSpecimen() {
       }
     }
 
-    // Check each character against allowed regex
+
     if (tier !== 'enterprise') {
       for (const char of text) {
         if (!tierData.allowedRegex.test(char)) {
-          // determine violation type
+
           const isNumeral = /[0-9]/.test(char);
           const type = (tier === 'basic' || tier === 'standard') && isNumeral
             ? 'restricted_numeral'
@@ -1242,7 +1239,7 @@ function initSpecimen() {
     updateHUD({ charCount: len, violations: violationsRemaining });
   });
 
-  // Focus handling
+
   display.addEventListener('focus', () => {
     if (display.textContent === tierData.defaultSpecimen) {
       display.textContent = '';
@@ -1256,14 +1253,14 @@ function initSpecimen() {
     }
   });
 
-  // Initial HUD state
+
   updateHUD({
     charCount: tierData.defaultSpecimen.length,
     violations: violationsRemaining,
     sessionChars,
   });
 
-  // Build long-scroll specimen sections (§01 charmap, §02 tester, §03 license)
+
   const _spUserId = getIDFromStorage() || '—';
   initTicker(_spUserId, tier);
   initAboutModal();
@@ -1300,17 +1297,17 @@ function initAboutModal() {
   });
 }
 
-// ================================================================
-// SPECIMEN — SURVEILLANCE TICKER
-// ================================================================
+
+
+
 
 function initTicker(userId, tier) {
   const feed = document.getElementById('ticker-feed');
   if (!feed) return;
 
   const MAX_ENTRIES   = 60;
-  const MIN_GAP_MS    = 1500;   // minimum ms between any two entries
-  const EDITORIAL_GAP = 12000;  // minimum ms between editorial entries
+  const MIN_GAP_MS    = 1500;
+  const EDITORIAL_GAP = 12000;
   let lastEntryMs     = 0;
   let lastEditorialMs = 0;
   const sessionStart  = Date.now();
@@ -1336,7 +1333,7 @@ function initTicker(userId, tier) {
     entry.appendChild(timeSpan);
     entry.appendChild(textSpan);
 
-    // Newest entries at top
+
     feed.insertBefore(entry, feed.firstChild);
 
     const all = feed.querySelectorAll('.ticker-entry');
@@ -1345,14 +1342,14 @@ function initTicker(userId, tier) {
     return true;
   }
 
-  // Expose globally for charmap hover and interest modal dismiss
+
   tickerAdd = _addEntry;
 
-  // Session init (staggered)
+
   setTimeout(() => _addEntry('SESSION INITIATED', 'system', true), 600);
   setTimeout(() => _addEntry(`MEMBER: ${userId}`, 'system', true), 2100);
 
-  // Editorial pool
+
   function _dur() {
     const s = Math.floor((Date.now() - sessionStart) / 1000);
     return `${Math.floor(s / 60)}m ${s % 60}s`;
@@ -1382,7 +1379,7 @@ function initTicker(userId, tier) {
   }
   scheduleEditorial();
 
-  // Idle detection
+
   let lastActivity = Date.now();
   function resetIdle() { lastActivity = Date.now(); }
   ['mousemove', 'keydown', 'scroll'].forEach(ev =>
@@ -1393,7 +1390,7 @@ function initTicker(userId, tier) {
     if (elapsed >= 8) _addEntry(`USER IDLE (${elapsed}s)`, 'idle');
   }, 8000);
 
-  // Tab focus / blur
+
   let blurTime = null;
   window.addEventListener('blur', () => {
     blurTime = Date.now();
@@ -1407,17 +1404,17 @@ function initTicker(userId, tier) {
     }
   });
 
-  // Right-click
+
   document.addEventListener('contextmenu', () => {
     _addEntry('CONTEXT MENU INVOCATION LOGGED', 'normal');
   });
 
-  // Upgrade link clicks
+
   document.querySelectorAll('.js-upgrade-link').forEach(el =>
     el.addEventListener('click', () => _addEntry('UPGRADE INTEREST DETECTED', 'normal', true))
   );
 
-  // Keystroke count — every 5th key in the tester fires an entry
+
   let keystrokeCount = 0;
   let typingPauseTimer = null;
   let lastKeystrokeMs  = 0;
@@ -1441,13 +1438,13 @@ function initTicker(userId, tier) {
     });
   }
 
-  // Violation events
+
   document.addEventListener('violation', (e) => {
     const label = (e.detail.type || '').replace(/_/g, ' ').toUpperCase();
     _addEntry(`VIOLATION LOGGED — ${label}`, 'red', true);
   });
 
-  // Section IntersectionObserver — fires once per section
+
   const SECTION_NAMES = {
     'section-charmap':   'CHARACTER MAP',
     'section-tester':    'TYPE TESTER',
@@ -1470,9 +1467,9 @@ function initTicker(userId, tier) {
   document.querySelectorAll('.sp-section').forEach(sec => sectionObs.observe(sec));
 }
 
-// ================================================================
-// SPECIMEN — CHARACTER MAP
-// ================================================================
+
+
+
 
 function buildCharMap(tier, tierData) {
   const TIER_ORDER = ['basic', 'standard', 'professional', 'enterprise'];
@@ -1497,7 +1494,7 @@ function buildCharMap(tier, tierData) {
     if ('12345'.includes(char))                              return 'standard';
     if (',;:!?\'"()-'.includes(char))                        return 'standard';
     if ('06789'.includes(char))                              return 'professional';
-    return 'enterprise'; // & @ # $ %
+    return 'enterprise';
   }
 
   function uniqueChars(chars) {
@@ -1511,12 +1508,12 @@ function buildCharMap(tier, tierData) {
     'ŌōŎŏŐőŒœŘřŚśŞşŠšŢţŨũŪūŬŭŰűŸŹźŻżŽžǓǔȘșȚțȷˆˇ˘˙˚˛˜ḂḃḊḋḞḟṀṁṖṗṠṡṪṫẞỲỳ' +
     '‐–—‘’‚“”„†‡•…′″‹›🄯';
 
-  // Full visible glyph inventory shown in specimen-sheet order.
+
   const glyphs = uniqueChars(Array.from(glyphInventory));
 
   if (countEl) countEl.textContent = `Shown: ${glyphs.length} glyphs`;
 
-  // Throttle + successive locked hover tracking
+
   const hoverTimestamps = new Map();
   const HOVER_THROTTLE  = 3000;
   let lockedHoverCount  = 0;
@@ -1611,9 +1608,9 @@ function showGlyphInterestModal() {
   }
 }
 
-// ================================================================
-// SPECIMEN — LICENSE INFORMATION
-// ================================================================
+
+
+
 
 function buildLicenseInfo(userId, tier, tierData) {
   const cols = document.getElementById('license-cols');
@@ -1657,7 +1654,7 @@ function buildLicenseInfo(userId, tier, tierData) {
     </div>
   `;
 
-  // Wire the upgrade button into the ticker (it's dynamically created)
+
   const upgradeBtn = cols.querySelector('.js-upgrade-link');
   if (upgradeBtn) {
     if (tickerAdd) {
@@ -1667,14 +1664,14 @@ function buildLicenseInfo(userId, tier, tierData) {
   }
 }
 
-// ================================================================
-// PAGE: UPGRADE
-// ================================================================
+
+
+
 
 function initUpgrade() {
   const tier = getTierFromStorage();
 
-  // Populate tier cards
+
   const grid = document.getElementById('tier-grid');
   if (!grid) return;
 
@@ -1715,14 +1712,14 @@ function initUpgrade() {
     grid.appendChild(card);
   });
 
-  // Tier select click handlers
+
   grid.addEventListener('click', (e) => {
     const btn = e.target.closest('.tier-select-btn');
     if (!btn || btn.disabled) return;
 
     const targetTier = btn.dataset.tier;
 
-    // Guest mode (no login) — send to checkout
+
     if (!tier) {
       if (targetTier === 'enterprise') {
         window.location.href = 'enterprise-application.html';
@@ -1764,7 +1761,7 @@ function openUpgradeModal(fromTier, toTier, fee) {
 
   document.body.appendChild(overlay);
 
-  // Animate dots
+
   const dotsEl = document.getElementById('processing-dots');
   let dotCount = 0;
   const dotInterval = setInterval(() => {
@@ -1772,7 +1769,7 @@ function openUpgradeModal(fromTier, toTier, fee) {
     dotsEl.textContent = '.'.repeat(dotCount);
   }, 400);
 
-  // After 2 seconds, show step 2
+
   setTimeout(() => {
     clearInterval(dotInterval);
 
@@ -1797,9 +1794,9 @@ function openUpgradeModal(fromTier, toTier, fee) {
   }, 2000);
 }
 
-// ================================================================
-// PAGE: ENTERPRISE APPLICATION
-// ================================================================
+
+
+
 
 function initEnterpriseApplication() {
   const logoEl = document.getElementById('header-logo');
@@ -1953,7 +1950,7 @@ function initEnterpriseApplication() {
       </div>
     `;
 
-    // Wire input behaviors
+
     if (q.type === 'textarea' && q.wordLimit) {
       const ta = document.getElementById('q-input');
       const wc = document.getElementById('word-count');
@@ -2025,7 +2022,7 @@ function initEnterpriseApplication() {
       dotsEl.textContent = '.'.repeat(dotCount);
     }, 400);
 
-    // Update tier immediately — the review is theater
+
     localStorage.setItem('user_id', getIDForTier('enterprise'));
     localStorage.setItem('user_tier', 'enterprise');
     localStorage.setItem('violations_remaining_enterprise', TIERS.enterprise.violationsAllowed);
@@ -2063,12 +2060,12 @@ function initEnterpriseApplication() {
   renderStep(0);
 }
 
-// ================================================================
-// PAGE: 404
-// ================================================================
+
+
+
 
 function init404() {
-  // Clear all stored access
+
   const lastKnownId = localStorage.getItem('user_id');
   if (lastKnownId) {
     localStorage.setItem('last_member_id', lastKnownId);
@@ -2090,9 +2087,9 @@ function init404() {
   }
 }
 
-// ================================================================
-// PAGE: CHECKOUT
-// ================================================================
+
+
+
 
 function initCheckout() {
   const params   = new URLSearchParams(location.search);
@@ -2104,14 +2101,14 @@ function initCheckout() {
     return;
   }
 
-  // Parse fee from tier price string: "$12/mo" → 12
+
   const rawPrice = tierData.price;
   const baseAmt  = parseInt(rawPrice.replace(/[^0-9]/g, ''), 10) || 0;
   const feeProc  = 29;
   const feeBio   = 14;
   const total    = baseAmt + feeProc + feeBio;
 
-  // ── Render the logo in top bar ──────────────────────────────────
+
   const topLogo = document.getElementById('checkout-top-logo');
   if (topLogo) topLogo.innerHTML = getLogo(24);
 
@@ -2122,7 +2119,7 @@ function initCheckout() {
   const memberId = getIDFromStorage();
   const guestMode = !memberId;
 
-  // ── Subtitle amounts ────────────────────────────────────────────
+
   document.querySelectorAll('.js-co-subtotal').forEach(el => {
     el.textContent = `$${total}`;
   });
@@ -2133,7 +2130,7 @@ function initCheckout() {
     el.textContent = tierData.name;
   });
 
-  // ── Build order summary sidebar ─────────────────────────────────
+
   const summaryEl = document.getElementById('co-summary-lines');
   if (summaryEl) {
     summaryEl.innerHTML = `
@@ -2214,7 +2211,7 @@ function initCheckout() {
     if (e.key === 'Escape') closeCart();
   });
 
-  // ── Step state ──────────────────────────────────────────────────
+
   let currentStep = 0;
   const formData  = { name: '', email: '', dob: '', zip: '', city: '', state: '', country: '' };
 
@@ -2227,11 +2224,11 @@ function initCheckout() {
       item.classList.toggle('active',    i === n);
       item.classList.toggle('completed', i < n);
     });
-    // Populate review when landing on review step
+
     if (n === 3) _populateReview();
   }
 
-  // ── Step 1: Licensee Information ────────────────────────────────
+
   const step1Form = document.getElementById('co-step1-form');
   if (step1Form) {
     const requiredFields = step1Form.querySelectorAll('[required]');
@@ -2258,7 +2255,7 @@ function initCheckout() {
     });
   }
 
-  // ── Step 2: Tier Confirmation ────────────────────────────────────
+
   const tierConfirmBlock = document.getElementById('co-tier-block');
   if (tierConfirmBlock) {
     const inclusions = {
@@ -2292,7 +2289,7 @@ function initCheckout() {
   document.getElementById('co-step2-continue')?.addEventListener('click', () => setStep(2));
   document.getElementById('co-step2-back')?. addEventListener('click', () => setStep(0));
 
-  // ── Step 3: Payment ──────────────────────────────────────────────
+
   const step3Form = document.getElementById('co-step3-form');
   if (step3Form) {
     const step3Btn = document.getElementById('co-step3-continue');
@@ -2306,7 +2303,7 @@ function initCheckout() {
     document.getElementById('co-step3-back')?.addEventListener('click', () => setStep(1));
   }
 
-  // ── Step 4: Review & Process ────────────────────────────────────
+
   function _populateReview() {
     const el = document.getElementById('co-review-lines');
     if (!el) return;
@@ -2353,7 +2350,7 @@ function initCheckout() {
       clearInterval(dotInt);
       const newId = getIDForTier(tierKey);
 
-      // Set active session
+
       localStorage.setItem('user_id', newId);
       localStorage.setItem('user_tier', tierKey);
       localStorage.setItem(`violations_remaining_${tierKey}`, TIERS[tierKey].violationsAllowed);
@@ -2380,9 +2377,9 @@ function initCheckout() {
   setStep(0);
 }
 
-// ================================================================
-// WORDMARK
-// ================================================================
+
+
+
 
 function initWordmark() {
   const wm = document.createElement('aside');
@@ -2398,13 +2395,13 @@ function initWordmark() {
   document.body.appendChild(wm);
 }
 
-// ================================================================
-// ROUTER
-// ================================================================
+
+
+
 
 document.addEventListener('DOMContentLoaded', () => {
   const page = document.body.id;
-  // Wordmark column on all pages EXCEPT login, license, checkout, upgrade, and 404
+
   if (page !== 'login' && page !== 'license' && page !== 'checkout' && page !== 'upgrade' && page !== 'not-found') initWordmark();
 
   const routes = {

@@ -1,9 +1,6 @@
-/* ================================================================
-   FOUNDRY™ — THE FOUNDRY™
-   styles.css v1.0.0
-   ================================================================ */
 
-/* === FONTS ===================================================== */
+
+
 @font-face {
   font-family: 'Licensed';
   src: url('assets/Licensed-Regular.ttf') format('truetype');
@@ -12,7 +9,7 @@
   font-style: normal;
 }
 
-/* === VARIABLES ================================================= */
+
 :root {
   --font-licensed: 'Licensed';
   --black: #000000;
@@ -43,7 +40,7 @@
   --type-mono-body: 13px;
 }
 
-/* === RESET ===================================================== */
+
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -92,7 +89,7 @@ input, textarea {
 }
 
 
-/* === SHARED TYPOGRAPHY ======================================== */
+
 .label-caps {
   font-size: 9px;
   letter-spacing: 0.18em;
@@ -117,7 +114,7 @@ input, textarea {
   line-height: 1.5;
 }
 
-/* === SHARED HEADER ============================================ */
+
 .site-header {
   position: fixed;
   top: 0;
@@ -161,7 +158,7 @@ input, textarea {
   color: var(--black);
 }
 
-/* === SHARED FOOTER ============================================ */
+
 .site-footer {
   border-top: var(--rule);
   padding: var(--space-16) var(--space-32);
@@ -178,22 +175,20 @@ input, textarea {
   line-height: 1.5;
 }
 
-/* === PAGE WRAPPER ============================================= */
+
 .page-wrap {
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding-top: 52px; /* header height */
+  padding-top: 52px;
 }
 
-/* ================================================================
-   LOGIN PAGE
-   ================================================================ */
+
 body#login {
   overflow: hidden;
 }
 
-/* Top-right — visible from page load */
+
 .login-copyright-block {
   position: fixed;
   top: var(--space-32);
@@ -207,7 +202,7 @@ body#login {
   z-index: 10;
 }
 
-/* Centered column layout */
+
 .login-stage {
   display: flex;
   flex-direction: column;
@@ -218,7 +213,7 @@ body#login {
   padding: var(--space-48) var(--space-32);
 }
 
-/* Verification gate */
+
 .login-gate {
   width: min(318px, 100%);
   display: flex;
@@ -434,7 +429,7 @@ body.login-gate-open .login-gate-launch[hidden] {
   flex-shrink: 0;
 }
 
-/* Logo — small, centered */
+
 .login-logo-mark {
   width: 80px;
   height: 80px;
@@ -449,7 +444,7 @@ body.login-gate-open .login-gate-launch[hidden] {
   display: block;
 }
 
-/* Login form group — centered below logo */
+
 .login-field-group {
   display: flex;
   flex-direction: column;
@@ -581,7 +576,7 @@ body.login-unlocked .login-gate {
   display: none;
 }
 
-/* Bottom-right footer — visible from page load */
+
 .login-footer {
   position: fixed;
   bottom: var(--space-32);
@@ -592,9 +587,7 @@ body.login-unlocked .login-gate {
   text-align: right;
 }
 
-/* ================================================================
-   LICENSE PAGE
-   ================================================================ */
+
 body#license .page-wrap {
   padding: 0;
 }
@@ -686,7 +679,7 @@ body#license .page-wrap {
   scroll-behavior: smooth;
 }
 
-/* hide scrollbar but keep functional */
+
 .license-terms-box::-webkit-scrollbar {
   width: 4px;
 }
@@ -697,7 +690,7 @@ body#license .page-wrap {
   background: transparent;
 }
 
-/* License text formatting */
+
 .license-text-section {
   margin-bottom: var(--space-32);
 }
@@ -789,9 +782,7 @@ body#license .page-wrap {
   margin-bottom: var(--space-8);
 }
 
-/* ================================================================
-   CARD REVEAL OVERLAY
-   ================================================================ */
+
 .card-reveal-overlay {
   position: fixed;
   inset: 0;
@@ -932,9 +923,7 @@ body#license .page-wrap {
   opacity: 0.85;
 }
 
-/* ================================================================
-   HUD CARD (docked, fixed top-left)
-   ================================================================ */
+
 .hud-card {
   position: fixed;
   top: 52px;
@@ -944,7 +933,7 @@ body#license .page-wrap {
   background: var(--white);
   border-right: var(--rule);
   border-bottom: var(--rule);
-  display: none; /* shown by JS when logged in */
+  display: none;
 }
 
 .hud-card.active {
@@ -957,7 +946,7 @@ body#license .page-wrap {
   gap: var(--space-8);
   padding: var(--space-8) var(--space-12);
   border-bottom: var(--rule);
-  height: 52px; /* match site-header height */
+  height: 52px;
 }
 
 .hud-logo-mark {
@@ -1025,9 +1014,7 @@ body#license .page-wrap {
   color: var(--red);
 }
 
-/* ================================================================
-   SPECIMEN PAGE
-   ================================================================ */
+
 .specimen-wrap {
   flex: 1;
   display: flex;
@@ -1125,9 +1112,7 @@ body#license .page-wrap {
   text-underline-offset: 3px;
 }
 
-/* ================================================================
-   UPGRADE PAGE
-   ================================================================ */
+
 .upgrade-main {
   padding: var(--space-64) var(--space-32);
   max-width: 1200px;
@@ -1280,7 +1265,7 @@ body#license .page-wrap {
   opacity: 0.4;
 }
 
-/* === UPGRADE MODAL ============================================ */
+
 .upgrade-modal-overlay {
   position: fixed;
   inset: 0;
@@ -1397,9 +1382,7 @@ body#license .page-wrap {
   margin-top: var(--space-32);
 }
 
-/* ================================================================
-   VIOLATION POPUPS
-   ================================================================ */
+
 .violation-popup {
   position: fixed;
   background: #111;
@@ -1408,7 +1391,7 @@ body#license .page-wrap {
   z-index: 9000;
   box-shadow: 0 16px 48px rgba(0,0,0,0.75), 0 2px 8px rgba(0,0,0,0.5);
   user-select: none;
-  /* width is set inline by JS per popup */
+
 }
 
 .popup-titlebar {
@@ -1518,7 +1501,7 @@ body.violation-alert-active::after {
   opacity: 0.7;
 }
 
-/* Foundry-native system notices */
+
 .violation-popup {
   background: var(--white);
   color: var(--black);
@@ -1614,9 +1597,7 @@ body.violation-alert-active::after {
   line-height: 1.55;
 }
 
-/* ================================================================
-   404 PAGE
-   ================================================================ */
+
 body#not-found {
   background: var(--black);
   color: var(--white);
@@ -1678,9 +1659,7 @@ body#not-found .site-footer {
   text-decoration: underline;
 }
 
-/* ================================================================
-   UTILITIES & HELPERS
-   ================================================================ */
+
 .visually-hidden {
   position: absolute;
   width: 1px;
@@ -1691,9 +1670,7 @@ body#not-found .site-footer {
 }
 
 
-/* ================================================================
-   RESPONSIVE — mobile graceful degradation
-   ================================================================ */
+
 @media (max-width: 900px) {
   .tier-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -1756,21 +1733,19 @@ body#not-found .site-footer {
   }
 }
 
-/* ================================================================
-   SPECIMEN — LONG-SCROLL LAYOUT
-   ================================================================ */
 
-/* Content area leaves room for fixed ticker sidebar */
+
+
 body#specimen .specimen-wrap {
   padding-left: calc(var(--wordmark-w) + var(--space-32));
   padding-right: calc(270px + var(--space-32));
 }
 
-/* ── Surveillance Ticker Sidebar ───────────────────────────── */
+
 .ticker-sidebar {
   position: fixed;
   right: 0;
-  top: 52px;   /* header height */
+  top: 52px;
   bottom: 0;
   width: 270px;
   background: var(--white);
@@ -1824,7 +1799,7 @@ body#specimen .specimen-wrap {
   flex-direction: column;
 }
 
-/* Hide scrollbar but keep scrollability */
+
 .ticker-feed::-webkit-scrollbar { width: 3px; }
 .ticker-feed::-webkit-scrollbar-track { background: transparent; }
 .ticker-feed::-webkit-scrollbar-thumb { background: #ddd; }
@@ -1868,7 +1843,7 @@ body#specimen .specimen-wrap {
 .ticker-entry--editorial .ticker-text { color: #555; }
 .ticker-entry--idle   .ticker-text { color: #ccc; }
 
-/* ── Section Structure ──────────────────────────────────────── */
+
 .sp-section {
   border-top: var(--rule);
   padding-top: var(--space-80);
@@ -1919,7 +1894,7 @@ body#specimen .specimen-wrap {
   box-sizing: border-box;
 }
 
-/* ── § 01 Character Map ─────────────────────────────────────── */
+
 #section-charmap {
   min-height: calc(100vh - 52px);
   padding-top: var(--space-16);
@@ -2043,12 +2018,12 @@ body#specimen .specimen-wrap {
 }
 
 .sp-glyph-guide--cap {
-  top: 44.8%;
+  top: 109px;
   border-top: 1px dashed #777;
 }
 
 .sp-glyph-guide--baseline {
-  top: 75%;
+  top: 200px;
   bottom: auto;
   border-top: 1px solid var(--red);
 }
@@ -2149,7 +2124,7 @@ body#specimen .specimen-wrap {
   min-height: 0;
 }
 
-/* ── Available cell hover: black field, white glyph ── */
+
 .sp-glyph-cell.available:hover {
   background: var(--black);
   border-color: var(--black);
@@ -2186,7 +2161,7 @@ body#specimen .specimen-wrap {
   border-color: var(--red);
 }
 
-/* ── Locked cell hover: red field, white glyph ── */
+
 .sp-glyph-cell.locked {
   background: #f3f3f3;
 }
@@ -2218,7 +2193,7 @@ body#specimen .specimen-wrap {
 .sp-glyph-cell.available .sp-glyph-char { color: var(--black); }
 .sp-glyph-cell.locked    .sp-glyph-char { color: #d0d0d0; }
 
-/* ── § 02 About The Mark ────────────────────────────────────── */
+
 .specimen-nav {
   display: flex;
   align-items: center;
@@ -2478,7 +2453,7 @@ body.violation-alert-active .violation-popup .popup-violation-text {
   color: #555;
 }
 
-/* ── § 03 License Information ───────────────────────────────── */
+
 .sp-license-cols {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -2554,7 +2529,7 @@ body.violation-alert-active .violation-popup .popup-violation-text {
   border-top: var(--rule);
 }
 
-/* ── Restricted-Glyph Interest Modal ───────────────────────── */
+
 .sp-interest-modal {
   position: fixed;
   inset: 0;
@@ -2618,7 +2593,7 @@ body.violation-alert-active .violation-popup .popup-violation-text {
   padding: 0;
 }
 
-/* ── Specimen page responsive ───────────────────────────────── */
+
 @media (max-width: 1100px) {
   .ticker-sidebar { display: none; }
   body#specimen .specimen-wrap {
@@ -2644,9 +2619,7 @@ body.violation-alert-active .violation-popup .popup-violation-text {
   .sp-license-cols { grid-template-columns: 1fr; gap: var(--space-40); }
 }
 
-/* ================================================================
-   ENTERPRISE APPLICATION PAGE
-   ================================================================ */
+
 .enterprise-app-main {
   padding: var(--space-64) var(--space-32);
   max-width: 720px;
@@ -2706,7 +2679,7 @@ body.violation-alert-active .violation-popup .popup-violation-text {
   text-align: right;
 }
 
-/* Range */
+
 .enterprise-app-range-wrap {
   max-width: 440px;
 }
@@ -2756,7 +2729,7 @@ body.violation-alert-active .violation-popup .popup-violation-text {
   line-height: 1;
 }
 
-/* Radio */
+
 .enterprise-app-radio-group {
   display: flex;
   flex-direction: column;
@@ -2806,7 +2779,7 @@ body.violation-alert-active .violation-popup .popup-violation-text {
   margin-bottom: var(--space-12);
 }
 
-/* File */
+
 .enterprise-app-file-wrap {
   position: relative;
   display: inline-block;
@@ -2835,7 +2808,7 @@ body.violation-alert-active .violation-popup .popup-violation-text {
   min-width: 200px;
 }
 
-/* Checkbox */
+
 .enterprise-app-checkbox-label {
   display: flex;
   align-items: flex-start;
@@ -2870,7 +2843,7 @@ body.violation-alert-active .violation-popup .popup-violation-text {
   line-height: 16px;
 }
 
-/* Text input (Q8) */
+
 .enterprise-app-text-input {
   width: 320px;
   height: 48px;
@@ -2886,7 +2859,7 @@ body.violation-alert-active .violation-popup .popup-violation-text {
   outline: none;
 }
 
-/* Navigation */
+
 .enterprise-app-nav {
   margin-top: var(--space-64);
   padding-top: var(--space-32);
@@ -2935,7 +2908,7 @@ body.violation-alert-active .violation-popup .popup-violation-text {
   cursor: not-allowed;
 }
 
-/* Processing screen */
+
 .enterprise-app-processing {
   flex: 1;
   display: flex;
@@ -2950,7 +2923,7 @@ body.violation-alert-active .violation-popup .popup-violation-text {
   color: #999;
 }
 
-/* Success screen */
+
 .enterprise-app-success {
   max-width: 600px;
 }
@@ -2994,21 +2967,17 @@ body.violation-alert-active .violation-popup .popup-violation-text {
   }
 }
 
-/* ================================================================
-   HEADER — LOGGED-IN PAGE LAYOUT
-   ================================================================ */
 
-/* Header-left: logo link + inline HUD card */
+
+
 .header-left {
   display: flex;
   align-items: center;
 }
 
-/* ================================================================
-   TYPOGRAPHY — TIGHT SCALE
-   ================================================================ */
 
-/* Licensed: 9 / 13 / 32 */
+
+
 .label-caps,
 .label-sm,
 .label-md,
@@ -3108,7 +3077,7 @@ button,
   font-size: var(--type-licensed-display);
 }
 
-/* Monospace: 9 / 11 / 13 */
+
 .ticker-time,
 .page-wordmark-top,
 .page-wordmark-bottom,
@@ -3148,9 +3117,7 @@ button,
   letter-spacing: 0.03em;
 }
 
-/* ================================================================
-   WORDMARK COLUMN
-   ================================================================ */
+
 
 .page-wordmark {
   position: fixed;
@@ -3227,17 +3194,15 @@ button,
   display: block;
 }
 
-/* Content offset for wordmark column */
+
 .license-header { padding-left: calc(var(--wordmark-w) + var(--space-32)); }
 .site-footer  { padding-left: calc(var(--wordmark-w) + var(--space-32)); }
 .page-wrap    { padding-left: var(--wordmark-w); }
 body#license .page-wrap { padding-left: var(--wordmark-w); }
 
-/* ================================================================
-   TESTER-FRAME CORNER CLUSTERS
-   ================================================================ */
 
-/* Extra padding on the §02 Type Tester section */
+
+
 #section-tester {
   padding-top: calc(var(--space-80) + var(--space-40));
   padding-bottom: calc(var(--space-120) + var(--space-40));
@@ -3385,9 +3350,7 @@ body#license .page-wrap { padding-left: var(--wordmark-w); }
   color: #777;
 }
 
-/* ================================================================
-   §04 REDACTED SECTION
-   ================================================================ */
+
 
 .sp-redact-bar {
   display: inline-block;
@@ -3426,9 +3389,7 @@ body#license .page-wrap { padding-left: var(--wordmark-w); }
   font-style: italic;
 }
 
-/* ================================================================
-   RESPONSIVE — hide wordmark on narrow screens
-   ================================================================ */
+
 
 @media (max-width: 900px) {
   .page-wordmark { display: none; }
@@ -3439,17 +3400,14 @@ body#license .page-wrap { padding-left: var(--wordmark-w); }
   body#license .page-wrap { padding-left: 0; }
 }
 
-/* ================================================================
-   CHECKOUT PAGE
-   ================================================================ */
+
 
 body#checkout {
   min-height: 100vh;
   background: var(--white);
-  display: block;
 }
 
-/* Top bar */
+
 .co-topbar {
   position: sticky;
   top: 0;
@@ -3494,8 +3452,8 @@ body#checkout {
 
 .co-cart-popover {
   position: fixed;
-  top: 64px;
-  right: var(--space-32);
+  top: 42px;
+  right: 4px;
   width: 320px;
   max-width: calc(100vw - 2 * var(--space-32));
   background: var(--white);
@@ -3563,7 +3521,7 @@ body#checkout {
   color: #666;
 }
 
-/* Layout */
+
 .co-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 320px;
@@ -3571,13 +3529,13 @@ body#checkout {
   align-items: start;
 }
 
-/* Left column — steps */
+
 .co-steps-col {
   border-right: var(--rule);
   padding: var(--space-40);
 }
 
-/* Step nav */
+
 .co-step-nav {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -3620,7 +3578,7 @@ body#checkout {
 }
 .co-step-nav-item.completed span { display: none; }
 
-/* Step panels */
+
 .co-step-panel { display: block; }
 .co-step-panel[hidden] { display: none; }
 
@@ -3642,7 +3600,7 @@ body#checkout {
   max-width: 520px;
 }
 
-/* Form fields */
+
 .co-form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -3706,7 +3664,7 @@ select.co-field-input {
   margin-bottom: var(--space-24);
 }
 
-/* Buttons */
+
 .co-continue-btn {
   display: block;
   width: 100%;
@@ -3744,7 +3702,7 @@ select.co-field-input {
 }
 .co-back-link:hover { color: var(--black); }
 
-/* Step 2 — tier confirm */
+
 .co-tier-confirm-name {
   font-size: var(--type-licensed-display);
   font-weight: 400;
@@ -3797,7 +3755,7 @@ select.co-field-input {
   font-style: italic;
 }
 
-/* Step 3 — payment */
+
 .co-secure-badge {
   display: inline-flex;
   align-items: center;
@@ -3815,7 +3773,7 @@ select.co-field-input {
   font-size: 10px;
 }
 
-/* Step 4 — review */
+
 .co-review-lines {
   max-width: 560px;
   border: var(--rule);
@@ -3867,7 +3825,7 @@ select.co-field-input {
   cursor: pointer;
 }
 
-/* Processing / success screens */
+
 .co-processing-screen,
 .co-success-screen {
   max-width: 560px;
@@ -3938,7 +3896,7 @@ select.co-field-input {
 }
 .co-proceed-btn:hover { opacity: 0.8; }
 
-/* Right column — order summary */
+
 .co-summary-col {
   padding: 0 var(--space-32) var(--space-40);
   position: sticky;
@@ -4002,9 +3960,7 @@ select.co-field-input {
   .co-summary-col { position: static; border-top: var(--rule); }
 }
 
-/* ================================================================
-   DENSITY PASS
-   ================================================================ */
+
 
 .sp-section {
   padding-top: var(--space-48);
@@ -4064,9 +4020,7 @@ select.co-field-input {
   padding: var(--space-32);
 }
 
-/* ================================================================
-   SPECIMEN — ACTIVE LICENSE PANEL
-   ================================================================ */
+
 
 .sp-license-cols {
   grid-template-columns: minmax(280px, 0.85fr) minmax(320px, 1.15fr);
@@ -4177,9 +4131,7 @@ body#upgrade .page-wrap {
   }
 }
 
-/* ================================================================
-   LICENSE PAGE — DOCUMENT INTERFACE
-   ================================================================ */
+
 
 body#license {
   background: #f7f7f7;
@@ -4334,18 +4286,17 @@ body#license .page-wrap {
   }
 }
 
-/* ================================================================
-   ENTERPRISE APPLICATION — DENSE FILING VIEW
-   ================================================================ */
+
 
 body#enterprise-application .page-wrap {
   min-height: 100vh;
+  padding-left: var(--wordmark-w);
 }
 
 .enterprise-app-main {
   max-width: none;
   min-height: calc(100vh - 52px);
-  padding: 0;
+  padding: 0 var(--space-32) 0 var(--space-32);
   margin: 0;
 }
 
@@ -4497,6 +4448,10 @@ body#enterprise-application .page-wrap {
 }
 
 @media (max-width: 900px) {
+  body#enterprise-application .page-wrap {
+    padding-left: 0;
+  }
+
   .enterprise-app-shell {
     grid-template-columns: 1fr;
   }
@@ -4517,7 +4472,7 @@ body#enterprise-application .page-wrap {
   }
 }
 
-/* Final type lock: keep both fonts to three sizes after page-specific rules. */
+
 .label-caps,
 .label-sm,
 .label-md,
