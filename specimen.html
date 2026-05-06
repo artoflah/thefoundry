@@ -10,18 +10,19 @@
 <body id="specimen">
 
   <!-- Fixed header -->
-  <header class="site-header">
-    <div class="header-left">
-      <a href="specimen.html" class="header-logo">
-        <span class="header-logo-mark" id="header-logo"></span>
-      </a>
-    </div>
-    <nav class="specimen-nav" aria-label="Specimen navigation">
+  <header class="site-header site-header--specimen">
+    <nav class="specimen-nav specimen-nav--left" aria-label="Specimen navigation">
       <div class="specimen-license-menu" id="hud-nav-slot">
         <button type="button" class="specimen-nav-btn hud-toggle" id="hud-toggle" aria-expanded="false">License</button>
       </div>
       <button type="button" class="specimen-nav-btn" id="about-open">About</button>
+    </nav>
+    <a href="specimen.html" class="header-logo header-logo--specimen" aria-label="The Foundry specimen">
+      <span class="header-logo-mark" id="header-logo"></span>
+    </a>
+    <nav class="specimen-nav specimen-nav--right" aria-label="Session actions">
       <a href="upgrade.html" class="specimen-nav-link js-upgrade-link">Upgrade</a>
+      <a href="login.html" class="specimen-nav-link specimen-logout-link">Logout</a>
     </nav>
   </header>
 
@@ -86,6 +87,34 @@
           <div class="tester-meta tester-meta--tr" aria-hidden="true">
             <div>ASCENDER: +740</div><div>X-HEIGHT: 520</div>
             <div>DESCENDER: -240</div><div>CAP-HEIGHT: 712</div>
+          </div>
+          <div class="tester-controls" aria-label="Type tester controls">
+            <div class="tester-controls-head">Type Controls</div>
+            <label class="tester-control" for="tester-tracking">
+              <span class="tester-control-label">
+                <span>Tracking</span>
+                <span class="tester-control-value" id="tester-tracking-value">0</span>
+              </span>
+              <input type="range" id="tester-tracking" min="-20" max="120" value="0" step="1">
+            </label>
+            <label class="tester-control" for="tester-leading">
+              <span class="tester-control-label">
+                <span>Leading</span>
+                <span class="tester-control-value" id="tester-leading-value">108</span>
+              </span>
+              <input type="range" id="tester-leading" min="85" max="155" value="108" step="1">
+            </label>
+            <label class="tester-control" for="tester-size">
+              <span class="tester-control-label">
+                <span>Font size</span>
+                <span class="tester-control-value" id="tester-size-value">68</span>
+              </span>
+              <input type="range" id="tester-size" min="42" max="96" value="68" step="1">
+            </label>
+            <button type="button" class="tester-toggle" id="tester-kerning" aria-pressed="true">
+              <span class="tester-toggle-label">Kerning</span>
+              <span class="tester-toggle-state">On</span>
+            </button>
           </div>
           <div
             id="specimen-display"
@@ -153,7 +182,7 @@
   <div class="about-modal" id="about-modal" aria-modal="true" role="dialog" aria-labelledby="about-modal-title" hidden>
     <div class="about-modal-panel">
       <div class="about-modal-header">
-        <span id="about-modal-title">About The Mark</span>
+        <span id="about-modal-title">About The Foundry</span>
         <button type="button" class="about-modal-close" id="about-close" aria-label="Close about modal">×</button>
       </div>
       <div class="about-modal-body">
@@ -162,7 +191,19 @@
         </div>
         <div class="about-modal-copy">
           <p class="about-modal-intro">
-            FDRY is constructed from four institutional terms. Each letter has its own emblem, and the full logo acts as a registry of those emblems under one mark.
+            This project began as a nine-week research study of licensing, authorship, and control in typography. During that research, I kept returning to how licensing law shapes who can access form, who can distribute it, and who gets to decide what counts as legitimate use.
+          </p>
+          <p class="about-modal-intro">
+            I also read <i>In Their Own Language</i> by Bryce Wilner, and the project grew from that research into a deliberately overbuilt font foundry: a system that is so committed to the logic of licensing that it becomes exaggerated, bureaucratic, and almost absurd.
+          </p>
+          <p class="about-modal-intro">
+            The work asks whether digital tools actually democratize design, or whether they simply shift the barrier from economics to technical literacy. It frames typographic form as something controlled, monitored, and negotiated rather than freely available.
+          </p>
+          <p class="about-modal-intro">
+            FDRY stands for four institutional terms under the Foundry license language: F for Foundry, a workshop or factory for casting metal; D for Dominion, the power or right of governing and controlling; R for Registry, an official list or record; and Y for Yield, to surrender or relinquish in deference to another.
+          </p>
+          <p class="about-modal-intro about-modal-disclaimer">
+            This project is a conceptual exploration of typographic licensing, access, and control.
           </p>
           <div class="sp-emblem-list" aria-label="FDRY emblem definitions">
             <article class="sp-emblem-item">

@@ -399,18 +399,18 @@ let _onViolationDecrement = null;   // set by initSpecimen; used for biometric r
 // Global ticker function — set by initTicker; callable from any section
 let tickerAdd = null;
 
-// Pre-render 4 emblem textures at 32×32. Runs once at script load.
+// Pre-render 4 emblem textures at 128×128. Runs once at script load.
 function _initEmblemTextures() {
   emblemTextures = new Array(4).fill(null);
   let loaded = 0;
   EMBLEM_SRCS.forEach((src, i) => {
     const canvas  = document.createElement('canvas');
-    canvas.width  = 32;
-    canvas.height = 32;
+    canvas.width  = 128;
+    canvas.height = 128;
     const ctx = canvas.getContext('2d');
     const img = new Image();
     img.onload = () => {
-      ctx.drawImage(img, 0, 0, 32, 32);
+      ctx.drawImage(img, 0, 0, 128, 128);
       emblemTextures[i] = canvas;
       if (++loaded === 4) emblemTexturesReady = true;
     };
@@ -911,17 +911,17 @@ function buildLoginVerificationGate() {
   grid.appendChild(shade);
 
   const tiles = [
-    { correct: true },
-    { correct: false },
-    { correct: false },
-    { correct: false },
-    { correct: false },
-    { correct: true },
-    { correct: false },
     { correct: false },
     { correct: false },
     { correct: false },
     { correct: true },
+    { correct: false },
+    { correct: true },
+    { correct: false },
+    { correct: false },
+    { correct: false },
+    { correct: true },
+    { correct: false },
     { correct: false },
     { correct: false },
     { correct: false },
@@ -939,7 +939,10 @@ function buildLoginVerificationGate() {
     challengeOpen = true;
     document.body.classList.add('login-gate-open');
     checkbox.classList.add('is-checked');
+    checkbox.classList.add('is-open');
+    checkbox.innerHTML = getLogo(12);
     checkbox.setAttribute('aria-checked', 'true');
+    checkbox.setAttribute('aria-label', 'Foundry signal active');
   }
 
   function unlock() {
@@ -1096,13 +1099,55 @@ function initSpecimen() {
   const display = document.getElementById('specimen-display');
   if (!display) return;
 
+  const trackingInput = document.getElementById('tester-tracking');
+  const trackingValue = document.getElementById('tester-tracking-value');
+  const leadingInput = document.getElementById('tester-leading');
+  const leadingValue = document.getElementById('tester-leading-value');
+  const sizeInput = document.getElementById('tester-size');
+  const sizeValue = document.getElementById('tester-size-value');
+  const kerningToggle = document.getElementById('tester-kerning');
+
   let violationsRemaining = getViolationsFromStorage(tier);
   let sessionChars = tier === 'enterprise' ? getSessionCharsFromStorage() : 0;
   let totalCharsTyped = sessionChars; // running total for enterprise session
   let currentViolationType = null;
 
+  function applyTesterControls() {
+    const tracking = trackingInput ? parseInt(trackingInput.value, 10) : 0;
+    const leading = leadingInput ? parseInt(leadingInput.value, 10) : 108;
+    const size = sizeInput ? parseInt(sizeInput.value, 10) : 68;
+    const kerningOn = !kerningToggle || kerningToggle.getAttribute('aria-pressed') !== 'false';
+
+    display.style.setProperty('--tester-font-size', `${size}px`);
+    display.style.setProperty('--tester-tracking', `${tracking / 1000}em`);
+    display.style.setProperty('--tester-leading', (leading / 100).toFixed(2));
+    display.style.fontKerning = kerningOn ? 'normal' : 'none';
+    display.style.fontFeatureSettings = kerningOn ? '"kern" 1' : '"kern" 0';
+
+    if (trackingValue) trackingValue.textContent = String(tracking);
+    if (leadingValue) leadingValue.textContent = (leading / 100).toFixed(2);
+    if (sizeValue) sizeValue.textContent = String(size);
+    if (kerningToggle) {
+      const stateEl = kerningToggle.querySelector('.tester-toggle-state');
+      if (stateEl) stateEl.textContent = kerningOn ? 'On' : 'Off';
+      kerningToggle.classList.toggle('is-off', !kerningOn);
+    }
+  }
+
+  if (trackingInput) trackingInput.addEventListener('input', applyTesterControls);
+  if (leadingInput) leadingInput.addEventListener('input', applyTesterControls);
+  if (sizeInput) sizeInput.addEventListener('input', applyTesterControls);
+  if (kerningToggle) {
+    kerningToggle.addEventListener('click', () => {
+      const pressed = kerningToggle.getAttribute('aria-pressed') === 'true';
+      kerningToggle.setAttribute('aria-pressed', String(!pressed));
+      applyTesterControls();
+    });
+  }
+
   // Set default specimen text
   display.textContent = tierData.defaultSpecimen;
+  applyTesterControls();
 
   // Copy protection for professional
   if (tierData.blockCopy) {
@@ -1609,7 +1654,7 @@ function buildLicenseInfo(userId, tier, tierData) {
     </div>
     <div class="sp-license-right">
       <p class="sp-license-desc">${DESC[tier] || ''}</p>
-      <a href="upgrade.html" class="sp-license-upgrade-btn js-upgrade-link">Upgrade License →</a>
+      <a href="upgrade.html" class="sp-license-upgrade-btn js-upgrade-link">Upgrade license →</a>
     </div>
   `;
 
@@ -2071,6 +2116,13 @@ function initCheckout() {
   const topLogo = document.getElementById('checkout-top-logo');
   if (topLogo) topLogo.innerHTML = getLogo(24);
 
+  const cartToggle = document.getElementById('co-cart-toggle');
+  const cartPopover = document.getElementById('co-cart-popover');
+  const cartPopoverBody = document.getElementById('co-cart-popover-body');
+  const cartClose = document.getElementById('co-cart-close');
+  const memberId = getIDFromStorage();
+  const guestMode = !memberId;
+
   // ── Subtitle amounts ────────────────────────────────────────────
   document.querySelectorAll('.js-co-subtotal').forEach(el => {
     el.textContent = `$${total}`;
@@ -2087,23 +2139,81 @@ function initCheckout() {
   if (summaryEl) {
     summaryEl.innerHTML = `
       <div class="co-summary-line">
-        <span>${tierData.name} LICENSE</span>
+        <span>${tierData.name} license</span>
         <span>${rawPrice}</span>
       </div>
       <div class="co-summary-line">
-        <span>PROCESSING FEE</span>
+        <span>Processing fee</span>
         <span>$${feeProc}</span>
       </div>
       <div class="co-summary-line">
-        <span>BIOMETRIC ENROLLMENT</span>
+        <span>Biometric enrollment</span>
         <span>$${feeBio}</span>
       </div>
       <div class="co-summary-line co-summary-total">
-        <span>TOTAL</span>
+        <span>Total</span>
         <span>$${total}/mo</span>
       </div>
     `;
   }
+
+  if (cartPopoverBody) {
+    cartPopoverBody.innerHTML = `
+      <div class="co-cart-summary-line">
+        <span>Tier</span>
+        <span>${tierData.name}</span>
+      </div>
+      <div class="co-cart-summary-line">
+        <span>License</span>
+        <span>${rawPrice}</span>
+      </div>
+      <div class="co-cart-summary-line">
+        <span>Fees</span>
+        <span>$${feeProc + feeBio}</span>
+      </div>
+      <div class="co-cart-summary-line">
+        <span>Total</span>
+        <span>$${total}/mo</span>
+      </div>
+      <div class="co-cart-summary-note">
+        ${guestMode ? 'No membership ID detected. Proceeding as guest access.' : `Membership ID ${memberId} recognized.`}
+      </div>
+    `;
+  }
+
+  function closeCart() {
+    if (!cartPopover || !cartToggle) return;
+    cartPopover.hidden = true;
+    cartToggle.setAttribute('aria-expanded', 'false');
+  }
+
+  function openCart() {
+    if (!cartPopover || !cartToggle) return;
+    cartPopover.hidden = false;
+    cartToggle.setAttribute('aria-expanded', 'true');
+  }
+
+  if (cartToggle && cartPopover) {
+    cartToggle.addEventListener('click', () => {
+      if (cartPopover.hidden) openCart();
+      else closeCart();
+    });
+  }
+
+  if (cartClose) {
+    cartClose.addEventListener('click', closeCart);
+  }
+
+  document.addEventListener('click', (e) => {
+    if (!cartPopover || !cartToggle) return;
+    if (cartPopover.hidden) return;
+    if (cartPopover.contains(e.target) || cartToggle.contains(e.target)) return;
+    closeCart();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeCart();
+  });
 
   // ── Step state ──────────────────────────────────────────────────
   let currentStep = 0;
@@ -2295,8 +2405,8 @@ function initWordmark() {
 
 document.addEventListener('DOMContentLoaded', () => {
   const page = document.body.id;
-  // Wordmark column on all pages EXCEPT login, license, and checkout
-  if (page !== 'login' && page !== 'license' && page !== 'checkout' && page !== 'not-found') initWordmark();
+  // Wordmark column on all pages EXCEPT login, license, checkout, upgrade, and 404
+  if (page !== 'login' && page !== 'license' && page !== 'checkout' && page !== 'upgrade' && page !== 'not-found') initWordmark();
 
   const routes = {
     login: initLogin,

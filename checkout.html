@@ -15,13 +15,27 @@
       <span id="checkout-top-logo"></span>
       THE FOUNDRY™
     </a>
-    <span class="co-topbar-cart">VIEW CART (1)</span>
+    <button
+      type="button"
+      class="co-topbar-cart"
+      id="co-cart-toggle"
+      aria-expanded="false"
+      aria-controls="co-cart-popover"
+    >
+      VIEW CART (1)
+    </button>
   </header>
 
   <!-- Page header -->
   <div class="co-page-header">
-    <h1 class="co-page-heading">Checkout</h1>
-    <div class="co-page-subtotal">Order Subtotal: <span class="js-co-subtotal">—</span>/mo</div>
+    <div class="co-page-header-left">
+      <p class="co-page-kicker">Record 04 / Checkout</p>
+      <h1 class="co-page-heading">Checkout</h1>
+    </div>
+    <div class="co-page-header-right">
+      <div class="co-page-subtotal">Order Subtotal: <span class="js-co-subtotal">—</span>/mo</div>
+      <div class="co-page-note">Guest checkout is available without a membership ID.</div>
+    </div>
   </div>
 
   <!-- Two-column layout -->
@@ -177,10 +191,18 @@
         <!-- populated by JS -->
       </div>
       <p class="co-summary-legal">By proceeding, you authorize The Foundry to charge this amount and any future renewal amounts to your card on file.</p>
-      <p class="co-summary-help">NEED HELP? Contact your assigned Foundry Representative.</p>
+      <p class="co-summary-help">Need help? Contact your assigned Foundry representative.</p>
     </div>
 
   </div><!-- /co-layout -->
+
+  <div class="co-cart-popover" id="co-cart-popover" hidden aria-label="Cart summary">
+    <div class="co-cart-popover-head">
+      <span class="co-cart-popover-title">Cart</span>
+      <button type="button" class="co-cart-popover-close" id="co-cart-close" aria-label="Close cart">×</button>
+    </div>
+    <div class="co-cart-popover-body" id="co-cart-popover-body"></div>
+  </div>
 
   <footer class="site-footer" style="margin-top:auto;">
     <span class="footer-copy">
