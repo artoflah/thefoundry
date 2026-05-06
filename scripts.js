@@ -894,9 +894,10 @@ function runCardReveal() {
 function buildLoginVerificationGate() {
   const grid = document.getElementById('login-gate-grid');
   const status = document.getElementById('login-gate-status');
+  const checkbox = document.getElementById('login-gate-checkbox');
   const formInput = document.getElementById('login-input');
   const gate = document.getElementById('login-gate');
-  if (!grid || !status || !formInput || !gate) return;
+  if (!grid || !status || !checkbox || !formInput || !gate) return;
 
   const image = document.createElement('img');
   image.className = 'login-gate-image';
@@ -930,15 +931,27 @@ function buildLoginVerificationGate() {
 
   const selected = new Set();
   const correctCount = tiles.filter(t => t.correct).length;
+  let challengeOpen = false;
   let unlocked = false;
+
+  function openChallenge() {
+    if (challengeOpen || unlocked) return;
+    challengeOpen = true;
+    document.body.classList.add('login-gate-open');
+    checkbox.classList.add('is-checked');
+    checkbox.setAttribute('aria-checked', 'true');
+  }
 
   function unlock() {
     if (unlocked) return;
     unlocked = true;
     document.body.classList.add('login-unlocked');
+    openChallenge();
     status.textContent = 'Verification complete. Enter membership ID.';
     setTimeout(() => formInput.focus(), 180);
   }
+
+  checkbox.addEventListener('click', openChallenge);
 
   tiles.forEach((tileData, index) => {
     const btn = document.createElement('button');

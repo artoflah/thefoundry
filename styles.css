@@ -65,6 +65,7 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  cursor: url('assets/cursor.png') 67 67, auto;
 }
 
 a {
@@ -90,6 +91,14 @@ button {
 
 input, textarea {
   font-family: var(--font-licensed);
+  cursor: text;
+}
+
+a,
+button,
+[role="button"],
+select {
+  cursor: url('assets/cursor.png') 67 67, pointer;
 }
 
 /* === SHARED TYPOGRAPHY ======================================== */
@@ -214,32 +223,59 @@ body#login {
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  gap: var(--space-32);
-  padding: var(--space-64) var(--space-32);
+  gap: var(--space-24);
+  padding: var(--space-48) var(--space-32);
 }
 
 /* Verification gate */
 .login-gate {
-  width: min(760px, 100%);
+  width: min(318px, 100%);
   display: flex;
   flex-direction: column;
-  gap: var(--space-16);
+  gap: var(--space-8);
+  padding: var(--space-8);
+  background: var(--white);
+  border: var(--rule);
+  box-shadow: 10px 10px 0 var(--black);
 }
 
 .login-gate-head {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--space-24);
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-12);
+  background: var(--black);
+  color: var(--white);
+  border: var(--rule);
+  border-bottom: none;
 }
 
+.login-gate-kicker,
 .login-gate-copy,
 .login-gate-status {
   font-family: monospace;
   font-size: 9px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: #777;
+  color: inherit;
+}
+
+.login-gate-kicker {
+  opacity: 0.7;
+}
+
+.login-gate-copy {
+  line-height: 1.35;
+}
+
+.login-gate-launch {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-8);
+  padding: var(--space-12);
+  border: var(--rule);
+  background: var(--white);
 }
 
 .login-gate-grid {
@@ -248,11 +284,28 @@ body#login {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0;
   width: 100%;
-  aspect-ratio: 1 / 0.78;
-  max-height: 58vh;
+  aspect-ratio: 1 / 1;
+  max-height: 296px;
   border: var(--rule);
   background: var(--white);
   overflow: hidden;
+}
+
+.login-gate-challenge {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transform: translateY(-2px);
+  transition: max-height 220ms ease, opacity 180ms ease, transform 180ms ease;
+}
+
+body.login-gate-open .login-gate-challenge {
+  max-height: 360px;
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .login-gate-image {
@@ -274,8 +327,8 @@ body#login {
 
 .login-gate-tile {
   position: relative;
-  border-right: 1px solid rgba(0,0,0,0.68);
-  border-bottom: 1px solid rgba(0,0,0,0.68);
+  border-right: 1px solid rgba(0,0,0,0.72);
+  border-bottom: 1px solid rgba(0,0,0,0.72);
   background: transparent;
   cursor: pointer;
   padding: 0;
@@ -308,7 +361,66 @@ body#login {
 
 .login-gate-footer {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
+  gap: var(--space-8);
+  border-top: var(--rule);
+  padding: var(--space-8) var(--space-4) var(--space-4);
+}
+
+.login-gate-launch-brand {
+  font-family: monospace;
+  font-size: 8px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: #9a9a9a;
+  justify-self: end;
+}
+
+.login-gate-checkbox {
+  width: 16px;
+  height: 16px;
+  border: 1px solid #8a8a8a;
+  background: var(--white);
+  position: relative;
+  flex-shrink: 0;
+}
+
+.login-gate-checkbox::after {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  background: transparent;
+}
+
+.login-gate-checkbox.is-checked {
+  border-color: var(--black);
+}
+
+.login-gate-checkbox.is-checked::after {
+  content: '✓';
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  line-height: 1;
+  color: var(--black);
+}
+
+.login-gate-check-copy {
+  flex: 1;
+  font-family: monospace;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: none;
+  color: var(--black);
+  line-height: 1.35;
+  min-width: 0;
+}
+
+.login-gate-status {
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 /* Logo — small, centered */
