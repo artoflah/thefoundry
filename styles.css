@@ -1091,13 +1091,6 @@ body#license .page-wrap {
   justify-content: space-between;
 }
 
-.specimen-char-info {
-  font-size: 9px;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  color: #999;
-}
-
 .specimen-char-count {
   font-size: 9px;
   letter-spacing: 0.15em;
@@ -1888,9 +1881,12 @@ body#specimen .specimen-wrap {
 }
 
 .sp-section-inner {
-  max-width: 900px;
   margin: 0 auto;
   padding: 0 var(--space-32);
+}
+
+#section-license .sp-section-inner {
+  max-width: 900px;
 }
 
 .sp-section-label {
@@ -1927,7 +1923,7 @@ body#specimen .specimen-wrap {
 #section-charmap {
   min-height: calc(100vh - 52px);
   padding-top: var(--space-16);
-  padding-bottom: var(--space-16);
+  padding-bottom: 60px;
 }
 
 .sp-section-inner--charmap {
@@ -1949,7 +1945,7 @@ body#specimen .specimen-wrap {
   gap: var(--space-16);
   padding-left: 0;
   padding-right: 0;
-  padding-top: var(--space-16);
+  padding-top: 50px;
   margin-bottom: 0;
   flex-shrink: 0;
 }
@@ -2121,13 +2117,13 @@ body#specimen .specimen-wrap {
 #section-charmap .sp-section-label {
   display: inline-flex;
   min-height: 0;
-  margin-bottom: 6px;
+  margin-bottom: 25px;
   padding-left: 0;
   padding-right: 0;
 }
 
 #section-charmap .sp-section-heading {
-  margin-bottom: 0;
+  margin-bottom: 30px;
   line-height: 0.92;
   max-width: 760px;
   padding-left: 0;
@@ -3031,7 +3027,6 @@ body.violation-alert-active .violation-popup .popup-violation-text {
 .card-date-line,
 .hud-stat-label,
 .specimen-pre-label,
-.specimen-char-info,
 .specimen-char-count,
 .specimen-tier-info,
 .specimen-upgrade-link,
@@ -4541,7 +4536,6 @@ body#enterprise-application .page-wrap {
 .card-date-line,
 .hud-stat-label,
 .specimen-pre-label,
-.specimen-char-info,
 .specimen-char-count,
 .specimen-tier-info,
 .specimen-upgrade-link,
