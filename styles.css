@@ -1932,8 +1932,8 @@ body#specimen .specimen-wrap {
 
 .sp-section-inner--charmap {
   max-width: none;
-  padding-left: var(--space-16);
-  padding-right: var(--space-24);
+  padding-left: var(--space-32);
+  padding-right: var(--space-32);
   height: auto;
   min-height: calc(100vh - 84px);
   display: flex;
@@ -1947,8 +1947,8 @@ body#specimen .specimen-wrap {
   align-items: end;
   justify-content: space-between;
   gap: var(--space-16);
-  padding-left: 6px;
-  padding-right: 6px;
+  padding-left: 0;
+  padding-right: 0;
   padding-top: var(--space-16);
   margin-bottom: 0;
   flex-shrink: 0;
@@ -3265,12 +3265,15 @@ body#license .page-wrap { padding-left: var(--wordmark-w); }
   border-bottom: var(--rule);
 }
 
+.tester-shell {
+  margin-left: 50px;
+}
+
 .tester-layout {
   display: grid;
   grid-template-columns: minmax(220px, 250px) minmax(0, 1fr);
   gap: var(--space-24);
   align-items: start;
-  margin-left: 50px;
 }
 .tester-stage {
   min-width: 0;
@@ -4647,9 +4650,11 @@ button,
 }
 
 @media (max-width: 1100px) {
+  .tester-shell {
+    margin-left: 0;
+  }
   .tester-layout {
     grid-template-columns: 1fr;
-    margin-left: 0;
   }
   .tester-frame {
     grid-template-columns: 1fr;
@@ -4668,9 +4673,11 @@ button,
 }
 
 @media (max-width: 600px) {
+  .tester-shell {
+    margin-left: 0;
+  }
   .tester-layout {
     grid-template-columns: 1fr;
-    margin-left: 0;
   }
   .tester-frame {
     grid-template-columns: 1fr;
