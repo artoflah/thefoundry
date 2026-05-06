@@ -911,7 +911,7 @@ function buildLoginVerificationGate() {
   grid.appendChild(shade);
 
   // Edit the answer key here as row-column pairs, 1-based.
-  const correctTiles = new Set(['1-4', '2-2', '2-3', '4-4']);
+  const correctTiles = new Set(['2-2', '2-3', '4-4','4-1']);
   const tiles = Array.from({ length: 16 }, (_, index) => {
     const row = Math.floor(index / 4) + 1;
     const col = (index % 4) + 1;
