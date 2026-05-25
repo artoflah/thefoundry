@@ -1983,6 +1983,7 @@ body#specimen .specimen-wrap {
   position: relative;
   flex: 1;
   min-height: 260px;
+  --sp-glyph-size: min(34vh, 280px);
   border-bottom: var(--rule);
   display: grid;
   place-items: center;
@@ -2000,7 +2001,7 @@ body#specimen .specimen-wrap {
   inset: 0;
   font-family: var(--font-licensed);
   font-variation-settings: 'wght' 60, 'wdth' 80;
-  font-size: min(34vh, 280px);
+  font-size: var(--sp-glyph-size);
   line-height: 1;
   color: var(--black);
   display: flex;
@@ -2018,12 +2019,12 @@ body#specimen .specimen-wrap {
 }
 
 .sp-glyph-guide--cap {
-  top: 109px;
+  top: calc(50% - (var(--sp-glyph-size) * 0.336));
   border-top: 1px dashed #777;
 }
 
 .sp-glyph-guide--baseline {
-  top: 200px;
+  top: calc(50% + (var(--sp-glyph-size) * 0.416));
   bottom: auto;
   border-top: 1px solid var(--red);
 }
@@ -2926,6 +2927,12 @@ body.violation-alert-active .violation-popup .popup-violation-text {
 
 .enterprise-app-success {
   max-width: 600px;
+  min-height: calc(100vh - 52px);
+  margin: 0 auto;
+  padding: var(--space-64) 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .enterprise-app-success-body {
