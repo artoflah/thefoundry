@@ -1985,9 +1985,8 @@ body#specimen .specimen-wrap {
   min-height: 260px;
   --sp-glyph-size: min(34vh, 280px);
   --sp-glyph-shift: 0.14;
-  --sp-glyph-measure-offset: 0.31;
-  --sp-cap-line-y: calc(50% - (var(--sp-glyph-size) * 0.336));
-  --sp-baseline-y: calc(50% + (var(--sp-glyph-size) * 0.416));
+  --sp-cap-line-y: 41.5%;
+  --sp-baseline-y: 77%;
   border-bottom: var(--rule);
   display: grid;
   place-items: center;
