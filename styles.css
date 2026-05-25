@@ -1984,6 +1984,10 @@ body#specimen .specimen-wrap {
   flex: 1;
   min-height: 260px;
   --sp-glyph-size: min(34vh, 280px);
+  --sp-glyph-shift: 0.14;
+  --sp-glyph-measure-offset: 0.31;
+  --sp-cap-line-y: calc(50% - (var(--sp-glyph-size) * 0.336));
+  --sp-baseline-y: calc(50% + (var(--sp-glyph-size) * 0.416));
   border-bottom: var(--rule);
   display: grid;
   place-items: center;
@@ -2007,7 +2011,7 @@ body#specimen .specimen-wrap {
   display: flex;
   align-items: center;
   justify-content: center;
-  transform: translateY(14%);
+  transform: translateY(calc(var(--sp-glyph-shift) * 100%));
   z-index: 1;
 }
 
@@ -2019,12 +2023,12 @@ body#specimen .specimen-wrap {
 }
 
 .sp-glyph-guide--cap {
-  top: calc(50% - (var(--sp-glyph-size) * 0.336));
+  top: var(--sp-cap-line-y);
   border-top: 1px dashed #777;
 }
 
 .sp-glyph-guide--baseline {
-  top: calc(50% + (var(--sp-glyph-size) * 0.416));
+  top: var(--sp-baseline-y);
   bottom: auto;
   border-top: 1px solid var(--red);
 }

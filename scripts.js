@@ -1487,6 +1487,31 @@ function buildCharMap(tier, tierData) {
   const detailHtml = document.getElementById('glyph-detail-html');
   const detailName = document.getElementById('glyph-detail-name');
   const detailAccess = document.getElementById('glyph-detail-access');
+  const detailWrap = detailChar?.closest('.sp-glyph-display-wrap');
+  const glyphMeasureCanvas = document.createElement('canvas');
+  const glyphMeasureContext = glyphMeasureCanvas.getContext('2d');
+
+  function updateGlyphGuides(char) {
+    if (!detailWrap || !detailChar || !glyphMeasureContext) return;
+
+    const styles = window.getComputedStyle(detailChar);
+    const fontSize = parseFloat(styles.fontSize);
+    if (!Number.isFinite(fontSize)) return;
+
+    glyphMeasureContext.font = `${styles.fontStyle} ${styles.fontWeight} ${fontSize}px ${styles.fontFamily}`;
+    const metrics = glyphMeasureContext.measureText(char || detailChar.textContent || 'H');
+    const ascent = metrics.actualBoundingBoxAscent || fontSize * 0.76;
+    const descent = metrics.actualBoundingBoxDescent || 0;
+    const wrapStyles = window.getComputedStyle(detailWrap);
+    const shift = parseFloat(wrapStyles.getPropertyValue('--sp-glyph-shift')) || 0;
+    const measureOffset = parseFloat(wrapStyles.getPropertyValue('--sp-glyph-measure-offset')) || 0;
+    const glyphCenter = detailWrap.clientHeight / 2 + fontSize * (shift + measureOffset);
+    const capLine = glyphCenter - ((ascent + descent) / 2);
+    const baseline = glyphCenter + ((ascent - descent) / 2);
+
+    detailWrap.style.setProperty('--sp-cap-line-y', `${capLine.toFixed(2)}px`);
+    detailWrap.style.setProperty('--sp-baseline-y', `${baseline.toFixed(2)}px`);
+  }
 
   function minTier(char) {
     if ('abcdefghijklmnopqrstuvwxyz.'.includes(char))       return 'basic';
@@ -1534,7 +1559,10 @@ function buildCharMap(tier, tierData) {
       activeGlyphCell = sourceCell;
       activeGlyphCell.classList.add('is-active');
     }
-    if (detailChar) detailChar.textContent = char;
+    if (detailChar) {
+      detailChar.textContent = char;
+      requestAnimationFrame(() => updateGlyphGuides(char));
+    }
     if (detailUnicode) detailUnicode.textContent = `U+${code}`;
     if (detailHtml) detailHtml.textContent = `&#x${code};`;
     if (detailName) detailName.textContent = char;
@@ -1592,6 +1620,11 @@ function buildCharMap(tier, tierData) {
 
   const initialChar = glyphs.includes('a') ? 'a' : glyphs[0];
   updateGlyphDetail(initialChar, minTier(initialChar), tierIdx >= TIER_ORDER.indexOf(minTier(initialChar)), preferredGlyphCell || firstGlyphCell);
+
+  if (document.fonts?.ready) {
+    document.fonts.ready.then(() => updateGlyphGuides(detailChar?.textContent || initialChar));
+  }
+  window.addEventListener('resize', () => updateGlyphGuides(detailChar?.textContent || initialChar));
 }
 
 function showGlyphInterestModal() {
